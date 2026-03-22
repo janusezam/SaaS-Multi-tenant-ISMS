@@ -1,13 +1,14 @@
 <?php
 
-use App\Http\Middleware\CheckRole;
-use App\Http\Middleware\CheckPlan;
 use App\Http\Middleware\AuthenticateSuperAdmin;
+use App\Http\Middleware\CheckPlan;
+use App\Http\Middleware\CheckRole;
+use App\Http\Middleware\EnsureTenantPasswordIsUpdated;
 use App\Http\Middleware\EnsureTenantSubscriptionIsActive;
-use Illuminate\Http\Request;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Request;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -21,6 +22,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'check.plan' => CheckPlan::class,
             'auth.super_admin' => AuthenticateSuperAdmin::class,
             'tenant.subscription' => EnsureTenantSubscriptionIsActive::class,
+            'tenant.password.updated' => EnsureTenantPasswordIsUpdated::class,
         ]);
 
         $middleware->redirectGuestsTo(function (Request $request): string {

@@ -7,6 +7,22 @@
 
         <title>{{ config('app.name', 'Laravel') }}</title>
 
+        <script>
+            (function () {
+                var storageKey = 'isms-theme';
+                var savedTheme = null;
+
+                try {
+                    savedTheme = localStorage.getItem(storageKey);
+                } catch (e) {
+                    savedTheme = null;
+                }
+
+                var resolvedTheme = savedTheme || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+                document.documentElement.setAttribute('data-theme', resolvedTheme);
+            })();
+        </script>
+
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
@@ -15,22 +31,46 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body class="isms-theme antialiased">
-        <div class="min-h-screen bg-transparent">
-            @include('layouts.navigation')
+        @if (tenant() !== null)
+            <div class="md:hidden">
+                @include('layouts.navigation')
+            </div>
 
-            <!-- Page Heading -->
-            @isset($header)
-                <header class="relative z-10 border-b border-white/10 bg-slate-950/50 shadow-lg shadow-slate-950/40 backdrop-blur">
-                    <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-                        {{ $header }}
-                    </div>
-                </header>
-            @endisset
+            <div class="isms-shell min-h-screen md:flex">
+                @include('layouts.tenant-sidebar')
 
-            <!-- Page Content -->
-            <main>
-                {{ $slot }}
-            </main>
-        </div>
+                <div class="flex-1 min-w-0">
+                    @isset($header)
+                        <header class="isms-header relative z-10 border-b shadow-lg shadow-slate-950/20">
+                            <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+                                {{ $header }}
+                            </div>
+                        </header>
+                    @endisset
+
+                    <main>
+                        {{ $slot }}
+                    </main>
+                </div>
+            </div>
+        @else
+            <div class="isms-shell min-h-screen">
+                @include('layouts.navigation')
+
+                <!-- Page Heading -->
+                @isset($header)
+                    <header class="isms-header relative z-10 border-b shadow-lg shadow-slate-950/20">
+                        <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+                            {{ $header }}
+                        </div>
+                    </header>
+                @endisset
+
+                <!-- Page Content -->
+                <main>
+                    {{ $slot }}
+                </main>
+            </div>
+        @endif
     </body>
 </html>

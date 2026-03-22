@@ -1,4 +1,4 @@
-@props(['align' => 'right', 'width' => '48', 'contentClasses' => 'py-1 bg-slate-950 border border-cyan-300/30 shadow-2xl'])
+@props(['align' => 'right', 'width' => '48', 'contentClasses' => 'isms-menu-panel py-1 border shadow-2xl'])
 
 @php
 $alignmentClasses = match ($align) {

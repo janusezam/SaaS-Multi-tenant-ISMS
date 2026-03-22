@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="text-2xl font-semibold text-slate-100">Create University Tenant</h2>
+        <h2 class="text-2xl font-semibold text-slate-100">Create School Tenant</h2>
     </x-slot>
 
     <div class="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
@@ -9,7 +9,7 @@
                 @csrf
 
                 <div>
-                    <label class="mb-2 block text-sm text-slate-300" for="name">University Name</label>
+                    <label class="mb-2 block text-sm text-slate-300" for="name">School Name</label>
                     <input id="name" name="name" value="{{ old('name') }}" class="w-full rounded-xl border border-white/10 bg-slate-950/60 text-slate-100" required />
                     @error('name')<p class="mt-1 text-xs text-rose-300">{{ $message }}</p>@enderror
                 </div>
@@ -33,6 +33,10 @@
                         @error('tenant_admin_email')<p class="mt-1 text-xs text-rose-300">{{ $message }}</p>@enderror
                     </div>
                 </div>
+
+                <p class="rounded-xl border border-cyan-300/20 bg-cyan-500/10 px-3 py-2 text-xs text-cyan-100">
+                    A secure invite link will be emailed to the tenant admin to set their password.
+                </p>
 
                 <div>
                     <label class="mb-2 block text-sm text-slate-300" for="subdomain">Subdomain</label>
@@ -66,7 +70,7 @@
 
                 <div class="flex gap-3">
                     <button type="submit" class="rounded-xl border border-cyan-300/40 bg-cyan-500/20 px-4 py-2 text-sm font-medium text-cyan-100 hover:bg-cyan-500/30">
-                        Create University
+                        Create School
                     </button>
                     <a href="{{ route('central.universities.index') }}" class="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-slate-200 hover:bg-white/10">
                         Cancel

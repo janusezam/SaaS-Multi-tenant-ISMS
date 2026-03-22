@@ -7,7 +7,7 @@
             </div>
             <div class="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-slate-200">
                 <span class="h-2 w-2 rounded-full bg-emerald-400"></span>
-                University Status: Active
+                School Status: Active
             </div>
         </div>
     </x-slot>
@@ -34,7 +34,7 @@
 
                 <div class="mt-8 rounded-2xl border border-cyan-400/25 bg-cyan-500/10 p-4">
                     <p class="text-xs uppercase tracking-[0.2em] text-cyan-300/80">Current Plan</p>
-                    <p class="mt-2 text-lg font-semibold text-cyan-100">Pro University</p>
+                    <p class="mt-2 text-lg font-semibold text-cyan-100">Pro School</p>
                     <p class="mt-1 text-sm text-cyan-100/70">Analytics, brackets, and exports are unlocked.</p>
                 </div>
             </aside>
@@ -72,7 +72,7 @@
                         <div class="mt-4 rounded-2xl border border-white/10 bg-slate-950/50 p-4">
                             <div class="grid gap-4 sm:grid-cols-2">
                                 <div>
-                                    <p class="text-sm text-slate-300">University Main Court</p>
+                                    <p class="text-sm text-slate-300">School Main Court</p>
                                     <p class="mt-1 text-2xl font-semibold text-cyan-200">31,250 visits</p>
                                 </div>
                                 <div class="space-y-2 text-sm text-slate-300">

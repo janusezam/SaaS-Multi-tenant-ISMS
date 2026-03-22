@@ -6,7 +6,7 @@
                 <h2 class="text-2xl font-semibold text-slate-100">Subscription Notification Logs</h2>
             </div>
             <a href="{{ route('central.universities.index') }}" class="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-slate-200 hover:bg-white/10">
-                Back to Universities
+                Back to Schools
             </a>
         </div>
     </x-slot>
@@ -44,12 +44,12 @@
 
             <div>
                 <label for="from_date" class="mb-1 block text-xs text-slate-300">From Date</label>
-                <input id="from_date" type="date" name="from_date" value="{{ request('from_date') }}" class="w-full rounded-xl border border-white/10 bg-slate-950/60 text-slate-100" style="color-scheme: dark;" />
+                <input id="from_date" type="date" name="from_date" value="{{ request('from_date') }}" class="w-full rounded-xl border border-white/10 bg-slate-950/60 text-slate-100" />
             </div>
 
             <div>
                 <label for="to_date" class="mb-1 block text-xs text-slate-300">To Date</label>
-                <input id="to_date" type="date" name="to_date" value="{{ request('to_date') }}" class="w-full rounded-xl border border-white/10 bg-slate-950/60 text-slate-100" style="color-scheme: dark;" />
+                <input id="to_date" type="date" name="to_date" value="{{ request('to_date') }}" class="w-full rounded-xl border border-white/10 bg-slate-950/60 text-slate-100" />
             </div>
 
             <div class="flex items-end gap-2">

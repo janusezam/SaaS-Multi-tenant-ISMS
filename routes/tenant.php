@@ -2,15 +2,17 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Tenant\DashboardController;
+use App\Http\Controllers\Tenant\ForcePasswordController;
 use App\Http\Controllers\Tenant\GameController;
 use App\Http\Controllers\Tenant\PlayerController;
 use App\Http\Controllers\Tenant\ProFeatureController;
 use App\Http\Controllers\Tenant\SportController;
 use App\Http\Controllers\Tenant\StandingsController;
 use App\Http\Controllers\Tenant\TeamController;
+use App\Http\Controllers\Tenant\TenantAdminInviteController;
 use App\Http\Controllers\Tenant\VenueController;
-use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use Illuminate\Support\Facades\Route;
 use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
 use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
@@ -40,13 +42,19 @@ Route::middleware([
     Route::middleware('guest')->group(function () {
         Route::get('/app/login', [AuthenticatedSessionController::class, 'create'])->name('tenant.login');
         Route::post('/app/login', [AuthenticatedSessionController::class, 'store'])->name('tenant.login.store');
+
+        Route::get('/app/admin-invite/{token}', [TenantAdminInviteController::class, 'edit'])->name('tenant.admin-invite.edit');
+        Route::post('/app/admin-invite', [TenantAdminInviteController::class, 'update'])->name('tenant.admin-invite.update');
     });
 
     Route::middleware('auth')->group(function () {
         Route::post('/app/logout', [AuthenticatedSessionController::class, 'destroy'])->name('tenant.logout');
+
+        Route::get('/app/force-password', [ForcePasswordController::class, 'edit'])->name('tenant.force-password.edit');
+        Route::put('/app/force-password', [ForcePasswordController::class, 'update'])->name('tenant.force-password.update');
     });
 
-    Route::middleware(['auth', 'verified'])->group(function () {
+    Route::middleware(['auth', 'tenant.password.updated', 'verified'])->group(function () {
         Route::get('/app/dashboard', [DashboardController::class, 'index'])->name('tenant.dashboard');
         Route::get('/app/standings', [StandingsController::class, 'index'])->name('tenant.standings.index');
 

@@ -1,7 +1,7 @@
 <?php
 
-use App\Models\University;
 use App\Models\SuperAdmin;
+use App\Models\University;
 use App\Models\User;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Str;
@@ -16,7 +16,7 @@ test('authenticated super admin can view university index page', function () {
     $response = $this->actingAs($superAdmin, 'super_admin')->get(route('central.universities.index'));
 
     $response->assertOk();
-    $response->assertSee('University Management');
+    $response->assertSee('School Management');
 });
 
 test('authenticated super admin can create a university tenant', function () {
@@ -191,4 +191,27 @@ test('non super admin cannot access central university management', function () 
     $response = $this->actingAs($user)->get(route('central.universities.index'));
 
     $response->assertRedirect(route('central.login'));
+});
+
+test('creating a university does not require manual tenant admin password entry', function () {
+    Event::fake();
+
+    $superAdmin = SuperAdmin::query()->create([
+        'name' => 'Central Admin',
+        'email' => 'central-admin-password-validation@example.test',
+        'password' => 'password',
+    ]);
+
+    $response = $this->actingAs($superAdmin, 'super_admin')->from(route('central.universities.create'))
+        ->post(route('central.universities.store'), [
+            'name' => 'Validation University',
+            'school_address' => 'Validation District',
+            'tenant_admin_name' => 'Validation Admin',
+            'tenant_admin_email' => 'validation.admin@example.test',
+            'subdomain' => 'validation',
+            'plan' => 'basic',
+        ]);
+
+    $response->assertRedirect(route('central.universities.index'));
+    $response->assertSessionHasNoErrors();
 });

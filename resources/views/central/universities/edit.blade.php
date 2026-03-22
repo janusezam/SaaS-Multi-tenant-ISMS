@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="text-2xl font-semibold text-slate-100">Edit University</h2>
+        <h2 class="text-2xl font-semibold text-slate-100">Edit School</h2>
     </x-slot>
 
     <div class="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
@@ -10,7 +10,7 @@
                 @method('PUT')
 
                 <div>
-                    <label class="mb-2 block text-sm text-slate-300" for="name">University Name</label>
+                    <label class="mb-2 block text-sm text-slate-300" for="name">School Name</label>
                     <input id="name" name="name" value="{{ old('name', $university->name) }}" class="w-full rounded-xl border border-white/10 bg-slate-950/60 text-slate-100" required />
                     @error('name')<p class="mt-1 text-xs text-rose-300">{{ $message }}</p>@enderror
                 </div>
@@ -35,6 +35,10 @@
                     </div>
                 </div>
 
+                <p class="rounded-xl border border-cyan-300/20 bg-cyan-500/10 px-3 py-2 text-xs text-cyan-100">
+                    Changing the tenant admin email automatically sends a fresh invite link.
+                </p>
+
                 <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                     <div>
                         <label class="mb-2 block text-sm text-slate-300" for="plan">Plan</label>
@@ -56,13 +60,13 @@
 
                     <div>
                         <label class="mb-2 block text-sm text-slate-300" for="subscription_starts_at">Subscription Starts</label>
-                        <input id="subscription_starts_at" type="date" name="subscription_starts_at" value="{{ old('subscription_starts_at', $university->subscription_starts_at?->format('Y-m-d')) }}" class="w-full rounded-xl border border-white/10 bg-slate-950/60 text-slate-100" style="color-scheme: dark;" />
+                        <input id="subscription_starts_at" type="date" name="subscription_starts_at" value="{{ old('subscription_starts_at', $university->subscription_starts_at?->format('Y-m-d')) }}" class="w-full rounded-xl border border-white/10 bg-slate-950/60 text-slate-100" />
                         @error('subscription_starts_at')<p class="mt-1 text-xs text-rose-300">{{ $message }}</p>@enderror
                     </div>
 
                     <div>
                         <label class="mb-2 block text-sm text-slate-300" for="expires_at">Expiry</label>
-                        <input id="expires_at" type="date" name="expires_at" value="{{ old('expires_at', $university->expires_at?->format('Y-m-d')) }}" class="w-full rounded-xl border border-white/10 bg-slate-950/60 text-slate-100" style="color-scheme: dark;" />
+                        <input id="expires_at" type="date" name="expires_at" value="{{ old('expires_at', $university->expires_at?->format('Y-m-d')) }}" class="w-full rounded-xl border border-white/10 bg-slate-950/60 text-slate-100" />
                         @error('expires_at')<p class="mt-1 text-xs text-rose-300">{{ $message }}</p>@enderror
                     </div>
                 </div>

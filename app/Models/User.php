@@ -23,6 +23,10 @@ class User extends Authenticatable
         'email',
         'role',
         'password',
+        'must_change_password',
+        'invite_token_hash',
+        'invite_expires_at',
+        'invite_sent_at',
     ];
 
     /**
@@ -45,6 +49,9 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'must_change_password' => 'boolean',
+            'invite_expires_at' => 'datetime',
+            'invite_sent_at' => 'datetime',
         ];
     }
 

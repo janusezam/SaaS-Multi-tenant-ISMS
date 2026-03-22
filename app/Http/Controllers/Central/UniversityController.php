@@ -6,9 +6,16 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Central\ExtendUniversitySubscriptionRequest;
 use App\Http\Requests\Central\StoreUniversityRequest;
 use App\Http\Requests\Central\UpdateUniversityRequest;
+use App\Mail\TenantAdminInviteMail;
 use App\Models\University;
+use App\Models\User;
 use App\Services\Central\SubscriptionNotificationService;
+use Illuminate\Database\QueryException;
+use Illuminate\Database\SQLiteDatabaseDoesNotExistException;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class UniversityController extends Controller
@@ -61,13 +68,21 @@ class UniversityController extends Controller
             'domain' => $validated['tenant_domain'],
         ]);
 
+        $this->syncTenantAdminUser(
+            $university,
+            $validated['tenant_admin_name'],
+            $validated['tenant_admin_email'],
+            $validated['tenant_domain'],
+            true,
+        );
+
         $university->load('domains');
 
         $this->subscriptionNotificationService->send($university, 'plan_started');
 
         return redirect()
             ->route('central.universities.index')
-            ->with('status', 'University created successfully.');
+            ->with('status', 'School created successfully.');
     }
 
     /**
@@ -87,8 +102,22 @@ class UniversityController extends Controller
     {
         $originalPlan = $university->plan;
         $originalStatus = $university->status;
+        $originalAdminEmail = $university->tenant_admin_email;
 
-        $university->update($request->validated());
+        $validated = $request->validated();
+
+        $university->update($validated);
+
+        $tenantDomain = (string) ($university->domains()->value('domain') ?? '');
+
+        $this->syncTenantAdminUser(
+            $university,
+            $validated['tenant_admin_name'],
+            $validated['tenant_admin_email'],
+            $tenantDomain,
+            $originalAdminEmail !== $validated['tenant_admin_email'],
+        );
+
         $university->load('domains');
 
         if ($originalPlan !== $university->plan) {
@@ -109,7 +138,7 @@ class UniversityController extends Controller
 
         return redirect()
             ->route('central.universities.index')
-            ->with('status', 'University updated successfully.');
+            ->with('status', 'School updated successfully.');
     }
 
     /**
@@ -121,7 +150,7 @@ class UniversityController extends Controller
 
         return redirect()
             ->route('central.universities.index')
-            ->with('status', 'University deleted successfully.');
+            ->with('status', 'School deleted successfully.');
     }
 
     /**
@@ -139,7 +168,7 @@ class UniversityController extends Controller
 
         return redirect()
             ->route('central.universities.index')
-            ->with('status', 'University suspended successfully.');
+            ->with('status', 'School suspended successfully.');
     }
 
     /**
@@ -157,7 +186,7 @@ class UniversityController extends Controller
 
         return redirect()
             ->route('central.universities.index')
-            ->with('status', 'University reactivated successfully.');
+            ->with('status', 'School reactivated successfully.');
     }
 
     /**
@@ -179,6 +208,99 @@ class UniversityController extends Controller
 
         return redirect()
             ->route('central.universities.index')
-            ->with('status', 'University subscription extended successfully.');
+            ->with('status', 'School subscription extended successfully.');
+    }
+
+    private function syncTenantAdminUser(
+        University $university,
+        string $name,
+        string $email,
+        string $tenantDomain,
+        bool $forceInvite = false,
+    ): void {
+        $inviteToken = null;
+
+        tenancy()->initialize($university);
+
+        try {
+            if (! Schema::hasTable('users')) {
+                return;
+            }
+
+            $hasMustChangePasswordColumn = Schema::hasColumn('users', 'must_change_password');
+            $hasInviteTokenHashColumn = Schema::hasColumn('users', 'invite_token_hash');
+            $hasInviteExpiresAtColumn = Schema::hasColumn('users', 'invite_expires_at');
+            $hasInviteSentAtColumn = Schema::hasColumn('users', 'invite_sent_at');
+            $supportsInviteToken = $hasInviteTokenHashColumn && $hasInviteExpiresAtColumn;
+
+            $tenantAdmin = User::query()->where('role', 'university_admin')->first();
+
+            $shouldSendInvite = false;
+
+            if ($tenantAdmin === null) {
+                $attributes = [
+                    'name' => $name,
+                    'email' => $email,
+                    'role' => 'university_admin',
+                    'password' => Str::random(40),
+                ];
+
+                if ($hasMustChangePasswordColumn) {
+                    $attributes['must_change_password'] = true;
+                }
+
+                $tenantAdmin = User::query()->create($attributes);
+                $shouldSendInvite = true;
+            } else {
+                $tenantAdmin->update([
+                    'name' => $name,
+                    'email' => $email,
+                ]);
+            }
+
+            if ($supportsInviteToken && ($shouldSendInvite || $forceInvite)) {
+                $inviteToken = Str::random(64);
+
+                $inviteAttributes = [
+                    'invite_token_hash' => hash('sha256', $inviteToken),
+                    'invite_expires_at' => now()->addDays(2),
+                ];
+
+                if ($hasInviteSentAtColumn) {
+                    $inviteAttributes['invite_sent_at'] = now();
+                }
+
+                if ($hasMustChangePasswordColumn) {
+                    $inviteAttributes['must_change_password'] = true;
+                }
+
+                $tenantAdmin->update($inviteAttributes);
+            }
+        } catch (QueryException|SQLiteDatabaseDoesNotExistException) {
+            return;
+        } finally {
+            tenancy()->end();
+        }
+
+        if ($inviteToken !== null && $tenantDomain !== '') {
+            Mail::to($email)->queue(new TenantAdminInviteMail(
+                university: $university,
+                recipientName: $name,
+                inviteUrl: $this->buildTenantAdminInviteUrl($tenantDomain, $inviteToken, $email),
+            ));
+        }
+    }
+
+    private function buildTenantAdminInviteUrl(string $tenantDomain, string $token, string $email): string
+    {
+        $scheme = parse_url((string) config('app.url'), PHP_URL_SCHEME) ?: 'http';
+
+        return sprintf(
+            '%s://%s/app/admin-invite/%s?email=%s',
+            $scheme,
+            $tenantDomain,
+            rawurlencode($token),
+            rawurlencode($email),
+        );
     }
 }

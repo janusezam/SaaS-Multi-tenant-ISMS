@@ -24,7 +24,7 @@ class EnsureTenantSubscriptionIsActive
         $isExpired = $tenant->expires_at !== null && $tenant->expires_at->copy()->endOfDay()->isPast();
 
         if ($tenant->status !== 'active' || $isExpired) {
-            abort(Response::HTTP_LOCKED, 'University subscription is suspended or expired.');
+            abort(Response::HTTP_LOCKED, 'School subscription is suspended or expired.');
         }
 
         return $next($request);

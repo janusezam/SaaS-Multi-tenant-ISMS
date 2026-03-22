@@ -1,4 +1,4 @@
-<nav x-data="{ open: false }" class="relative z-50 overflow-visible border-b border-white/10 bg-slate-950/70 backdrop-blur">
+<nav x-data="{ open: false }" class="isms-nav relative z-50 overflow-visible border-b">
     @php
         $isCentralRequest = request()->routeIs('central.*');
         $dashboardRoute = tenant() !== null
@@ -24,45 +24,45 @@
                 <!-- Navigation Links -->
                 <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
                     <x-nav-link :href="route($dashboardRoute)" :active="request()->routeIs('dashboard') || request()->routeIs('tenant.dashboard')">
-                        <span class="text-slate-200">{{ __('Dashboard') }}</span>
+                        <span class="isms-text">{{ __('Dashboard') }}</span>
                     </x-nav-link>
 
                     @if (tenant() !== null)
                         <x-nav-link :href="route('tenant.sports.index')" :active="request()->routeIs('tenant.sports.*')">
-                            <span class="text-slate-200">Sports</span>
+                            <span class="isms-text">Sports</span>
                         </x-nav-link>
 
                         <x-nav-link :href="route('tenant.venues.index')" :active="request()->routeIs('tenant.venues.*')">
-                            <span class="text-slate-200">Venues</span>
+                            <span class="isms-text">Venues</span>
                         </x-nav-link>
 
                         <x-nav-link :href="route('tenant.teams.index')" :active="request()->routeIs('tenant.teams.*')">
-                            <span class="text-slate-200">Teams</span>
+                            <span class="isms-text">Teams</span>
                         </x-nav-link>
 
                         <x-nav-link :href="route('tenant.players.index')" :active="request()->routeIs('tenant.players.*')">
-                            <span class="text-slate-200">Players</span>
+                            <span class="isms-text">Players</span>
                         </x-nav-link>
 
                         <x-nav-link :href="route('tenant.games.index')" :active="request()->routeIs('tenant.games.*')">
-                            <span class="text-slate-200">Schedules</span>
+                            <span class="isms-text">Schedules</span>
                         </x-nav-link>
 
                         <x-nav-link :href="route('tenant.audits.game-results.index')" :active="request()->routeIs('tenant.audits.game-results.*')">
-                            <span class="text-slate-200">Result Audits</span>
+                            <span class="isms-text">Result Audits</span>
                         </x-nav-link>
 
                         <x-nav-link :href="route('tenant.standings.index')" :active="request()->routeIs('tenant.standings.*')">
-                            <span class="text-slate-200">Standings</span>
+                            <span class="isms-text">Standings</span>
                         </x-nav-link>
 
                         @if (tenant()?->plan === 'pro')
                             <x-nav-link :href="route('tenant.pro.analytics')" :active="request()->routeIs('tenant.pro.analytics')">
-                                <span class="text-slate-200">Analytics</span>
+                                <span class="isms-text">Analytics</span>
                             </x-nav-link>
 
                             <x-nav-link :href="route('tenant.pro.bracket')" :active="request()->routeIs('tenant.pro.bracket')">
-                                <span class="text-slate-200">Bracket</span>
+                                <span class="isms-text">Bracket</span>
                             </x-nav-link>
                         @endif
                     @endif
@@ -71,10 +71,14 @@
 
             <!-- Settings Dropdown -->
             <div class="hidden sm:flex sm:items-center sm:ms-6">
+                <button type="button" data-theme-toggle class="isms-theme-toggle me-3">
+                    <span data-theme-label>Light mode</span>
+                </button>
+
                 <x-dropdown align="right" width="48">
                     <x-slot name="trigger">
-                        <button class="inline-flex items-center px-3 py-2 border border-white/10 text-sm leading-4 font-medium rounded-md text-slate-200 bg-white/5 hover:bg-white/10 focus:outline-none transition ease-in-out duration-150">
-                            <div class="text-slate-100">{{ $authenticatedUser?->name ?? 'Account' }}</div>
+                        <button class="inline-flex items-center px-3 py-2 border isms-theme-toggle focus:outline-none transition ease-in-out duration-150">
+                            <div class="isms-text">{{ $authenticatedUser?->name ?? 'Account' }}</div>
 
                             <div class="ms-1">
                                 <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
@@ -107,7 +111,7 @@
 
             <!-- Hamburger -->
             <div class="-me-2 flex items-center sm:hidden">
-                <button @click="open = ! open" class="inline-flex items-center justify-center p-2 rounded-md text-slate-300 hover:text-white hover:bg-white/10 focus:outline-none focus:bg-white/10 transition duration-150 ease-in-out">
+                <button @click="open = ! open" class="isms-nav-link inline-flex items-center justify-center p-2 rounded-md hover:bg-white/10 focus:outline-none focus:bg-white/10 transition duration-150 ease-in-out">
                     <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
                         <path :class="{'hidden': open, 'inline-flex': ! open }" class="inline-flex" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
                         <path :class="{'hidden': ! open, 'inline-flex': open }" class="hidden" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -119,7 +123,7 @@
 
     <!-- Responsive Navigation Menu -->
     <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden">
-        <div class="pt-2 pb-3 space-y-1 bg-slate-950/70">
+        <div class="isms-menu-panel pt-2 pb-3 space-y-1">
             <x-responsive-nav-link :href="route($dashboardRoute)" :active="request()->routeIs('dashboard') || request()->routeIs('tenant.dashboard')">
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
@@ -166,13 +170,17 @@
         </div>
 
         <!-- Responsive Settings Options -->
-        <div class="pt-4 pb-1 border-t border-white/10 bg-slate-950/70">
+        <div class="isms-menu-panel pt-4 pb-1 border-t">
             <div class="px-4">
-                <div class="font-medium text-base text-slate-100">{{ $authenticatedUser?->name ?? 'Account' }}</div>
-                <div class="font-medium text-sm text-slate-400">{{ $authenticatedUser?->email ?? '' }}</div>
+                <div class="font-medium text-base isms-text">{{ $authenticatedUser?->name ?? 'Account' }}</div>
+                <div class="font-medium text-sm isms-text-muted">{{ $authenticatedUser?->email ?? '' }}</div>
             </div>
 
-            <div class="mt-3 space-y-1">
+            <div class="mt-3 space-y-1 px-4">
+                <button type="button" data-theme-toggle class="isms-theme-toggle w-full">
+                    <span data-theme-label>Light mode</span>
+                </button>
+
                 @if (! $isCentralRequest)
                     <x-responsive-nav-link :href="route('profile.edit')">
                         {{ __('Profile') }}

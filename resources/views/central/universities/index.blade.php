@@ -3,14 +3,14 @@
         <div class="flex items-center justify-between gap-3">
             <div>
                 <p class="text-xs uppercase tracking-[0.2em] text-cyan-300/80">Central App</p>
-                <h2 class="text-2xl font-semibold text-slate-100">University Management</h2>
+                <h2 class="text-2xl font-semibold text-slate-100">School Management</h2>
             </div>
             <div class="flex items-center gap-2">
                 <a href="{{ route('central.subscription-notification-logs.index') }}" class="rounded-xl border border-white/20 bg-white/5 px-4 py-2 text-sm font-medium text-slate-100 hover:bg-white/10">
                     Notification Logs
                 </a>
                 <a href="{{ route('central.universities.create') }}" class="rounded-xl border border-cyan-300/40 bg-cyan-500/20 px-4 py-2 text-sm font-medium text-cyan-100 hover:bg-cyan-500/30">
-                    Add University
+                    Add School
                 </a>
                 <form method="POST" action="{{ route('central.logout') }}">
                     @csrf
@@ -79,7 +79,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="9" class="px-4 py-6 text-center text-slate-400">No universities found.</td>
+                            <td colspan="9" class="px-4 py-6 text-center text-slate-400">No schools found.</td>
                         </tr>
                     @endforelse
                 </tbody>
