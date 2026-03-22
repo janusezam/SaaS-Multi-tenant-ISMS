@@ -35,7 +35,7 @@ Route::middleware([
     PreventAccessFromCentralDomains::class,
     'tenant.subscription',
 ])->group(function () {
-    Route::get('/', function () {
+    Route::get('/app', function () {
         return redirect()->route('tenant.dashboard');
     });
 

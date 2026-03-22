@@ -12,12 +12,6 @@
                 <a href="{{ route('central.universities.create') }}" class="rounded-xl border border-cyan-300/40 bg-cyan-500/20 px-4 py-2 text-sm font-medium text-cyan-100 hover:bg-cyan-500/30">
                     Add School
                 </a>
-                <form method="POST" action="{{ route('central.logout') }}">
-                    @csrf
-                    <button type="submit" class="rounded-xl border border-white/20 bg-white/5 px-4 py-2 text-sm font-medium text-slate-100 hover:bg-white/10">
-                        Logout
-                    </button>
-                </form>
             </div>
         </div>
     </x-slot>

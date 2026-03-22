@@ -8,16 +8,34 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
+use Stancl\Tenancy\Database\Models\Domain;
 
 class AuthenticatedSessionController extends Controller
 {
     /**
      * Display the login view.
      */
-    public function create(): View
+    public function create(Request $request): View|RedirectResponse
     {
         if (tenant() !== null) {
             return view('tenant.auth.login');
+        }
+
+        $centralDomains = collect(config('tenancy.central_domains', []))
+            ->map(fn ($domain): string => trim((string) $domain))
+            ->filter()
+            ->values();
+
+        if ($centralDomains->contains($request->getHost())) {
+            return redirect()->route('central.login');
+        }
+
+        $isTenantDomain = Domain::query()
+            ->where('domain', $request->getHost())
+            ->exists();
+
+        if ($isTenantDomain) {
+            return redirect('/app/login');
         }
 
         return view('auth.login');
