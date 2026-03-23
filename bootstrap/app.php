@@ -9,6 +9,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -35,6 +36,18 @@ return Application::configure(basePath: dirname(__DIR__))
             }
 
             return route('login');
+        });
+
+        $middleware->redirectUsersTo(function (Request $request): string {
+            if (Auth::guard('super_admin')->check()) {
+                return route('central.universities.index');
+            }
+
+            if (tenant() !== null) {
+                return route('tenant.dashboard');
+            }
+
+            return route('dashboard');
         });
     })
     ->withExceptions(function (Exceptions $exceptions): void {

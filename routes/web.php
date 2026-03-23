@@ -1,12 +1,24 @@
 <?php
 
-use App\Http\Controllers\Central\UniversityController;
-use App\Http\Controllers\Central\SubscriptionNotificationLogController;
 use App\Http\Controllers\Central\Auth\AuthenticatedSessionController as CentralAuthenticatedSessionController;
+use App\Http\Controllers\Central\SubscriptionNotificationLogController;
+use App\Http\Controllers\Central\UniversityController;
 use App\Http\Controllers\ProfileController;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Stancl\Tenancy\Database\Models\Domain;
 
-Route::get('/', function () {
+Route::get('/', function (Request $request) {
+    $centralDomains = collect(config('tenancy.central_domains', []))
+        ->map(fn ($domain): string => trim((string) $domain))
+        ->filter()
+        ->values();
+
+    if (! $centralDomains->contains($request->getHost())
+        && Domain::query()->where('domain', $request->getHost())->exists()) {
+        return redirect('/app');
+    }
+
     return view('welcome');
 });
 
