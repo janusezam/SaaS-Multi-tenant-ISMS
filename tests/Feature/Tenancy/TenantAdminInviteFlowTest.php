@@ -9,6 +9,13 @@ use Illuminate\Support\Facades\Schema;
 use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
 use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
 
+function tenantAdminInviteDatabasePath(): string
+{
+    $databaseName = (string) config('tenancy.database.prefix').'tenantinvite-tenant'.(string) config('tenancy.database.suffix');
+
+    return database_path($databaseName);
+}
+
 beforeEach(function () {
     $this->withoutMiddleware([
         InitializeTenancyByDomain::class,
@@ -22,7 +29,7 @@ afterEach(function () {
         tenancy()->end();
     }
 
-    $databasePath = database_path('tenanttenantinvite-tenant');
+    $databasePath = tenantAdminInviteDatabasePath();
 
     if (is_file($databasePath)) {
         @unlink($databasePath);
@@ -31,7 +38,7 @@ afterEach(function () {
 
 function initializeTenantAdminInviteTenant(): void
 {
-    $databasePath = database_path('tenanttenantinvite-tenant');
+    $databasePath = tenantAdminInviteDatabasePath();
 
     if (! is_file($databasePath)) {
         touch($databasePath);

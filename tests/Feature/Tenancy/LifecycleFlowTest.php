@@ -2,14 +2,23 @@
 
 use App\Http\Middleware\EnsureTenantSubscriptionIsActive;
 use App\Models\BracketMatch;
+use App\Models\Game;
 use App\Models\Sport;
 use App\Models\Team;
 use App\Models\University;
 use App\Models\User;
+use App\Models\Venue;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
 use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
+
+function lifecycleTenantDatabasePath(): string
+{
+    $databaseName = (string) config('tenancy.database.prefix').'lifecycle-tenant'.(string) config('tenancy.database.suffix');
+
+    return database_path($databaseName);
+}
 
 beforeEach(function () {
     $this->withoutMiddleware([
@@ -24,7 +33,7 @@ afterEach(function () {
         tenancy()->end();
     }
 
-    $databasePath = database_path('tenantlifecycle-tenant');
+    $databasePath = lifecycleTenantDatabasePath();
 
     if (is_file($databasePath)) {
         @unlink($databasePath);
@@ -33,7 +42,7 @@ afterEach(function () {
 
 function initializeLifecycleTenant(): void
 {
-    $databasePath = database_path('tenantlifecycle-tenant');
+    $databasePath = lifecycleTenantDatabasePath();
 
     if (! is_file($databasePath)) {
         touch($databasePath);
@@ -219,7 +228,7 @@ test('tenant lifecycle flow works from setup to pro bracket and exports', functi
     ]);
     $playerResponse->assertRedirect(route('tenant.players.index'));
 
-    $venueId = \App\Models\Venue::query()->firstOrFail()->id;
+    $venueId = Venue::query()->firstOrFail()->id;
 
     $gameResponse = $this->actingAs($user)->post(route('tenant.games.store'), [
         'sport_id' => $sport->id,
@@ -233,7 +242,7 @@ test('tenant lifecycle flow works from setup to pro bracket and exports', functi
     ]);
     $gameResponse->assertRedirect(route('tenant.games.index'));
 
-    $game = \App\Models\Game::query()->firstOrFail();
+    $game = Game::query()->firstOrFail();
 
     $resultResponse = $this->actingAs($user)->patch(route('tenant.games.result', $game), [
         'status' => 'completed',

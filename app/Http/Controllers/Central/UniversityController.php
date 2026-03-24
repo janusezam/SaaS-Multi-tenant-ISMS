@@ -146,11 +146,28 @@ class UniversityController extends Controller
      */
     public function destroy(University $university): RedirectResponse
     {
-        $university->delete();
+        try {
+            $university->delete();
+        } catch (QueryException $exception) {
+            if (! $this->isMissingTenantDatabaseDropError($exception)) {
+                throw $exception;
+            }
+
+            // The tenant row may already be deleted before the DB drop is attempted.
+            University::query()->whereKey($university->getKey())->delete();
+        }
 
         return redirect()
             ->route('central.universities.index')
             ->with('status', 'School deleted successfully.');
+    }
+
+    private function isMissingTenantDatabaseDropError(QueryException $exception): bool
+    {
+        $errorMessage = strtolower($exception->getMessage());
+
+        return str_contains($errorMessage, "can't drop database")
+            && str_contains($errorMessage, "doesn't exist");
     }
 
     /**
