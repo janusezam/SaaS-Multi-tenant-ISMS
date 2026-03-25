@@ -40,6 +40,14 @@
                 </thead>
                 <tbody class="divide-y divide-white/10 text-slate-200">
                     @forelse ($universities as $university)
+                        @php
+                            $subscription = $university->subscription;
+                            $pendingUpgradeRequest = $university->upgradeRequests->firstWhere('status', 'pending');
+                            $plan = $subscription?->plan ?? $university->plan;
+                            $status = $subscription?->status ?? $university->status;
+                            $startsAt = $subscription?->start_date ?? $university->subscription_starts_at;
+                            $dueDate = $subscription?->due_date ?? $university->expires_at;
+                        @endphp
                         <tr>
                             <td class="px-4 py-3">
                                 <p class="font-medium">{{ $university->name }}</p>
@@ -51,16 +59,35 @@
                             <td class="px-4 py-3">{{ $university->tenant_admin_email ?? 'Not provided' }}</td>
                             <td class="px-4 py-3">
                                 <div class="flex flex-wrap items-center gap-2">
-                                    <span class="rounded-full bg-cyan-500/20 px-2 py-1 text-xs uppercase text-cyan-100">{{ $university->plan }}</span>
-                                    <span class="rounded-full px-2 py-1 text-xs {{ $university->status === 'active' ? 'bg-emerald-500/20 text-emerald-200' : 'bg-amber-500/20 text-amber-200' }}">
-                                        {{ $university->status }}
+                                    <span class="rounded-full bg-cyan-500/20 px-2 py-1 text-xs uppercase text-cyan-100">{{ $plan }}</span>
+                                    <span class="rounded-full px-2 py-1 text-xs {{ $status === 'active' ? 'bg-emerald-500/20 text-emerald-200' : 'bg-amber-500/20 text-amber-200' }}">
+                                        {{ $status }}
                                     </span>
+                                    @if ($pendingUpgradeRequest)
+                                        <span class="rounded-full bg-amber-500/20 px-2 py-1 text-xs text-amber-200">Upgrade Pending</span>
+                                    @endif
                                 </div>
                             </td>
-                            <td class="px-4 py-3">{{ $university->subscription_starts_at?->format('M d, Y') ?? 'Not set' }}</td>
-                            <td class="px-4 py-3">{{ $university->expires_at?->format('M d, Y') ?? 'No expiry' }}</td>
+                            <td class="px-4 py-3">{{ $startsAt?->format('M d, Y') ?? 'Not set' }}</td>
+                            <td class="px-4 py-3">{{ $dueDate?->format('M d, Y') ?? 'No expiry' }}</td>
                             <td class="px-4 py-3">
                                 <div class="flex flex-wrap gap-2">
+                                    @if ($status === 'pending')
+                                        <form method="POST" action="{{ route('central.universities.approve', $university) }}" onsubmit="return confirm('Approve this school and send tenant admin invite?');">
+                                            @csrf
+                                            @method('PATCH')
+                                            <button type="submit" class="rounded-md border border-emerald-300/30 bg-emerald-500/20 px-3 py-1 text-xs text-emerald-100 hover:bg-emerald-500/30">Approve</button>
+                                        </form>
+                                    @endif
+
+                                    @if ($pendingUpgradeRequest)
+                                        <form method="POST" action="{{ route('central.universities.approve-upgrade', $university) }}" onsubmit="return confirm('Approve this Pro upgrade request?');">
+                                            @csrf
+                                            @method('PATCH')
+                                            <button type="submit" class="rounded-md border border-amber-300/30 bg-amber-500/20 px-3 py-1 text-xs text-amber-100 hover:bg-amber-500/30">Approve Upgrade</button>
+                                        </form>
+                                    @endif
+
                                     <a href="{{ route('central.universities.edit', $university) }}" class="rounded-md border border-white/10 bg-white/5 px-3 py-1 text-xs hover:bg-white/10">Edit</a>
 
                                     <form method="POST" action="{{ route('central.universities.destroy', $university) }}" onsubmit="return confirm('Delete this tenant and its database? This cannot be undone.');">

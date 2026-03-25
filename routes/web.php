@@ -1,8 +1,10 @@
 <?php
 
 use App\Http\Controllers\Central\Auth\AuthenticatedSessionController as CentralAuthenticatedSessionController;
+use App\Http\Controllers\Central\PublicSubscriptionController;
 use App\Http\Controllers\Central\SubscriptionNotificationLogController;
 use App\Http\Controllers\Central\UniversityController;
+use App\Http\Controllers\Central\UpgradeRequestController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -19,8 +21,16 @@ Route::get('/', function (Request $request) {
         return redirect('/app');
     }
 
-    return view('welcome');
+    return redirect()->route('public.landing');
 });
+
+Route::get('/landing', [PublicSubscriptionController::class, 'landing'])->name('public.landing');
+
+Route::get('/pricing', [PublicSubscriptionController::class, 'pricing'])->name('public.pricing');
+Route::post('/subscribe', [PublicSubscriptionController::class, 'subscribe'])->name('public.subscribe');
+Route::get('/central/upgrade/request', [UpgradeRequestController::class, 'store'])
+    ->middleware('signed')
+    ->name('central.upgrade.requests.store');
 
 Route::get('/dashboard', function () {
     return view('dashboard');
@@ -54,6 +64,12 @@ Route::prefix('central')->name('central.')->group(function () {
 
         Route::patch('universities/{university}/extend', [UniversityController::class, 'extend'])
             ->name('universities.extend');
+
+        Route::patch('universities/{university}/approve', [UniversityController::class, 'approve'])
+            ->name('universities.approve');
+
+        Route::patch('universities/{university}/approve-upgrade', [UniversityController::class, 'approveUpgrade'])
+            ->name('universities.approve-upgrade');
     });
 });
 

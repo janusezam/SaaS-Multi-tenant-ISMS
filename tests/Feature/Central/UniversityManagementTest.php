@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Subscription;
 use App\Models\SuperAdmin;
 use App\Models\University;
 use App\Models\User;
@@ -62,6 +63,12 @@ test('authenticated super admin can create a university tenant', function () {
         'tenant_id' => 'nsu',
         'domain' => 'nsu.'.$expectedBaseDomain,
     ]);
+
+    $this->assertDatabaseHas('subscriptions', [
+        'tenant_id' => 'nsu',
+        'plan' => 'pro',
+        'status' => 'active',
+    ]);
 });
 
 test('tenant domain generation uses configured central base domain', function () {
@@ -113,15 +120,25 @@ test('authenticated super admin can suspend and reactivate a university', functi
         'expires_at' => now()->addDays(7),
     ]));
 
+    Subscription::query()->create([
+        'tenant_id' => $university->id,
+        'plan' => 'basic',
+        'status' => 'active',
+        'start_date' => now()->toDateString(),
+        'due_date' => now()->addDays(7)->toDateString(),
+    ]);
+
     $response = $this->actingAs($superAdmin, 'super_admin')->patch(route('central.universities.suspend', $university));
 
     $response->assertRedirect(route('central.universities.index'));
     expect($university->fresh()->status)->toBe('suspended');
+    expect($university->fresh()->subscription?->status)->toBe('expired');
 
     $response = $this->actingAs($superAdmin, 'super_admin')->patch(route('central.universities.reactivate', $university));
 
     $response->assertRedirect(route('central.universities.index'));
     expect($university->fresh()->status)->toBe('active');
+    expect($university->fresh()->subscription?->status)->toBe('active');
 });
 
 test('authenticated super admin can extend university subscription', function () {
@@ -143,6 +160,14 @@ test('authenticated super admin can extend university subscription', function ()
         'expires_at' => now()->addDays(5),
     ]));
 
+    Subscription::query()->create([
+        'tenant_id' => $university->id,
+        'plan' => 'basic',
+        'status' => 'active',
+        'start_date' => now()->toDateString(),
+        'due_date' => now()->addDays(5)->toDateString(),
+    ]);
+
     $previousExpiry = $university->expires_at;
 
     $response = $this->actingAs($superAdmin, 'super_admin')->patch(route('central.universities.extend', $university), [
@@ -152,6 +177,81 @@ test('authenticated super admin can extend university subscription', function ()
     $response->assertRedirect(route('central.universities.index'));
 
     expect($university->fresh()->expires_at->greaterThan($previousExpiry))->toBeTrue();
+    expect($university->fresh()->subscription?->due_date?->isFuture())->toBeTrue();
+});
+
+test('super admin can approve pending university and activate subscription', function () {
+    $superAdmin = SuperAdmin::query()->create([
+        'name' => 'Central Admin',
+        'email' => 'central-admin-approve@example.test',
+        'password' => 'password',
+    ]);
+
+    $university = University::withoutEvents(fn () => University::query()->create([
+        'id' => 'approve-university',
+        'name' => 'Approve University',
+        'school_address' => 'Approve District',
+        'tenant_admin_name' => 'Approve Admin',
+        'tenant_admin_email' => 'approve.admin@example.test',
+        'plan' => 'basic',
+        'status' => 'pending',
+        'subscription_starts_at' => null,
+        'expires_at' => null,
+    ]));
+
+    $university->domains()->create([
+        'domain' => 'approve.isms.test',
+    ]);
+
+    Subscription::query()->create([
+        'tenant_id' => $university->id,
+        'plan' => 'basic',
+        'status' => 'pending',
+    ]);
+
+    $response = $this->actingAs($superAdmin, 'super_admin')->patch(route('central.universities.approve', $university));
+
+    $response->assertRedirect(route('central.universities.index'));
+
+    expect($university->fresh()->status)->toBe('active');
+    expect($university->fresh()->subscription?->status)->toBe('active');
+});
+
+test('approved university cannot be set back to pending from edit update', function () {
+    $superAdmin = SuperAdmin::query()->create([
+        'name' => 'Central Admin',
+        'email' => 'central-admin-status-guard@example.test',
+        'password' => 'password',
+    ]);
+
+    $university = University::withoutEvents(fn () => University::query()->create([
+        'id' => 'status-guard-university',
+        'name' => 'Status Guard University',
+        'school_address' => 'Status District',
+        'tenant_admin_name' => 'Status Admin',
+        'tenant_admin_email' => 'status.admin@example.test',
+        'plan' => 'basic',
+        'status' => 'active',
+        'subscription_starts_at' => now(),
+        'expires_at' => now()->addDays(30),
+    ]));
+
+    $response = $this->actingAs($superAdmin, 'super_admin')
+        ->from(route('central.universities.edit', $university))
+        ->put(route('central.universities.update', $university), [
+            'name' => 'Status Guard University',
+            'school_address' => 'Status District',
+            'tenant_admin_name' => 'Status Admin',
+            'tenant_admin_email' => 'status.admin@example.test',
+            'plan' => 'basic',
+            'status' => 'pending',
+            'subscription_starts_at' => now()->toDateString(),
+            'expires_at' => now()->addDays(30)->toDateString(),
+        ]);
+
+    $response->assertRedirect(route('central.universities.edit', $university));
+    $response->assertSessionHasErrors('status');
+    expect($university->fresh()->status)->toBe('active');
 });
 
 test('authenticated super admin can delete a university', function () {

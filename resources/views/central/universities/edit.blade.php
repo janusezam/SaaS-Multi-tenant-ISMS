@@ -3,6 +3,13 @@
         <h2 class="text-2xl font-semibold text-slate-100">Edit School</h2>
     </x-slot>
 
+    @php
+        $currentStatus = old('status', $university->status);
+        $availableStatuses = $university->status === 'pending'
+            ? ['pending', 'active', 'expired']
+            : ['active', 'expired'];
+    @endphp
+
     <div class="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
         <div class="rounded-2xl border border-white/10 bg-slate-900/85 p-6">
             <form method="POST" action="{{ route('central.universities.update', $university) }}" class="space-y-5">
@@ -52,8 +59,11 @@
                     <div>
                         <label class="mb-2 block text-sm text-slate-300" for="status">Status</label>
                         <select id="status" name="status" class="w-full rounded-xl border border-white/10 bg-slate-950/60 text-slate-100" required>
-                            <option value="active" @selected(old('status', $university->status) === 'active')>Active</option>
-                            <option value="suspended" @selected(old('status', $university->status) === 'suspended')>Suspended</option>
+                            @foreach ($availableStatuses as $statusOption)
+                                <option value="{{ $statusOption }}" @selected($currentStatus === $statusOption)>
+                                    {{ ucfirst($statusOption) }}
+                                </option>
+                            @endforeach
                         </select>
                         @error('status')<p class="mt-1 text-xs text-rose-300">{{ $message }}</p>@enderror
                     </div>

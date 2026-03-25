@@ -46,8 +46,14 @@ class SubscriptionNotificationService
      */
     private function buildMessage(University $university, string $type, array $context): array
     {
-        $startsAt = $university->subscription_starts_at?->toDateString() ?? 'Not set';
-        $expiresAt = $university->expires_at?->toDateString() ?? 'No expiry';
+        $startsAt = $university->subscription?->start_date?->toDateString()
+            ?? $university->subscription_starts_at?->toDateString()
+            ?? 'Not set';
+        $expiresAt = $university->subscription?->due_date?->toDateString()
+            ?? $university->expires_at?->toDateString()
+            ?? 'No expiry';
+        $currentPlan = strtoupper($university->currentPlan());
+        $currentStatus = strtoupper($university->currentStatus());
         $domain = optional($university->domains->first())->domain ?? 'No domain';
 
         return match ($type) {
@@ -57,7 +63,7 @@ class SubscriptionNotificationService
                 [
                     'School' => $university->name,
                     'Domain' => $domain,
-                    'Plan' => strtoupper($university->plan),
+                    'Plan' => $currentPlan,
                     'Subscription Starts' => $startsAt,
                     'Subscription Expires' => $expiresAt,
                 ],
@@ -68,7 +74,7 @@ class SubscriptionNotificationService
                 [
                     'School' => $university->name,
                     'Previous Plan' => strtoupper((string) ($context['previous_plan'] ?? 'UNKNOWN')),
-                    'New Plan' => strtoupper($university->plan),
+                    'New Plan' => $currentPlan,
                     'Subscription Expires' => $expiresAt,
                 ],
             ],
@@ -78,7 +84,7 @@ class SubscriptionNotificationService
                 [
                     'School' => $university->name,
                     'Domain' => $domain,
-                    'Status' => strtoupper($university->status),
+                    'Status' => $currentStatus,
                 ],
             ],
             'reactivated' => [
@@ -87,7 +93,7 @@ class SubscriptionNotificationService
                 [
                     'School' => $university->name,
                     'Domain' => $domain,
-                    'Status' => strtoupper($university->status),
+                    'Status' => $currentStatus,
                     'Subscription Expires' => $expiresAt,
                 ],
             ],
@@ -97,7 +103,7 @@ class SubscriptionNotificationService
                 [
                     'School' => $university->name,
                     'Domain' => $domain,
-                    'Plan' => strtoupper($university->plan),
+                    'Plan' => $currentPlan,
                     'New Expiry Date' => $expiresAt,
                 ],
             ],
@@ -107,7 +113,7 @@ class SubscriptionNotificationService
                 [
                     'School' => $university->name,
                     'Domain' => $domain,
-                    'Plan' => strtoupper($university->plan),
+                    'Plan' => $currentPlan,
                     'Expiry Date' => $expiresAt,
                 ],
             ],
@@ -117,7 +123,7 @@ class SubscriptionNotificationService
                 [
                     'School' => $university->name,
                     'Domain' => $domain,
-                    'Plan' => strtoupper($university->plan),
+                    'Plan' => $currentPlan,
                     'Expiry Date' => $expiresAt,
                 ],
             ],
@@ -127,7 +133,7 @@ class SubscriptionNotificationService
                 [
                     'School' => $university->name,
                     'Domain' => $domain,
-                    'Plan' => strtoupper($university->plan),
+                    'Plan' => $currentPlan,
                     'Expiry Date' => $expiresAt,
                 ],
             ],
@@ -137,7 +143,7 @@ class SubscriptionNotificationService
                 [
                     'School' => $university->name,
                     'Domain' => $domain,
-                    'Plan' => strtoupper($university->plan),
+                    'Plan' => $currentPlan,
                     'Subscription Starts' => $startsAt,
                     'Subscription Expires' => $expiresAt,
                 ],

@@ -25,8 +25,10 @@ class CheckPlan
             abort(Response::HTTP_FORBIDDEN, 'Tenant context is required.');
         }
 
-        if (! in_array((string) $tenant->plan, $plans, true)) {
-            abort(Response::HTTP_FORBIDDEN, 'This feature is not available in your current plan.');
+        if (! in_array($tenant->currentPlan(), $plans, true)) {
+            return redirect()
+                ->route('tenant.dashboard')
+                ->with('upgrade_notice', 'Upgrade to Pro to access this feature.');
         }
 
         return $next($request);

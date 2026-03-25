@@ -3,6 +3,9 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Carbon;
 use Stancl\Tenancy\Contracts\TenantWithDatabase;
 use Stancl\Tenancy\Database\Concerns\HasDatabase;
 use Stancl\Tenancy\Database\Concerns\HasDomains;
@@ -59,16 +62,43 @@ class University extends Tenant implements TenantWithDatabase
         return $query->where('status', 'active');
     }
 
+    public function subscription(): HasOne
+    {
+        return $this->hasOne(Subscription::class, 'tenant_id', 'id');
+    }
+
+    public function upgradeRequests(): HasMany
+    {
+        return $this->hasMany(SubscriptionUpgradeRequest::class, 'tenant_id', 'id');
+    }
+
+    public function currentPlan(): string
+    {
+        return (string) ($this->subscription?->plan ?? $this->plan ?? 'basic');
+    }
+
+    public function currentStatus(): string
+    {
+        return (string) ($this->subscription?->status ?? $this->status ?? 'pending');
+    }
+
+    public function currentDueDate(): ?Carbon
+    {
+        return $this->subscription?->due_date ?? $this->expires_at;
+    }
+
     public function isSubscriptionActive(): bool
     {
-        if ($this->status !== 'active') {
+        if ($this->currentStatus() !== 'active') {
             return false;
         }
 
-        if ($this->expires_at === null) {
+        $dueDate = $this->currentDueDate();
+
+        if ($dueDate === null) {
             return true;
         }
 
-        return $this->expires_at->isFuture();
+        return $dueDate->endOfDay()->isFuture();
     }
 }

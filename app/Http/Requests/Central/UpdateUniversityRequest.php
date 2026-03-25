@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Central;
 
+use App\Models\University;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -29,9 +30,37 @@ class UpdateUniversityRequest extends FormRequest
             'tenant_admin_name' => ['required', 'string', 'max:255'],
             'tenant_admin_email' => ['required', 'string', 'email', 'max:255'],
             'plan' => ['required', Rule::in(['basic', 'pro'])],
-            'status' => ['required', Rule::in(['active', 'suspended'])],
+            'status' => ['required', Rule::in($this->allowedStatuses())],
             'subscription_starts_at' => ['nullable', 'date'],
             'expires_at' => ['nullable', 'date'],
         ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'status.in' => 'Approved schools cannot be set back to pending.',
+        ];
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function allowedStatuses(): array
+    {
+        $university = $this->route('university');
+
+        if (! $university instanceof University) {
+            return ['pending', 'active', 'expired'];
+        }
+
+        if ($university->status === 'pending') {
+            return ['pending', 'active', 'expired'];
+        }
+
+        return ['active', 'expired'];
     }
 }

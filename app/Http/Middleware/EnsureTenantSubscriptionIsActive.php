@@ -21,10 +21,12 @@ class EnsureTenantSubscriptionIsActive
             return $next($request);
         }
 
-        $isExpired = $tenant->expires_at !== null && $tenant->expires_at->copy()->endOfDay()->isPast();
+        $dueDate = $tenant->currentDueDate();
+        $isExpired = $dueDate !== null && $dueDate->copy()->endOfDay()->isPast();
+        $currentStatus = $tenant->currentStatus();
 
-        if ($tenant->status !== 'active' || $isExpired) {
-            abort(Response::HTTP_LOCKED, 'School subscription is suspended or expired.');
+        if ($currentStatus !== 'active' || $isExpired) {
+            abort(Response::HTTP_LOCKED, 'School subscription is not active yet. Please contact your school administrator.');
         }
 
         return $next($request);

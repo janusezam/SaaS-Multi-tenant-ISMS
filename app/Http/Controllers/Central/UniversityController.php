@@ -7,12 +7,14 @@ use App\Http\Requests\Central\ExtendUniversitySubscriptionRequest;
 use App\Http\Requests\Central\StoreUniversityRequest;
 use App\Http\Requests\Central\UpdateUniversityRequest;
 use App\Mail\TenantAdminInviteMail;
+use App\Models\Subscription;
 use App\Models\University;
 use App\Models\User;
 use App\Services\Central\SubscriptionNotificationService;
 use Illuminate\Database\QueryException;
 use Illuminate\Database\SQLiteDatabaseDoesNotExistException;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
@@ -28,7 +30,7 @@ class UniversityController extends Controller
     public function index(): View
     {
         $universities = University::query()
-            ->with('domains')
+            ->with(['domains', 'subscription', 'upgradeRequests'])
             ->latest()
             ->paginate(12);
 
@@ -51,6 +53,7 @@ class UniversityController extends Controller
     public function store(StoreUniversityRequest $request): RedirectResponse
     {
         $validated = $request->validated();
+        $subscriptionStartDate = $validated['subscription_starts_at'] ?? now()->toDateString();
 
         $university = University::query()->create([
             'id' => $validated['subdomain'],
@@ -60,7 +63,7 @@ class UniversityController extends Controller
             'tenant_admin_email' => $validated['tenant_admin_email'],
             'plan' => $validated['plan'],
             'status' => 'active',
-            'subscription_starts_at' => $validated['subscription_starts_at'] ?? now(),
+            'subscription_starts_at' => $subscriptionStartDate,
             'expires_at' => $validated['expires_at'] ?? null,
         ]);
 
@@ -68,21 +71,28 @@ class UniversityController extends Controller
             'domain' => $validated['tenant_domain'],
         ]);
 
+        Subscription::query()->create([
+            'tenant_id' => $university->id,
+            'plan' => $validated['plan'],
+            'start_date' => $subscriptionStartDate,
+            'due_date' => $validated['expires_at'] ?? null,
+            'status' => 'active',
+            'approved_at' => now(),
+        ]);
+
+        $tenantDomain = (string) ($university->domains()->value('domain') ?? '');
+
         $this->syncTenantAdminUser(
             $university,
-            $validated['tenant_admin_name'],
-            $validated['tenant_admin_email'],
-            $validated['tenant_domain'],
+            (string) $validated['tenant_admin_name'],
+            (string) $validated['tenant_admin_email'],
+            $tenantDomain,
             true,
         );
 
-        $university->load('domains');
-
-        $this->subscriptionNotificationService->send($university, 'plan_started');
-
         return redirect()
             ->route('central.universities.index')
-            ->with('status', 'School created successfully.');
+            ->with('status', 'School created and activated. Tenant admin invite sent.');
     }
 
     /**
@@ -106,17 +116,35 @@ class UniversityController extends Controller
 
         $validated = $request->validated();
 
-        $university->update($validated);
+        $subscription = $university->subscription;
+
+        DB::transaction(function () use ($validated, $university, $subscription): void {
+            $university->update($validated);
+
+            if ($subscription !== null) {
+                $subscription->update([
+                    'plan' => $validated['plan'],
+                    'status' => $validated['status'],
+                    'start_date' => $validated['subscription_starts_at'] ?? null,
+                    'due_date' => $validated['expires_at'] ?? null,
+                    'approved_at' => $validated['status'] === 'active' ? now() : $subscription->approved_at,
+                ]);
+            }
+        });
 
         $tenantDomain = (string) ($university->domains()->value('domain') ?? '');
 
-        $this->syncTenantAdminUser(
-            $university,
-            $validated['tenant_admin_name'],
-            $validated['tenant_admin_email'],
-            $tenantDomain,
-            $originalAdminEmail !== $validated['tenant_admin_email'],
-        );
+        $forceInvite = $originalStatus !== 'active' && $university->status === 'active';
+
+        if ($forceInvite || $originalAdminEmail !== $validated['tenant_admin_email']) {
+            $this->syncTenantAdminUser(
+                $university,
+                $validated['tenant_admin_name'],
+                $validated['tenant_admin_email'],
+                $tenantDomain,
+                true,
+            );
+        }
 
         $university->load('domains');
 
@@ -139,6 +167,99 @@ class UniversityController extends Controller
         return redirect()
             ->route('central.universities.index')
             ->with('status', 'School updated successfully.');
+    }
+
+    /**
+     * Approve and activate a pending university.
+     */
+    public function approve(University $university): RedirectResponse
+    {
+        $subscription = $university->subscription;
+
+        if ($subscription === null) {
+            return redirect()
+                ->route('central.universities.index')
+                ->with('status', 'Approval failed. Subscription record is missing.');
+        }
+
+        DB::transaction(function () use ($university, $subscription): void {
+            $subscription->update([
+                'status' => 'active',
+                'start_date' => $subscription->start_date ?? now()->toDateString(),
+                'approved_at' => now(),
+            ]);
+
+            $university->update([
+                'plan' => $subscription->plan,
+                'status' => 'active',
+                'subscription_starts_at' => $subscription->start_date,
+                'expires_at' => $subscription->due_date,
+            ]);
+        });
+
+        $tenantDomain = (string) ($university->domains()->value('domain') ?? '');
+
+        $this->syncTenantAdminUser(
+            $university,
+            (string) $university->tenant_admin_name,
+            (string) $university->tenant_admin_email,
+            $tenantDomain,
+            true,
+        );
+
+        $university->load('domains');
+
+        $this->subscriptionNotificationService->send($university, 'plan_started');
+
+        return redirect()
+            ->route('central.universities.index')
+            ->with('status', 'School approved and activated. Tenant admin invite sent.');
+    }
+
+    /**
+     * Approve the latest pending upgrade request and apply new plan.
+     */
+    public function approveUpgrade(University $university): RedirectResponse
+    {
+        $previousPlan = (string) $university->plan;
+
+        $upgradeRequest = $university->upgradeRequests()
+            ->where('status', 'pending')
+            ->latest()
+            ->first();
+
+        if ($upgradeRequest === null) {
+            return redirect()
+                ->route('central.universities.index')
+                ->with('status', 'No pending upgrade request found for this school.');
+        }
+
+        DB::transaction(function () use ($university, $upgradeRequest): void {
+            $requestedPlan = (string) $upgradeRequest->requested_plan;
+
+            $university->update([
+                'plan' => $requestedPlan,
+            ]);
+
+            $university->subscription()?->update([
+                'plan' => $requestedPlan,
+            ]);
+
+            $upgradeRequest->update([
+                'status' => 'approved',
+                'approved_at' => now(),
+            ]);
+        });
+
+        $university->load('domains');
+
+        $this->subscriptionNotificationService->send($university, 'plan_changed', [
+            'previous_plan' => $previousPlan,
+        ]);
+
+        return redirect()
+            ->route('central.universities.index')
+            ->with('status', 'Upgrade request approved and tenant plan updated.');
     }
 
     /**
@@ -175,9 +296,15 @@ class UniversityController extends Controller
      */
     public function suspend(University $university): RedirectResponse
     {
-        $university->update([
-            'status' => 'suspended',
-        ]);
+        DB::transaction(function () use ($university): void {
+            $university->update([
+                'status' => 'suspended',
+            ]);
+
+            $university->subscription()?->update([
+                'status' => 'expired',
+            ]);
+        });
 
         $university->load('domains');
 
@@ -193,9 +320,16 @@ class UniversityController extends Controller
      */
     public function reactivate(University $university): RedirectResponse
     {
-        $university->update([
-            'status' => 'active',
-        ]);
+        DB::transaction(function () use ($university): void {
+            $university->update([
+                'status' => 'active',
+            ]);
+
+            $university->subscription()?->update([
+                'status' => 'active',
+                'approved_at' => now(),
+            ]);
+        });
 
         $university->load('domains');
 
@@ -215,9 +349,17 @@ class UniversityController extends Controller
             ? $university->expires_at
             : now();
 
-        $university->update([
-            'expires_at' => $baseDate->copy()->addDays($request->integer('days')),
-        ]);
+        $newExpiry = $baseDate->copy()->addDays($request->integer('days'));
+
+        DB::transaction(function () use ($university, $newExpiry): void {
+            $university->update([
+                'expires_at' => $newExpiry,
+            ]);
+
+            $university->subscription()?->update([
+                'due_date' => $newExpiry->toDateString(),
+            ]);
+        });
 
         $university->load('domains');
 

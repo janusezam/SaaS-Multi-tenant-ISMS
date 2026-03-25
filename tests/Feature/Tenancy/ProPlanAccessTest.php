@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\EnsureTenantSubscriptionIsActive;
+use App\Models\BracketMatch;
 use App\Models\Game;
 use App\Models\GameResultAudit;
 use App\Models\Sport;
@@ -26,7 +27,7 @@ afterEach(function () {
     }
 
     foreach (['pro-tenant', 'basic-tenant', 'pro-exports', 'pro-student'] as $tenantId) {
-        $databasePath = database_path('tenant' . $tenantId);
+        $databasePath = database_path((string) config('tenancy.database.prefix', 'tenant_').$tenantId.(string) config('tenancy.database.suffix', ''));
 
         if (is_file($databasePath)) {
             @unlink($databasePath);
@@ -36,7 +37,7 @@ afterEach(function () {
 
 function initializeTenantWithSchema(University $tenant): void
 {
-    $databasePath = database_path('tenant' . $tenant->id);
+    $databasePath = database_path((string) config('tenancy.database.prefix', 'tenant_').$tenant->id.(string) config('tenancy.database.suffix', ''));
 
     if (! is_file($databasePath)) {
         touch($databasePath);
@@ -188,7 +189,8 @@ test('basic plan tenant cannot access pro pages', function () {
 
     $response = $this->actingAs($user)->get(route('tenant.pro.analytics'));
 
-    $response->assertForbidden();
+    $response->assertRedirect(route('tenant.dashboard'));
+    $response->assertSessionHas('upgrade_notice');
 });
 
 test('pro exports endpoints are available for pro tenant', function () {
@@ -326,7 +328,7 @@ test('pro tenant can persist bracket and advance winner to next round', function
     $generate->assertRedirect();
     $this->assertDatabaseCount('bracket_matches', 3);
 
-    $firstMatch = \App\Models\BracketMatch::query()
+    $firstMatch = BracketMatch::query()
         ->where('sport_id', $sport->id)
         ->where('round_number', 1)
         ->whereNotNull('home_team_id')
@@ -344,7 +346,7 @@ test('pro tenant can persist bracket and advance winner to next round', function
         'winner_team_id' => $firstMatch->home_team_id,
     ]);
 
-    $final = \App\Models\BracketMatch::query()
+    $final = BracketMatch::query()
         ->where('sport_id', $sport->id)
         ->where('round_number', 2)
         ->where('match_number', 1)

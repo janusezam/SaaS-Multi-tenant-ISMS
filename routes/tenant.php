@@ -10,6 +10,7 @@ use App\Http\Controllers\Tenant\PlayerController;
 use App\Http\Controllers\Tenant\ProFeatureController;
 use App\Http\Controllers\Tenant\SportController;
 use App\Http\Controllers\Tenant\StandingsController;
+use App\Http\Controllers\Tenant\SubscriptionUpgradeController;
 use App\Http\Controllers\Tenant\TeamController;
 use App\Http\Controllers\Tenant\TenantAdminInviteController;
 use App\Http\Controllers\Tenant\VenueController;
@@ -57,6 +58,9 @@ Route::middleware([
     Route::middleware(['auth', 'tenant.password.updated', 'verified'])->group(function () {
         Route::get('/app/dashboard', [DashboardController::class, 'index'])->name('tenant.dashboard');
         Route::get('/app/standings', [StandingsController::class, 'index'])->name('tenant.standings.index');
+        Route::post('/app/subscription/upgrade/pro', [SubscriptionUpgradeController::class, 'requestProUpgrade'])
+            ->name('tenant.subscription.upgrade.pro')
+            ->middleware('check.role:university_admin');
 
         Route::middleware('check.role:university_admin,sports_facilitator')->prefix('/app')->name('tenant.')->group(function () {
             Route::resource('sports', SportController::class)->except(['show']);

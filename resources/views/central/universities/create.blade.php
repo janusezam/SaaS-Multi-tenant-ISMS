@@ -35,7 +35,7 @@
                 </div>
 
                 <p class="rounded-xl border border-cyan-300/20 bg-cyan-500/10 px-3 py-2 text-xs text-cyan-100">
-                    A secure invite link will be emailed to the tenant admin to set their password.
+                    Schools created here are activated immediately and the tenant admin invite is sent right away.
                 </p>
 
                 <div>

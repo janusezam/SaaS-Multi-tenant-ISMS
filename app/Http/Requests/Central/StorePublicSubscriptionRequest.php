@@ -7,7 +7,7 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
-class StoreUniversityRequest extends FormRequest
+class StorePublicSubscriptionRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -54,8 +54,6 @@ class StoreUniversityRequest extends FormRequest
                 'unique:tenants,id',
             ],
             'plan' => ['required', Rule::in(['basic', 'pro'])],
-            'subscription_starts_at' => ['nullable', 'date'],
-            'expires_at' => ['nullable', 'date'],
             'tenant_domain' => ['required', 'string', 'max:255', 'unique:domains,domain'],
         ];
     }
