@@ -48,6 +48,14 @@
                         </header>
                     @endisset
 
+                    @if (session('upgrade_notice'))
+                        <div class="max-w-7xl mx-auto px-4 pt-4 sm:px-6 lg:px-8">
+                            <div class="rounded-xl border border-amber-300/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
+                                {{ session('upgrade_notice') }}
+                            </div>
+                        </div>
+                    @endif
+
                     <main>
                         {{ $slot }}
                     </main>

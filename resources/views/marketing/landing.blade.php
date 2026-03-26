@@ -12,7 +12,6 @@
     <header class="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-6">
         <a href="{{ route('public.landing') }}" class="text-lg font-semibold tracking-wide text-cyan-200">ISMS SaaS</a>
         <nav class="flex items-center gap-4 text-sm">
-            <a href="{{ route('public.pricing') }}" class="rounded-lg border border-cyan-300/30 px-4 py-2 text-cyan-100 hover:bg-cyan-500/20">Pricing</a>
             <a href="{{ route('central.login') }}" class="rounded-lg border border-white/20 px-4 py-2 hover:bg-white/10">Admin Login</a>
         </nav>
     </header>
@@ -21,20 +20,20 @@
         <section class="space-y-6">
             <p class="inline-block rounded-full border border-cyan-300/30 bg-cyan-500/10 px-3 py-1 text-xs uppercase tracking-[0.18em] text-cyan-100">Multi-tenant intramurals</p>
             <h1 class="text-4xl font-semibold leading-tight text-white sm:text-5xl">Run every school league from one platform.</h1>
-            <p class="max-w-xl text-base text-slate-300">ISMS gives universities a dedicated sports management workspace with role-based dashboards, fixtures, standings, and pro-grade analytics in minutes.</p>
+            <p class="max-w-xl text-base text-slate-300">ISMS gives each school a dedicated workspace to run intramurals end-to-end on Basic, then upgrade to Pro for analytics, bracket automation, and report exports.</p>
             <div class="flex flex-wrap gap-3">
-                <a href="{{ route('public.pricing') }}" class="rounded-xl border border-amber-300/50 bg-amber-500/20 px-5 py-3 text-sm font-medium text-amber-100 hover:bg-amber-500/30">View Plans</a>
-                <a href="{{ route('public.pricing') }}#subscribe" class="rounded-xl border border-white/20 px-5 py-3 text-sm font-medium text-white hover:bg-white/10">Start Your School</a>
+                <a href="{{ route('public.pricing') }}" class="rounded-xl border border-amber-300/50 bg-amber-500/20 px-5 py-3 text-sm font-medium text-amber-100 hover:bg-amber-500/30">Compare Basic vs Pro</a>
+                <a href="{{ route('public.pricing') }}#subscribe" class="rounded-xl border border-white/20 px-5 py-3 text-sm font-medium text-white hover:bg-white/10">Start with Basic</a>
             </div>
         </section>
 
         <section class="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur">
-            <h2 class="text-lg font-semibold text-white">Why schools pick ISMS</h2>
+            <h2 class="text-lg font-semibold text-white">Plan snapshot</h2>
             <ul class="mt-4 grid gap-3 text-sm text-slate-200">
-                <li class="rounded-xl border border-white/10 bg-slate-900/60 px-4 py-3">Dedicated subdomain and tenant environment per school</li>
-                <li class="rounded-xl border border-white/10 bg-slate-900/60 px-4 py-3">Role-specific dashboards for admins, facilitators, coaches, and players</li>
-                <li class="rounded-xl border border-white/10 bg-slate-900/60 px-4 py-3">Secure approval flow before tenant activation</li>
-                <li class="rounded-xl border border-white/10 bg-slate-900/60 px-4 py-3">Pro upgrade path for analytics, brackets, and exports</li>
+                <li class="rounded-xl border border-white/10 bg-slate-900/60 px-4 py-3"><span class="font-semibold text-cyan-100">Basic:</span> Sports, venues, teams, players, schedules, results, standings, and result audit history.</li>
+                <li class="rounded-xl border border-white/10 bg-slate-900/60 px-4 py-3"><span class="font-semibold text-emerald-100">Pro:</span> Everything in Basic plus analytics, bracket generation, bracket audits, and CSV/PDF exports.</li>
+                <li class="rounded-xl border border-white/10 bg-slate-900/60 px-4 py-3">Self-service upgrade request inside tenant dashboard, then central admin approval unlocks Pro features.</li>
+                <li class="rounded-xl border border-white/10 bg-slate-900/60 px-4 py-3">Dedicated school subdomain with centralized subscription management and tenant-level enforcement.</li>
             </ul>
         </section>
     </main>

@@ -1,6 +1,7 @@
 @php
     $user = Auth::user();
     $canManageModules = in_array($user?->role, ['university_admin', 'sports_facilitator'], true);
+    $tenantCurrentPlan = tenant()?->currentPlan();
 @endphp
 
 <aside class="isms-sidebar hidden md:flex md:w-72 md:shrink-0 md:flex-col border-r">
@@ -33,7 +34,7 @@
 
             <a href="{{ route('tenant.audits.game-results.index') }}" class="block rounded-lg px-3 py-2 {{ request()->routeIs('tenant.audits.game-results.*') ? 'bg-cyan-500/20 text-cyan-100 border border-cyan-300/30' : 'isms-sidebar-link hover:bg-white/5 border border-transparent' }}">Result Audits</a>
 
-            @if (tenant()?->plan === 'pro')
+            @if ($tenantCurrentPlan === 'pro')
                 <a href="{{ route('tenant.pro.analytics') }}" class="block rounded-lg px-3 py-2 {{ request()->routeIs('tenant.pro.analytics') ? 'bg-emerald-500/20 text-emerald-100 border border-emerald-300/30' : 'isms-sidebar-link hover:bg-white/5 border border-transparent' }}">Analytics</a>
 
                 <a href="{{ route('tenant.pro.bracket') }}" class="block rounded-lg px-3 py-2 {{ request()->routeIs('tenant.pro.bracket*') ? 'bg-emerald-500/20 text-emerald-100 border border-emerald-300/30' : 'isms-sidebar-link hover:bg-white/5 border border-transparent' }}">Bracket</a>

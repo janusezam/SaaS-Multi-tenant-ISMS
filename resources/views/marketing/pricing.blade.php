@@ -21,26 +21,107 @@
             </div>
         @endif
 
-        <section class="grid gap-5 md:grid-cols-2">
-            <article class="rounded-2xl border border-white/10 bg-slate-900/70 p-6">
-                <p class="text-xs uppercase tracking-[0.2em] text-slate-300">Basic</p>
-                <h2 class="mt-2 text-2xl font-semibold text-white">Core intramurals operations</h2>
-                <ul class="mt-4 space-y-2 text-sm text-slate-300">
-                    <li>Sports, venues, teams, players, fixtures, and standings</li>
-                    <li>Role-based access for school operations</li>
-                    <li>No advanced analytics or bracket automation</li>
-                </ul>
-            </article>
+        <section class="relative overflow-hidden rounded-[2rem] border border-blue-400/20 bg-slate-950/70 px-4 py-10 sm:px-6">
+            <h2 class="pointer-events-none absolute left-1/2 top-2 -translate-x-1/2 select-none text-6xl font-black uppercase tracking-tight text-blue-500/35 sm:text-7xl md:text-8xl">Pricing</h2>
 
-            <article class="rounded-2xl border border-amber-300/30 bg-amber-500/10 p-6">
-                <p class="text-xs uppercase tracking-[0.2em] text-amber-200">Pro</p>
-                <h2 class="mt-2 text-2xl font-semibold text-white">Advanced controls and insights</h2>
-                <ul class="mt-4 space-y-2 text-sm text-amber-100">
-                    <li>Everything in Basic, plus analytics dashboards</li>
-                    <li>Bracket automation and bracket audit trail</li>
-                    <li>CSV/PDF reporting and exports</li>
-                </ul>
-            </article>
+            <div class="relative mt-12 grid gap-5 lg:grid-cols-2">
+                <article class="rounded-[1.75rem] border border-blue-400/35 bg-[radial-gradient(circle_at_30%_20%,rgba(59,130,246,0.32),rgba(15,23,42,0.88)_45%,rgba(2,6,23,0.95)_100%)] p-6 shadow-[0_0_24px_rgba(37,99,235,0.45)]">
+                    <p class="text-sm font-medium tracking-wide text-slate-200">Basic</p>
+                    <div class="mt-2 flex items-end gap-1">
+                        <p class="text-4xl font-extrabold text-white">$19</p>
+                        <p class="mb-1 text-sm text-slate-300">/month</p>
+                    </div>
+                    <p class="mt-2 text-sm text-slate-300">Complete manual operations for day-to-day intramurals.</p>
+
+                    <ul class="mt-5 space-y-3 text-sm text-slate-100">
+                        <li class="flex items-center gap-2"><span class="text-blue-300">●</span> Manage sports, venues, teams, and players</li>
+                        <li class="flex items-center gap-2"><span class="text-blue-300">●</span> Schedule games and submit results</li>
+                        <li class="flex items-center gap-2"><span class="text-blue-300">●</span> View standings and result audit history</li>
+                        <li class="flex items-center gap-2"><span class="text-blue-300">●</span> Full operational use without advanced automation</li>
+                    </ul>
+
+                    <a href="#subscribe" class="mt-6 inline-flex w-full items-center justify-center rounded-full border border-white/20 bg-gradient-to-b from-slate-600/60 to-slate-900/80 px-4 py-2.5 text-sm font-semibold text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.35)] transition hover:from-slate-500/70 hover:to-slate-800/90">Start with Basic</a>
+                </article>
+
+                <article class="relative rounded-[1.75rem] border border-blue-400/70 bg-[radial-gradient(circle_at_50%_0%,rgba(59,130,246,0.5),rgba(30,41,59,0.9)_40%,rgba(2,6,23,0.98)_100%)] p-6 shadow-[0_0_36px_rgba(37,99,235,0.7)]">
+                    <span class="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 rounded-full border border-blue-200/50 bg-gradient-to-r from-blue-500 to-indigo-500 px-3 py-1 text-xs font-semibold text-white shadow-[0_0_20px_rgba(59,130,246,0.65)]">Popular</span>
+                    <p class="text-sm font-medium tracking-wide text-blue-100">Pro</p>
+                    <div class="mt-2 flex items-end gap-1">
+                        <p class="text-4xl font-extrabold text-white">$49</p>
+                        <p class="mb-1 text-sm text-blue-100">/month</p>
+                    </div>
+                    <p class="mt-2 text-sm text-blue-100/90">Automation and insights for faster, data-driven league management.</p>
+
+                    <ul class="mt-5 space-y-3 text-sm text-white">
+                        <li class="flex items-center gap-2"><span class="text-blue-300">●</span> Everything in Basic plus analytics dashboard</li>
+                        <li class="flex items-center gap-2"><span class="text-blue-300">●</span> Bracket generator with winner progression</li>
+                        <li class="flex items-center gap-2"><span class="text-blue-300">●</span> Bracket audit tracking</li>
+                        <li class="flex items-center gap-2"><span class="text-blue-300">●</span> Standings and audit exports (CSV/PDF)</li>
+                    </ul>
+
+                    <a href="#subscribe" class="mt-6 inline-flex w-full items-center justify-center rounded-full border border-blue-300/40 bg-gradient-to-r from-blue-500 via-indigo-500 to-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-[0_0_22px_rgba(59,130,246,0.75)] transition hover:brightness-110">Upgrade to Pro</a>
+                </article>
+            </div>
+        </section>
+
+        <section class="rounded-2xl border border-white/10 bg-slate-900/75 p-6">
+            <h3 class="text-xl font-semibold text-white">Feature comparison</h3>
+            <p class="mt-1 text-sm text-slate-300">Basic gives complete manual operations. Pro adds automation, analytics, and exports.</p>
+
+            <div class="mt-4 overflow-hidden rounded-xl border border-white/10">
+                <table class="min-w-full divide-y divide-white/10 text-sm">
+                    <thead class="bg-slate-950/70 text-slate-300">
+                        <tr>
+                            <th class="px-4 py-3 text-left font-medium">Capability</th>
+                            <th class="px-4 py-3 text-left font-medium">Basic</th>
+                            <th class="px-4 py-3 text-left font-medium">Pro</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-white/10 text-slate-100">
+                        <tr>
+                            <td class="px-4 py-3">Sports, venues, teams, players</td>
+                            <td class="px-4 py-3 text-emerald-300">Included</td>
+                            <td class="px-4 py-3 text-emerald-300">Included</td>
+                        </tr>
+                        <tr>
+                            <td class="px-4 py-3">Scheduling, results, standings</td>
+                            <td class="px-4 py-3 text-emerald-300">Included</td>
+                            <td class="px-4 py-3 text-emerald-300">Included</td>
+                        </tr>
+                        <tr>
+                            <td class="px-4 py-3">Result audit history</td>
+                            <td class="px-4 py-3 text-emerald-300">Included</td>
+                            <td class="px-4 py-3 text-emerald-300">Included</td>
+                        </tr>
+                        <tr>
+                            <td class="px-4 py-3">Analytics dashboard</td>
+                            <td class="px-4 py-3 text-slate-400">Not included</td>
+                            <td class="px-4 py-3 text-emerald-300">Included</td>
+                        </tr>
+                        <tr>
+                            <td class="px-4 py-3">Bracket generator + progression</td>
+                            <td class="px-4 py-3 text-slate-400">Not included</td>
+                            <td class="px-4 py-3 text-emerald-300">Included</td>
+                        </tr>
+                        <tr>
+                            <td class="px-4 py-3">Bracket audits + CSV/PDF exports</td>
+                            <td class="px-4 py-3 text-slate-400">Not included</td>
+                            <td class="px-4 py-3 text-emerald-300">Included</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="rounded-2xl border border-white/10 bg-slate-900/75 p-6">
+            <h3 class="text-xl font-semibold text-white">Self-service upgrade flow</h3>
+            <ol class="mt-3 list-decimal space-y-2 pl-5 text-sm text-slate-200">
+                <li>Start with Basic and run your intramurals normally.</li>
+                <li>Request Pro upgrade from your tenant dashboard.</li>
+                <li>Central admin reviews and approves the request.</li>
+                <li>Pro features unlock automatically in your tenant workspace.</li>
+            </ol>
+            <p class="mt-3 text-xs text-slate-400">When a Basic user opens a Pro-only feature, the system shows an upgrade prompt instead of a dead-end block.</p>
         </section>
 
         <section id="subscribe" class="rounded-2xl border border-white/10 bg-slate-900/75 p-6">

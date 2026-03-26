@@ -10,6 +10,8 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
+use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -51,5 +53,28 @@ return Application::configure(basePath: dirname(__DIR__))
         });
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        $exceptions->render(function (HttpExceptionInterface $exception, Request $request) {
+            $tenant = tenant();
+
+            if ($exception->getStatusCode() !== SymfonyResponse::HTTP_LOCKED || $tenant === null) {
+                return null;
+            }
+
+            $currentStatus = method_exists($tenant, 'currentStatus')
+                ? (string) $tenant->currentStatus()
+                : (string) ($tenant->status ?? 'inactive');
+
+            $currentDueDate = method_exists($tenant, 'currentDueDate')
+                ? $tenant->currentDueDate()
+                : ($tenant->expires_at ?? null);
+
+            return response()->view('errors.tenant-locked', [
+                'message' => $exception->getMessage() !== ''
+                    ? $exception->getMessage()
+                    : 'School subscription is not active yet. Please contact your school administrator.',
+                'tenantName' => (string) ($tenant->name ?? 'Your school'),
+                'tenantStatus' => $currentStatus,
+                'tenantDueDate' => $currentDueDate,
+            ], SymfonyResponse::HTTP_LOCKED);
+        });
     })->create();

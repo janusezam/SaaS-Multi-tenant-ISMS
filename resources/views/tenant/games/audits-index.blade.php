@@ -3,7 +3,7 @@
         <div class="flex items-center justify-between gap-3">
             <h2 class="text-2xl font-semibold text-slate-100">Result Audit History</h2>
             <div class="flex items-center gap-2">
-                @if (tenant()?->plan === 'pro')
+                @if (tenant()?->currentPlan() === 'pro')
                     <a href="{{ route('tenant.pro.exports.result-audits.csv', request()->query()) }}" class="rounded-xl border border-cyan-300/30 bg-cyan-500/20 px-4 py-2 text-sm font-medium text-cyan-100 hover:bg-cyan-500/30">Export CSV</a>
                     <a href="{{ route('tenant.pro.exports.result-audits.pdf', request()->query()) }}" class="rounded-xl border border-emerald-300/30 bg-emerald-500/20 px-4 py-2 text-sm font-medium text-emerald-100 hover:bg-emerald-500/30">Export PDF</a>
                 @endif

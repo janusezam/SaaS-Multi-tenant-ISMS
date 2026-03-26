@@ -8,6 +8,7 @@
         $logoutRoute = $isCentralRequest
             ? 'central.logout'
             : (tenant() !== null ? 'tenant.logout' : 'logout');
+        $tenantCurrentPlan = tenant()?->currentPlan();
     @endphp
 
     <!-- Primary Navigation Menu -->
@@ -56,7 +57,7 @@
                             <span class="isms-text">Standings</span>
                         </x-nav-link>
 
-                        @if (tenant()?->plan === 'pro')
+                        @if ($tenantCurrentPlan === 'pro')
                             <x-nav-link :href="route('tenant.pro.analytics')" :active="request()->routeIs('tenant.pro.analytics')">
                                 <span class="isms-text">Analytics</span>
                             </x-nav-link>
@@ -157,7 +158,7 @@
                     Standings
                 </x-responsive-nav-link>
 
-                @if (tenant()?->plan === 'pro')
+                @if ($tenantCurrentPlan === 'pro')
                     <x-responsive-nav-link :href="route('tenant.pro.analytics')" :active="request()->routeIs('tenant.pro.analytics')">
                         Analytics
                     </x-responsive-nav-link>

@@ -5,6 +5,7 @@ use App\Models\BracketMatch;
 use App\Models\Game;
 use App\Models\GameResultAudit;
 use App\Models\Sport;
+use App\Models\Subscription;
 use App\Models\Team;
 use App\Models\University;
 use App\Models\User;
@@ -191,6 +192,62 @@ test('basic plan tenant cannot access pro pages', function () {
 
     $response->assertRedirect(route('tenant.dashboard'));
     $response->assertSessionHas('upgrade_notice');
+});
+
+test('basic plan redirect to dashboard displays upgrade prompt', function () {
+    $user = User::factory()->create([
+        'role' => 'sports_facilitator',
+    ]);
+
+    $tenant = University::withoutEvents(fn () => University::query()->create([
+        'id' => 'basic-upgrade-prompt',
+        'name' => 'Basic Prompt University',
+        'plan' => 'basic',
+        'status' => 'active',
+        'expires_at' => now()->addDays(15),
+    ]));
+
+    initializeTenantWithSchema($tenant);
+
+    $response = $this->actingAs($user)
+        ->from(route('tenant.dashboard'))
+        ->get(route('tenant.pro.analytics'));
+
+    $response->assertRedirect(route('tenant.dashboard'));
+
+    $dashboard = $this->actingAs($user)->get(route('tenant.dashboard'));
+    $dashboard->assertOk();
+    $dashboard->assertSee('Upgrade to Pro to access this feature.');
+});
+
+test('pro navigation visibility uses effective current plan from subscription', function () {
+    $user = User::factory()->create([
+        'role' => 'university_admin',
+    ]);
+
+    $tenant = University::withoutEvents(fn () => University::query()->create([
+        'id' => 'pro-from-subscription',
+        'name' => 'Subscription Pro University',
+        'plan' => 'basic',
+        'status' => 'active',
+        'expires_at' => now()->addDays(15),
+    ]));
+
+    Subscription::query()->create([
+        'tenant_id' => $tenant->id,
+        'plan' => 'pro',
+        'status' => 'active',
+        'start_date' => now()->toDateString(),
+        'due_date' => now()->addDays(15)->toDateString(),
+    ]);
+
+    initializeTenantWithSchema($tenant);
+
+    $dashboard = $this->actingAs($user)->get(route('tenant.dashboard'));
+
+    $dashboard->assertOk();
+    $dashboard->assertSee(route('tenant.pro.analytics'), false);
+    $dashboard->assertSee(route('tenant.pro.bracket'), false);
 });
 
 test('pro exports endpoints are available for pro tenant', function () {

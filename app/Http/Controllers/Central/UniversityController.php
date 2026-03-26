@@ -134,15 +134,16 @@ class UniversityController extends Controller
 
         $tenantDomain = (string) ($university->domains()->value('domain') ?? '');
 
-        $forceInvite = $originalStatus !== 'active' && $university->status === 'active';
+        $forceInvite = $originalStatus === 'pending' && $university->status === 'active';
+        $adminEmailChanged = $originalAdminEmail !== $validated['tenant_admin_email'];
 
-        if ($forceInvite || $originalAdminEmail !== $validated['tenant_admin_email']) {
+        if ($forceInvite || $adminEmailChanged) {
             $this->syncTenantAdminUser(
                 $university,
                 $validated['tenant_admin_name'],
                 $validated['tenant_admin_email'],
                 $tenantDomain,
-                true,
+                $forceInvite || $adminEmailChanged,
             );
         }
 
@@ -157,6 +158,10 @@ class UniversityController extends Controller
         if ($originalStatus !== $university->status) {
             if ($university->status === 'suspended') {
                 $this->subscriptionNotificationService->send($university, 'suspended');
+            }
+
+            if ($university->status === 'expired') {
+                $this->subscriptionNotificationService->send($university, 'expired');
             }
 
             if ($university->status === 'active') {

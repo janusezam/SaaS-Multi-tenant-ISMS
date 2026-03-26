@@ -5,6 +5,8 @@ use App\Models\SuperAdmin;
 use App\Models\University;
 use App\Models\User;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
 test('authenticated super admin can view university index page', function () {
@@ -252,6 +254,80 @@ test('approved university cannot be set back to pending from edit update', funct
     $response->assertRedirect(route('central.universities.edit', $university));
     $response->assertSessionHasErrors('status');
     expect($university->fresh()->status)->toBe('active');
+});
+
+test('reactivating expired university via update does not force tenant admin password reset', function () {
+    Mail::fake();
+
+    $tenantId = 'reactivate-'.Str::lower(Str::random(8));
+    $tenantAdminEmail = 'reactivation.'.$tenantId.'@example.test';
+
+    $superAdmin = SuperAdmin::query()->create([
+        'name' => 'Central Admin',
+        'email' => 'central-admin-reactivate-update@example.test',
+        'password' => 'password',
+    ]);
+
+    $this->actingAs($superAdmin, 'super_admin')->post(route('central.universities.store'), [
+        'name' => 'Reactivation University',
+        'school_address' => 'Reactivation District',
+        'tenant_admin_name' => 'Reactivation Admin',
+        'tenant_admin_email' => $tenantAdminEmail,
+        'subdomain' => $tenantId,
+        'plan' => 'basic',
+        'subscription_starts_at' => now()->toDateString(),
+        'expires_at' => now()->addDays(30)->toDateString(),
+    ])->assertRedirect(route('central.universities.index'));
+
+    $university = University::query()->findOrFail($tenantId);
+
+    tenancy()->initialize($university);
+
+    try {
+        $tenantAdmin = User::query()->where('role', 'university_admin')->firstOrFail();
+
+        if (Schema::hasColumn('users', 'must_change_password')) {
+            $tenantAdmin->update([
+                'must_change_password' => false,
+            ]);
+        }
+    } finally {
+        tenancy()->end();
+    }
+
+    $this->actingAs($superAdmin, 'super_admin')->put(route('central.universities.update', $university), [
+        'name' => 'Reactivation University',
+        'school_address' => 'Reactivation District',
+        'tenant_admin_name' => 'Reactivation Admin',
+        'tenant_admin_email' => $tenantAdminEmail,
+        'plan' => 'basic',
+        'status' => 'expired',
+        'subscription_starts_at' => now()->toDateString(),
+        'expires_at' => now()->addDays(30)->toDateString(),
+    ])->assertRedirect(route('central.universities.index'));
+
+    $this->actingAs($superAdmin, 'super_admin')->put(route('central.universities.update', $university), [
+        'name' => 'Reactivation University',
+        'school_address' => 'Reactivation District',
+        'tenant_admin_name' => 'Reactivation Admin',
+        'tenant_admin_email' => $tenantAdminEmail,
+        'plan' => 'basic',
+        'status' => 'active',
+        'subscription_starts_at' => now()->toDateString(),
+        'expires_at' => now()->addDays(30)->toDateString(),
+    ])->assertRedirect(route('central.universities.index'));
+
+    tenancy()->initialize($university->fresh());
+
+    try {
+        $tenantAdmin = User::query()->where('role', 'university_admin')->firstOrFail();
+
+        if (Schema::hasColumn('users', 'must_change_password')) {
+            expect($tenantAdmin->must_change_password)->toBeFalse();
+        }
+    } finally {
+        tenancy()->end();
+    }
 });
 
 test('authenticated super admin can delete a university', function () {

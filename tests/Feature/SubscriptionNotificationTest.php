@@ -42,7 +42,7 @@ test('creating university queues plan started subscription email and logs notifi
     ]);
 });
 
-test('updating university status queues suspended email and logs notification', function () {
+test('updating university status to expired queues expired email and logs notification', function () {
     Mail::fake();
 
     $superAdmin = SuperAdmin::query()->create([
@@ -73,7 +73,7 @@ test('updating university status queues suspended email and logs notification', 
         'tenant_admin_name' => 'Status Admin',
         'tenant_admin_email' => 'status.admin@example.test',
         'plan' => 'basic',
-        'status' => 'suspended',
+        'status' => 'expired',
         'subscription_starts_at' => now()->toDateString(),
         'expires_at' => now()->addDays(10)->toDateString(),
     ]);
@@ -82,12 +82,12 @@ test('updating university status queues suspended email and logs notification', 
 
     Mail::assertQueued(TenantSubscriptionStatusMail::class, function (TenantSubscriptionStatusMail $mail): bool {
         return $mail->hasTo('status.admin@example.test')
-            && $mail->subjectLine === 'Your subscription is suspended';
+            && $mail->subjectLine === 'Subscription expired';
     });
 
     $this->assertDatabaseHas('subscription_notification_logs', [
         'university_id' => 'notify-status',
-        'notification_type' => 'suspended',
+        'notification_type' => 'expired',
     ]);
 });
 
