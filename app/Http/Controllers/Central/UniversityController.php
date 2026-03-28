@@ -19,6 +19,10 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
+use Stancl\Tenancy\Database\DatabaseManager as TenancyDatabaseManager;
+use Stancl\Tenancy\Jobs\CreateDatabase;
+use Stancl\Tenancy\Jobs\MigrateDatabase;
+use Stancl\Tenancy\Jobs\SeedDatabase;
 
 class UniversityController extends Controller
 {
@@ -187,6 +191,14 @@ class UniversityController extends Controller
                 ->with('status', 'Approval failed. Subscription record is missing.');
         }
 
+        try {
+            $this->provisionTenantInfrastructureIfMissing($university);
+        } catch (\Throwable) {
+            return redirect()
+                ->route('central.universities.index')
+                ->with('status', 'Approval failed while provisioning tenant database. Please retry approval.');
+        }
+
         DB::transaction(function () use ($university, $subscription): void {
             $subscription->update([
                 'status' => 'active',
@@ -219,6 +231,24 @@ class UniversityController extends Controller
         return redirect()
             ->route('central.universities.index')
             ->with('status', 'School approved and activated. Tenant admin invite sent.');
+    }
+
+    private function provisionTenantInfrastructureIfMissing(University $university): void
+    {
+        $databaseName = $university->database()->getName();
+        $databaseManager = $university->database()->manager();
+
+        if ($databaseManager->databaseExists($databaseName)) {
+            return;
+        }
+
+        // Public signup stores this flag as false; approval explicitly enables provisioning.
+        $university->setInternal('create_database', true);
+        $university->save();
+
+        (new CreateDatabase($university))->handle(app(TenancyDatabaseManager::class));
+        (new MigrateDatabase($university))->handle();
+        (new SeedDatabase($university))->handle();
     }
 
     /**

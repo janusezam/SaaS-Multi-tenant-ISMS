@@ -1,6 +1,7 @@
 @php
     $user = Auth::user();
     $canManageModules = in_array($user?->role, ['university_admin', 'sports_facilitator'], true);
+    $canManageUsers = $user?->role === 'university_admin';
     $tenantCurrentPlan = tenant()?->currentPlan();
 @endphp
 
@@ -21,6 +22,10 @@
 
         <a href="{{ route('tenant.standings.index') }}" class="block rounded-lg px-3 py-2 {{ request()->routeIs('tenant.standings.*') ? 'bg-cyan-500/20 text-cyan-100 border border-cyan-300/30' : 'isms-sidebar-link hover:bg-white/5 border border-transparent' }}">Standings</a>
 
+        @if ($canManageUsers)
+            <a href="{{ route('tenant.users.index') }}" class="block rounded-lg px-3 py-2 {{ request()->routeIs('tenant.users.*') ? 'bg-cyan-500/20 text-cyan-100 border border-cyan-300/30' : 'isms-sidebar-link hover:bg-white/5 border border-transparent' }}">Users</a>
+        @endif
+
         @if ($canManageModules)
             <a href="{{ route('tenant.sports.index') }}" class="block rounded-lg px-3 py-2 {{ request()->routeIs('tenant.sports.*') ? 'bg-cyan-500/20 text-cyan-100 border border-cyan-300/30' : 'isms-sidebar-link hover:bg-white/5 border border-transparent' }}">Sports</a>
 
@@ -34,11 +39,19 @@
 
             <a href="{{ route('tenant.audits.game-results.index') }}" class="block rounded-lg px-3 py-2 {{ request()->routeIs('tenant.audits.game-results.*') ? 'bg-cyan-500/20 text-cyan-100 border border-cyan-300/30' : 'isms-sidebar-link hover:bg-white/5 border border-transparent' }}">Result Audits</a>
 
-            @if ($tenantCurrentPlan === 'pro')
-                <a href="{{ route('tenant.pro.analytics') }}" class="block rounded-lg px-3 py-2 {{ request()->routeIs('tenant.pro.analytics') ? 'bg-emerald-500/20 text-emerald-100 border border-emerald-300/30' : 'isms-sidebar-link hover:bg-white/5 border border-transparent' }}">Analytics</a>
+            <a href="{{ route('tenant.pro.analytics') }}" class="flex items-center justify-between rounded-lg px-3 py-2 {{ request()->routeIs('tenant.pro.analytics') ? 'bg-emerald-500/20 text-emerald-100 border border-emerald-300/30' : 'isms-sidebar-link hover:bg-white/5 border border-transparent' }}">
+                <span>Analytics</span>
+                @if ($tenantCurrentPlan !== 'pro')
+                    <span class="rounded-full border border-amber-300/40 bg-amber-500/20 px-2 py-0.5 text-[10px] uppercase tracking-[0.14em] text-amber-100">Upgrade</span>
+                @endif
+            </a>
 
-                <a href="{{ route('tenant.pro.bracket') }}" class="block rounded-lg px-3 py-2 {{ request()->routeIs('tenant.pro.bracket*') ? 'bg-emerald-500/20 text-emerald-100 border border-emerald-300/30' : 'isms-sidebar-link hover:bg-white/5 border border-transparent' }}">Bracket</a>
-            @endif
+            <a href="{{ route('tenant.pro.bracket') }}" class="flex items-center justify-between rounded-lg px-3 py-2 {{ request()->routeIs('tenant.pro.bracket*') ? 'bg-emerald-500/20 text-emerald-100 border border-emerald-300/30' : 'isms-sidebar-link hover:bg-white/5 border border-transparent' }}">
+                <span>Bracket</span>
+                @if ($tenantCurrentPlan !== 'pro')
+                    <span class="rounded-full border border-amber-300/40 bg-amber-500/20 px-2 py-0.5 text-[10px] uppercase tracking-[0.14em] text-amber-100">Upgrade</span>
+                @endif
+            </a>
         @endif
     </nav>
 

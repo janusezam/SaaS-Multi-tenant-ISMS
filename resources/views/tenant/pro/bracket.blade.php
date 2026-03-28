@@ -2,7 +2,11 @@
     <x-slot name="header">
         <div class="flex items-center justify-between gap-3">
             <h2 class="text-2xl font-semibold text-slate-100">Bracket Generator</h2>
-            <a href="{{ route('tenant.pro.bracket.audits', ['sport_id' => $selectedSportId]) }}" class="rounded-xl border border-emerald-300/30 bg-emerald-500/20 px-4 py-2 text-sm font-medium text-emerald-100 hover:bg-emerald-500/30">Bracket Audits</a>
+            @if (! $isLocked)
+                <a href="{{ route('tenant.pro.bracket.audits', ['sport_id' => $selectedSportId]) }}" class="rounded-xl border border-emerald-300/30 bg-emerald-500/20 px-4 py-2 text-sm font-medium text-emerald-100 hover:bg-emerald-500/30">Bracket Audits</a>
+            @else
+                <span class="rounded-full border border-amber-300/40 bg-amber-500/20 px-3 py-1 text-xs font-medium uppercase tracking-[0.14em] text-amber-100">Locked on Basic</span>
+            @endif
         </div>
     </x-slot>
 
@@ -11,6 +15,8 @@
             <div class="rounded-xl border border-emerald-300/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-100">{{ session('status') }}</div>
         @endif
 
+        <div class="relative overflow-hidden rounded-2xl">
+        <div class="space-y-5 {{ $isLocked ? 'pointer-events-none select-none blur-[1px]' : '' }}">
         <form method="GET" action="{{ route('tenant.pro.bracket') }}" class="grid gap-4 rounded-2xl border border-white/10 bg-slate-900/85 p-4 sm:grid-cols-3">
             <div>
                 <label class="mb-2 block text-sm text-slate-300" for="sport_id">Sport</label>
@@ -73,6 +79,27 @@
                     No teams available to generate a bracket.
                 </div>
             @endforelse
+        </div>
+        </div>
+
+        @if ($isLocked)
+            <div class="pro-lock-overlay absolute inset-0 flex items-center justify-center p-6">
+                <div class="pro-lock-card max-w-xl rounded-2xl p-6 text-center">
+                    <p class="text-xs uppercase tracking-[0.2em] text-amber-200">Subscription Lock</p>
+                    <h3 class="pro-lock-title mt-2 text-xl font-semibold">Upgrade to Pro to unlock Brackets</h3>
+                    <p class="pro-lock-copy mt-2 text-sm">You can preview the knockout layout in the background, but creating and managing brackets needs Pro access.</p>
+
+                    @if ($canRequestUpgrade)
+                        <form method="POST" action="{{ route('tenant.subscription.upgrade.pro') }}" class="mt-4">
+                            @csrf
+                            <button type="submit" class="rounded-xl border border-emerald-300/35 bg-emerald-500/20 px-4 py-2 text-sm font-medium text-emerald-100 hover:bg-emerald-500/30">Request Pro Upgrade</button>
+                        </form>
+                    @else
+                        <p class="pro-lock-note mt-4 text-xs">Ask your university admin to submit the Pro upgrade request.</p>
+                    @endif
+                </div>
+            </div>
+        @endif
         </div>
     </div>
 </x-app-layout>

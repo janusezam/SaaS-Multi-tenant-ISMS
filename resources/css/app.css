@@ -136,6 +136,29 @@
 		background: var(--isms-toggle-bg-hover);
 	}
 
+	.pro-lock-overlay {
+		background: rgba(2, 6, 23, 0.58);
+		backdrop-filter: blur(2px);
+	}
+
+	.pro-lock-card {
+		background: rgba(17, 26, 51, 0.95);
+		border: 1px solid rgba(252, 211, 77, 0.34);
+		box-shadow: 0 22px 46px rgba(2, 6, 23, 0.42);
+	}
+
+	.pro-lock-title {
+		color: #ffffff;
+	}
+
+	.pro-lock-copy {
+		color: rgba(255, 255, 255, 0.82);
+	}
+
+	.pro-lock-note {
+		color: rgba(255, 255, 255, 0.72);
+	}
+
 	:root[data-theme='light'] .text-slate-100 {
 		color: #0f172a !important;
 	}
@@ -302,6 +325,29 @@
 	:root[data-theme='light'] .hover\:bg-white\/10:hover,
 	:root[data-theme='light'] .focus\:bg-white\/10:focus {
 		background-color: rgba(15, 23, 42, 0.1) !important;
+	}
+
+	:root[data-theme='light'] .pro-lock-overlay {
+		background: rgba(148, 163, 184, 0.22);
+		backdrop-filter: blur(2px);
+	}
+
+	:root[data-theme='light'] .pro-lock-card {
+		background: rgba(255, 255, 255, 0.94);
+		border-color: rgba(180, 83, 9, 0.3);
+		box-shadow: 0 22px 44px rgba(15, 23, 42, 0.16);
+	}
+
+	:root[data-theme='light'] .pro-lock-title {
+		color: #0f172a;
+	}
+
+	:root[data-theme='light'] .pro-lock-copy {
+		color: #334155;
+	}
+
+	:root[data-theme='light'] .pro-lock-note {
+		color: #475569;
 	}
 }
 

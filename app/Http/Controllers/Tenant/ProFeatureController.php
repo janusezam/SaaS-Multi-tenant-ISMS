@@ -25,7 +25,11 @@ class ProFeatureController extends Controller
     {
         $this->authorize('viewAny', BracketMatch::class);
 
+        $isLocked = ! $this->isProPlan();
+
         return view('tenant.pro.analytics', [
+            'isLocked' => $isLocked,
+            'canRequestUpgrade' => auth()->user()?->role === 'university_admin',
             'totalSports' => Sport::query()->count(),
             'totalTeams' => Team::query()->count(),
             'totalGames' => Game::query()->count(),
@@ -36,6 +40,8 @@ class ProFeatureController extends Controller
     public function bracket(Request $request): View
     {
         $this->authorize('viewAny', BracketMatch::class);
+
+        $isLocked = ! $this->isProPlan();
 
         $sportId = $request->integer('sport_id') ?: null;
         $storedBracketRounds = [];
@@ -57,6 +63,8 @@ class ProFeatureController extends Controller
         }
 
         return view('tenant.pro.bracket', [
+            'isLocked' => $isLocked,
+            'canRequestUpgrade' => auth()->user()?->role === 'university_admin',
             'sports' => Sport::query()->where('is_active', true)->orderBy('name')->get(),
             'selectedSportId' => $sportId,
             'rounds' => $storedBracketRounds !== [] ? $storedBracketRounds : $previewRounds,
@@ -320,18 +328,18 @@ class ProFeatureController extends Controller
             return [
                 'changed_at' => (string) $audit->created_at?->format('Y-m-d H:i:s'),
                 'sport' => (string) ($audit->game?->sport?->name ?? '-'),
-                'match' => $homeTeamName . ' vs ' . $awayTeamName,
+                'match' => $homeTeamName.' vs '.$awayTeamName,
                 'changed_by' => $audit->changed_by_user_id !== null ? (string) $audit->changed_by_user_id : 'System',
                 'previous_status' => strtoupper($audit->previous_status),
                 'new_status' => strtoupper($audit->new_status),
-                'previous_score' => ($audit->previous_home_score ?? '-') . '-' . ($audit->previous_away_score ?? '-'),
-                'new_score' => ($audit->new_home_score ?? '-') . '-' . ($audit->new_away_score ?? '-'),
+                'previous_score' => ($audit->previous_home_score ?? '-').'-'.($audit->previous_away_score ?? '-'),
+                'new_score' => ($audit->new_home_score ?? '-').'-'.($audit->new_away_score ?? '-'),
             ];
         })->values()->all();
     }
 
     /**
-     * @param Collection<int, Team> $teams
+     * @param  Collection<int, Team>  $teams
      * @return array<int, string>
      */
     private function seededTeamNames(Collection $teams, ?int $sportId): array
@@ -356,7 +364,7 @@ class ProFeatureController extends Controller
     }
 
     /**
-     * @param array<int, string> $seededTeamNames
+     * @param  array<int, string>  $seededTeamNames
      * @return array<int, array<string, mixed>>
      */
     private function buildBracketRounds(array $seededTeamNames): array
@@ -402,8 +410,8 @@ class ProFeatureController extends Controller
                     $previousMatchB = $matchNumber * 2;
 
                     $matches[] = [
-                        'home' => 'Winner of Match ' . $previousMatchA,
-                        'away' => 'Winner of Match ' . $previousMatchB,
+                        'home' => 'Winner of Match '.$previousMatchA,
+                        'away' => 'Winner of Match '.$previousMatchB,
                     ];
                 }
             }
@@ -438,7 +446,7 @@ class ProFeatureController extends Controller
             return 'Round of 16';
         }
 
-        return 'Round of ' . ($matchesInRound * 2);
+        return 'Round of '.($matchesInRound * 2);
     }
 
     /**
@@ -546,5 +554,10 @@ class ProFeatureController extends Controller
 
             $this->advanceWinnerToNextRound($nextMatch);
         }
+    }
+
+    private function isProPlan(): bool
+    {
+        return tenant()?->currentPlan() === 'pro';
     }
 }

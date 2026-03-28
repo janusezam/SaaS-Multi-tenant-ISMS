@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark" data-theme-static-auth>
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -10,7 +10,9 @@
     <div class="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_15%_20%,rgba(14,165,233,0.2),transparent_40%),radial-gradient(circle_at_85%_10%,rgba(249,115,22,0.2),transparent_35%),linear-gradient(180deg,#020617,#0f172a)]"></div>
 
     <header class="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-6">
-        <a href="{{ route('public.landing') }}" class="text-lg font-semibold tracking-wide text-cyan-200">ISMS SaaS</a>
+        <a href="{{ route('public.landing') }}" class="inline-flex items-center" aria-label="ISMS SaaS home">
+            <img src="{{ asset('images/isms-logo.png') }}" class="h-20 w-auto sm:h-24 transition-transform hover:scale-105" alt="ISMS logo">
+        </a>
         <nav class="flex items-center gap-4 text-sm">
             <a href="{{ route('central.login') }}" class="rounded-lg border border-white/20 px-4 py-2 hover:bg-white/10">Admin Login</a>
         </nav>

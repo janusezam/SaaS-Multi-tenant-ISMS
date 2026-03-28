@@ -9,6 +9,7 @@
             ? 'central.logout'
             : (tenant() !== null ? 'tenant.logout' : 'logout');
         $tenantCurrentPlan = tenant()?->currentPlan();
+        $canManageTenantUsers = tenant() !== null && ($authenticatedUser?->role === 'university_admin');
     @endphp
 
     <!-- Primary Navigation Menu -->
@@ -56,6 +57,12 @@
                         <x-nav-link :href="route('tenant.standings.index')" :active="request()->routeIs('tenant.standings.*')">
                             <span class="isms-text">Standings</span>
                         </x-nav-link>
+
+                        @if ($canManageTenantUsers)
+                            <x-nav-link :href="route('tenant.users.index')" :active="request()->routeIs('tenant.users.*')">
+                                <span class="isms-text">Users</span>
+                            </x-nav-link>
+                        @endif
 
                         @if ($tenantCurrentPlan === 'pro')
                             <x-nav-link :href="route('tenant.pro.analytics')" :active="request()->routeIs('tenant.pro.analytics')">
@@ -157,6 +164,12 @@
                 <x-responsive-nav-link :href="route('tenant.standings.index')" :active="request()->routeIs('tenant.standings.*')">
                     Standings
                 </x-responsive-nav-link>
+
+                @if ($canManageTenantUsers)
+                    <x-responsive-nav-link :href="route('tenant.users.index')" :active="request()->routeIs('tenant.users.*')">
+                        Users
+                    </x-responsive-nav-link>
+                @endif
 
                 @if ($tenantCurrentPlan === 'pro')
                     <x-responsive-nav-link :href="route('tenant.pro.analytics')" :active="request()->routeIs('tenant.pro.analytics')">

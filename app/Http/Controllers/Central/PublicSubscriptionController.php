@@ -25,7 +25,7 @@ class PublicSubscriptionController extends Controller
     {
         $validated = $request->validated();
 
-        $university = University::query()->create([
+        $university = new University([
             'id' => $validated['subdomain'],
             'name' => $validated['name'],
             'school_address' => $validated['school_address'],
@@ -36,6 +36,10 @@ class PublicSubscriptionController extends Controller
             'subscription_starts_at' => null,
             'expires_at' => null,
         ]);
+
+        // Public signup should not provision tenant infrastructure until central approval.
+        $university->setInternal('create_database', false);
+        $university->save();
 
         $university->domains()->create([
             'domain' => $validated['tenant_domain'],

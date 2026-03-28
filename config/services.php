@@ -35,4 +35,12 @@ return [
         ],
     ],
 
+    'recaptcha' => [
+        'site_key' => env('RECAPTCHA_SITE_KEY'),
+        'secret_key' => env('RECAPTCHA_SECRET_KEY'),
+        'version' => env('RECAPTCHA_VERSION', 'v3'),
+        'minimum_score' => (float) env('RECAPTCHA_MINIMUM_SCORE', 0.5),
+        'force_in_tests' => (bool) env('RECAPTCHA_FORCE_IN_TESTS', false),
+    ],
+
 ];

@@ -40,6 +40,11 @@ const setTheme = (theme) => {
 };
 
 const initializeThemeToggle = () => {
+	if (document.documentElement.hasAttribute('data-theme-static-auth')) {
+		document.documentElement.setAttribute('data-theme', 'dark');
+		return;
+	}
+
 	setTheme(resolvePreferredTheme());
 
 	document.querySelectorAll('[data-theme-toggle]').forEach((button) => {

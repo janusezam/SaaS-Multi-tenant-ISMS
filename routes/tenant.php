@@ -13,6 +13,7 @@ use App\Http\Controllers\Tenant\StandingsController;
 use App\Http\Controllers\Tenant\SubscriptionUpgradeController;
 use App\Http\Controllers\Tenant\TeamController;
 use App\Http\Controllers\Tenant\TenantAdminInviteController;
+use App\Http\Controllers\Tenant\TenantUserController;
 use App\Http\Controllers\Tenant\VenueController;
 use Illuminate\Support\Facades\Route;
 use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
@@ -62,6 +63,10 @@ Route::middleware([
             ->name('tenant.subscription.upgrade.pro')
             ->middleware('check.role:university_admin');
 
+        Route::middleware('check.role:university_admin')->prefix('/app')->name('tenant.')->group(function () {
+            Route::resource('users', TenantUserController::class)->except(['show']);
+        });
+
         Route::middleware('check.role:university_admin,sports_facilitator')->prefix('/app')->name('tenant.')->group(function () {
             Route::resource('sports', SportController::class)->except(['show']);
             Route::resource('venues', VenueController::class)->except(['show']);
@@ -72,16 +77,19 @@ Route::middleware([
             Route::patch('games/{game}/result', [GameController::class, 'submitResult'])->name('games.result');
             Route::get('games/{game}/audits', [GameController::class, 'auditTrail'])->name('games.audits');
 
-            Route::middleware('check.plan:pro')->prefix('pro')->name('pro.')->group(function () {
+            Route::prefix('pro')->name('pro.')->group(function () {
                 Route::get('analytics', [ProFeatureController::class, 'analytics'])->name('analytics');
                 Route::get('bracket', [ProFeatureController::class, 'bracket'])->name('bracket');
-                Route::get('bracket/audits', [ProFeatureController::class, 'bracketAudits'])->name('bracket.audits');
-                Route::post('bracket/generate', [ProFeatureController::class, 'generateBracket'])->name('bracket.generate');
-                Route::patch('bracket/matches/{match}/winner', [ProFeatureController::class, 'storeBracketResult'])->name('bracket.matches.winner');
-                Route::get('exports/standings.csv', [ProFeatureController::class, 'exportStandingsCsv'])->name('exports.standings.csv');
-                Route::get('exports/standings.pdf', [ProFeatureController::class, 'exportStandingsPdf'])->name('exports.standings.pdf');
-                Route::get('exports/result-audits.csv', [ProFeatureController::class, 'exportResultAuditsCsv'])->name('exports.result-audits.csv');
-                Route::get('exports/result-audits.pdf', [ProFeatureController::class, 'exportResultAuditsPdf'])->name('exports.result-audits.pdf');
+
+                Route::middleware('check.plan:pro')->group(function () {
+                    Route::get('bracket/audits', [ProFeatureController::class, 'bracketAudits'])->name('bracket.audits');
+                    Route::post('bracket/generate', [ProFeatureController::class, 'generateBracket'])->name('bracket.generate');
+                    Route::patch('bracket/matches/{match}/winner', [ProFeatureController::class, 'storeBracketResult'])->name('bracket.matches.winner');
+                    Route::get('exports/standings.csv', [ProFeatureController::class, 'exportStandingsCsv'])->name('exports.standings.csv');
+                    Route::get('exports/standings.pdf', [ProFeatureController::class, 'exportStandingsPdf'])->name('exports.standings.pdf');
+                    Route::get('exports/result-audits.csv', [ProFeatureController::class, 'exportResultAuditsCsv'])->name('exports.result-audits.csv');
+                    Route::get('exports/result-audits.pdf', [ProFeatureController::class, 'exportResultAuditsPdf'])->name('exports.result-audits.pdf');
+                });
             });
         });
 

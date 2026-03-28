@@ -27,7 +27,7 @@ afterEach(function () {
         tenancy()->end();
     }
 
-    foreach (['pro-tenant', 'basic-tenant', 'pro-exports', 'pro-student'] as $tenantId) {
+    foreach (['pro-tenant', 'basic-tenant', 'basic-upgrade-prompt', 'basic-nav-pro-links', 'pro-from-subscription', 'pro-exports', 'pro-student'] as $tenantId) {
         $databasePath = database_path((string) config('tenancy.database.prefix', 'tenant_').$tenantId.(string) config('tenancy.database.suffix', ''));
 
         if (is_file($databasePath)) {
@@ -173,7 +173,7 @@ test('pro plan tenant can access analytics and bracket pages', function () {
     $bracket->assertSee('Final');
 });
 
-test('basic plan tenant cannot access pro pages', function () {
+test('basic plan tenant can open pro teaser pages with lock overlay', function () {
     $user = User::factory()->create([
         'role' => 'university_admin',
     ]);
@@ -188,13 +188,18 @@ test('basic plan tenant cannot access pro pages', function () {
 
     initializeTenantWithSchema($tenant);
 
-    $response = $this->actingAs($user)->get(route('tenant.pro.analytics'));
+    $analytics = $this->actingAs($user)->get(route('tenant.pro.analytics'));
+    $analytics->assertOk();
+    $analytics->assertSee('Locked on Basic');
+    $analytics->assertSee('Upgrade to Pro to unlock Analytics');
 
-    $response->assertRedirect(route('tenant.dashboard'));
-    $response->assertSessionHas('upgrade_notice');
+    $bracket = $this->actingAs($user)->get(route('tenant.pro.bracket'));
+    $bracket->assertOk();
+    $bracket->assertSee('Locked on Basic');
+    $bracket->assertSee('Upgrade to Pro to unlock Brackets');
 });
 
-test('basic plan redirect to dashboard displays upgrade prompt', function () {
+test('basic plan keeps write pro actions gated by middleware', function () {
     $user = User::factory()->create([
         'role' => 'sports_facilitator',
     ]);
@@ -209,15 +214,60 @@ test('basic plan redirect to dashboard displays upgrade prompt', function () {
 
     initializeTenantWithSchema($tenant);
 
-    $response = $this->actingAs($user)
-        ->from(route('tenant.dashboard'))
-        ->get(route('tenant.pro.analytics'));
+    $sport = Sport::query()->create([
+        'name' => 'Locked Sport',
+        'code' => 'lckd1',
+        'description' => null,
+        'is_active' => true,
+    ]);
+
+    Team::query()->create([
+        'sport_id' => $sport->id,
+        'name' => 'Locked Team A',
+        'coach_name' => null,
+        'coach_email' => null,
+        'division' => null,
+        'is_active' => true,
+    ]);
+
+    Team::query()->create([
+        'sport_id' => $sport->id,
+        'name' => 'Locked Team B',
+        'coach_name' => null,
+        'coach_email' => null,
+        'division' => null,
+        'is_active' => true,
+    ]);
+
+    $response = $this->actingAs($user)->post(route('tenant.pro.bracket.generate'), [
+        'sport_id' => $sport->id,
+    ]);
 
     $response->assertRedirect(route('tenant.dashboard'));
+    $response->assertSessionHas('upgrade_notice');
+});
+
+test('basic navigation shows pro entries with upgrade badges', function () {
+    $user = User::factory()->create([
+        'role' => 'university_admin',
+    ]);
+
+    $tenant = University::withoutEvents(fn () => University::query()->create([
+        'id' => 'basic-nav-pro-links',
+        'name' => 'Basic Nav University',
+        'plan' => 'basic',
+        'status' => 'active',
+        'expires_at' => now()->addDays(15),
+    ]));
+
+    initializeTenantWithSchema($tenant);
 
     $dashboard = $this->actingAs($user)->get(route('tenant.dashboard'));
+
     $dashboard->assertOk();
-    $dashboard->assertSee('Upgrade to Pro to access this feature.');
+    $dashboard->assertSee(route('tenant.pro.analytics'), false);
+    $dashboard->assertSee(route('tenant.pro.bracket'), false);
+    $dashboard->assertSee('Upgrade');
 });
 
 test('pro navigation visibility uses effective current plan from subscription', function () {
