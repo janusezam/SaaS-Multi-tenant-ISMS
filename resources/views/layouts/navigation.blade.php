@@ -29,6 +29,20 @@
                         <span class="isms-text">{{ __('Dashboard') }}</span>
                     </x-nav-link>
 
+                    @if ($isCentralRequest)
+                        <x-nav-link :href="route('central.universities.index')" :active="request()->routeIs('central.universities.*')">
+                            <span class="isms-text">School Management</span>
+                        </x-nav-link>
+
+                        <x-nav-link :href="route('central.business-control.index')" :active="request()->routeIs('central.business-control.*')">
+                            <span class="isms-text">Business Control</span>
+                        </x-nav-link>
+
+                        <x-nav-link :href="route('central.business-control.upgrade-requests.index')" :active="request()->routeIs('central.business-control.upgrade-requests.*')">
+                            <span class="isms-text">Upgrade Requests</span>
+                        </x-nav-link>
+                    @endif
+
                     @if (tenant() !== null)
                         <x-nav-link :href="route('tenant.sports.index')" :active="request()->routeIs('tenant.sports.*')">
                             <span class="isms-text">Sports</span>
@@ -56,6 +70,10 @@
 
                         <x-nav-link :href="route('tenant.standings.index')" :active="request()->routeIs('tenant.standings.*')">
                             <span class="isms-text">Standings</span>
+                        </x-nav-link>
+
+                        <x-nav-link :href="route('tenant.subscription.show')" :active="request()->routeIs('tenant.subscription.*')">
+                            <span class="isms-text">Subscription</span>
                         </x-nav-link>
 
                         @if ($canManageTenantUsers)
@@ -136,6 +154,20 @@
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
 
+            @if ($isCentralRequest)
+                <x-responsive-nav-link :href="route('central.universities.index')" :active="request()->routeIs('central.universities.*')">
+                    School Management
+                </x-responsive-nav-link>
+
+                <x-responsive-nav-link :href="route('central.business-control.index')" :active="request()->routeIs('central.business-control.*')">
+                    Business Control
+                </x-responsive-nav-link>
+
+                <x-responsive-nav-link :href="route('central.business-control.upgrade-requests.index')" :active="request()->routeIs('central.business-control.upgrade-requests.*')">
+                    Upgrade Requests
+                </x-responsive-nav-link>
+            @endif
+
             @if (tenant() !== null)
                 <x-responsive-nav-link :href="route('tenant.sports.index')" :active="request()->routeIs('tenant.sports.*')">
                     Sports
@@ -163,6 +195,10 @@
 
                 <x-responsive-nav-link :href="route('tenant.standings.index')" :active="request()->routeIs('tenant.standings.*')">
                     Standings
+                </x-responsive-nav-link>
+
+                <x-responsive-nav-link :href="route('tenant.subscription.show')" :active="request()->routeIs('tenant.subscription.*')">
+                    Subscription
                 </x-responsive-nav-link>
 
                 @if ($canManageTenantUsers)

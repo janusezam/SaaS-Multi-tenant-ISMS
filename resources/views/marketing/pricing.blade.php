@@ -21,107 +21,58 @@
             </div>
         @endif
 
-        <section class="relative overflow-hidden rounded-[2rem] border border-blue-400/20 bg-slate-950/70 px-4 py-10 sm:px-6">
-            <h2 class="pointer-events-none absolute left-1/2 top-2 -translate-x-1/2 select-none text-6xl font-black uppercase tracking-tight text-blue-500/35 sm:text-7xl md:text-8xl">Pricing</h2>
+        <section class="relative overflow-hidden rounded-[2rem] border border-blue-500/30 bg-[#070b16]/80 p-6 sm:p-8">
+            <div class="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(37,99,235,0.22),transparent_45%),radial-gradient(circle_at_80%_10%,rgba(29,78,216,0.2),transparent_42%)]"></div>
+            <h2 class="pointer-events-none absolute left-1/2 top-4 -translate-x-1/2 select-none text-6xl font-black uppercase tracking-tight text-blue-500/45 sm:text-7xl md:text-8xl">Pricing</h2>
 
-            <div class="relative mt-12 grid gap-5 lg:grid-cols-2">
-                <article class="rounded-[1.75rem] border border-blue-400/35 bg-[radial-gradient(circle_at_30%_20%,rgba(59,130,246,0.32),rgba(15,23,42,0.88)_45%,rgba(2,6,23,0.95)_100%)] p-6 shadow-[0_0_24px_rgba(37,99,235,0.45)]">
-                    <p class="text-sm font-medium tracking-wide text-slate-200">Basic</p>
-                    <div class="mt-2 flex items-end gap-1">
-                        <p class="text-4xl font-extrabold text-white">$19</p>
-                        <p class="mb-1 text-sm text-slate-300">/month</p>
-                    </div>
-                    <p class="mt-2 text-sm text-slate-300">Complete manual operations for day-to-day intramurals.</p>
+            <div class="relative mt-16">
+                <p class="text-center text-sm text-slate-300">Plans and pricing are centrally managed by ISMS Business Control.</p>
 
-                    <ul class="mt-5 space-y-3 text-sm text-slate-100">
-                        <li class="flex items-center gap-2"><span class="text-blue-300">●</span> Manage sports, venues, teams, and players</li>
-                        <li class="flex items-center gap-2"><span class="text-blue-300">●</span> Schedule games and submit results</li>
-                        <li class="flex items-center gap-2"><span class="text-blue-300">●</span> View standings and result audit history</li>
-                        <li class="flex items-center gap-2"><span class="text-blue-300">●</span> Full operational use without advanced automation</li>
-                    </ul>
+                <div class="mt-6 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+                    @forelse ($plans as $plan)
+                        @php
+                            $isPro = strtolower((string) $plan->code) === 'pro';
+                            $featureList = $isPro
+                                ? ['Analytics dashboard', 'Bracket automation', 'CSV and PDF exports']
+                                : ['Sports and team operations', 'Schedules and results', 'Standings and audit trails'];
+                        @endphp
 
-                    <a href="#subscribe" class="mt-6 inline-flex w-full items-center justify-center rounded-full border border-white/20 bg-gradient-to-b from-slate-600/60 to-slate-900/80 px-4 py-2.5 text-sm font-semibold text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.35)] transition hover:from-slate-500/70 hover:to-slate-800/90">Start with Basic</a>
-                </article>
+                        <article class="relative rounded-[1.75rem] border p-6 {{ $isPro ? 'border-blue-400/70 bg-[radial-gradient(circle_at_50%_0%,rgba(59,130,246,0.45),rgba(30,41,59,0.9)_40%,rgba(2,6,23,0.98)_100%)] shadow-[0_0_30px_rgba(37,99,235,0.65)]' : 'border-blue-400/35 bg-[radial-gradient(circle_at_30%_20%,rgba(59,130,246,0.28),rgba(15,23,42,0.88)_45%,rgba(2,6,23,0.95)_100%)] shadow-[0_0_20px_rgba(37,99,235,0.35)]' }}">
+                            @if ($isPro)
+                                <span class="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 rounded-full border border-blue-200/50 bg-gradient-to-r from-blue-500 to-indigo-500 px-3 py-1 text-xs font-semibold text-white shadow-[0_0_16px_rgba(59,130,246,0.7)]">Popular</span>
+                            @endif
 
-                <article class="relative rounded-[1.75rem] border border-blue-400/70 bg-[radial-gradient(circle_at_50%_0%,rgba(59,130,246,0.5),rgba(30,41,59,0.9)_40%,rgba(2,6,23,0.98)_100%)] p-6 shadow-[0_0_36px_rgba(37,99,235,0.7)]">
-                    <span class="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 rounded-full border border-blue-200/50 bg-gradient-to-r from-blue-500 to-indigo-500 px-3 py-1 text-xs font-semibold text-white shadow-[0_0_20px_rgba(59,130,246,0.65)]">Popular</span>
-                    <p class="text-sm font-medium tracking-wide text-blue-100">Pro</p>
-                    <div class="mt-2 flex items-end gap-1">
-                        <p class="text-4xl font-extrabold text-white">$49</p>
-                        <p class="mb-1 text-sm text-blue-100">/month</p>
-                    </div>
-                    <p class="mt-2 text-sm text-blue-100/90">Automation and insights for faster, data-driven league management.</p>
+                            <p class="text-2xl font-semibold text-white">{{ $plan->name }}</p>
+                            <div class="mt-2 flex items-end gap-1">
+                                <p class="text-5xl font-extrabold text-white leading-none">${{ number_format((float) $plan->monthly_price, 0) }}</p>
+                                <p class="mb-1 text-xl text-slate-300">/month</p>
+                            </div>
 
-                    <ul class="mt-5 space-y-3 text-sm text-white">
-                        <li class="flex items-center gap-2"><span class="text-blue-300">●</span> Everything in Basic plus analytics dashboard</li>
-                        <li class="flex items-center gap-2"><span class="text-blue-300">●</span> Bracket generator with winner progression</li>
-                        <li class="flex items-center gap-2"><span class="text-blue-300">●</span> Bracket audit tracking</li>
-                        <li class="flex items-center gap-2"><span class="text-blue-300">●</span> Standings and audit exports (CSV/PDF)</li>
-                    </ul>
+                            <p class="mt-2 text-sm text-slate-200">
+                                ${{ number_format((float) $plan->yearly_price, 2) }} /year
+                                @if ((float) $plan->yearly_discount_percent > 0)
+                                    <span class="text-emerald-300">(save {{ number_format((float) $plan->yearly_discount_percent, 2) }}%)</span>
+                                @endif
+                            </p>
 
-                    <a href="#subscribe" class="mt-6 inline-flex w-full items-center justify-center rounded-full border border-blue-300/40 bg-gradient-to-r from-blue-500 via-indigo-500 to-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-[0_0_22px_rgba(59,130,246,0.75)] transition hover:brightness-110">Upgrade to Pro</a>
-                </article>
+                            <ul class="mt-5 space-y-2.5 text-sm text-slate-100">
+                                @foreach ($featureList as $feature)
+                                    <li class="flex items-center gap-2">
+                                        <span class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-blue-500/80 text-[11px] font-bold text-white">✓</span>
+                                        <span>{{ $feature }}</span>
+                                    </li>
+                                @endforeach
+                            </ul>
+
+                            <a href="#subscribe" class="mt-6 inline-flex w-full items-center justify-center rounded-full border px-4 py-2.5 text-sm font-semibold transition {{ $isPro ? 'border-blue-300/40 bg-gradient-to-r from-blue-500 via-indigo-500 to-blue-600 text-white shadow-[0_0_20px_rgba(59,130,246,0.75)] hover:brightness-110' : 'border-white/20 bg-gradient-to-b from-slate-600/70 to-slate-900/90 text-white hover:from-slate-500/80 hover:to-slate-800' }}">
+                                {{ $isPro ? 'Upgrade Now' : 'Start Plan' }}
+                            </a>
+                        </article>
+                    @empty
+                        <p class="text-sm text-slate-300">No active plans are currently available.</p>
+                    @endforelse
+                </div>
             </div>
-        </section>
-
-        <section class="rounded-2xl border border-white/10 bg-slate-900/75 p-6">
-            <h3 class="text-xl font-semibold text-white">Feature comparison</h3>
-            <p class="mt-1 text-sm text-slate-300">Basic gives complete manual operations. Pro adds automation, analytics, and exports.</p>
-
-            <div class="mt-4 overflow-hidden rounded-xl border border-white/10">
-                <table class="min-w-full divide-y divide-white/10 text-sm">
-                    <thead class="bg-slate-950/70 text-slate-300">
-                        <tr>
-                            <th class="px-4 py-3 text-left font-medium">Capability</th>
-                            <th class="px-4 py-3 text-left font-medium">Basic</th>
-                            <th class="px-4 py-3 text-left font-medium">Pro</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-white/10 text-slate-100">
-                        <tr>
-                            <td class="px-4 py-3">Sports, venues, teams, players</td>
-                            <td class="px-4 py-3 text-emerald-300">Included</td>
-                            <td class="px-4 py-3 text-emerald-300">Included</td>
-                        </tr>
-                        <tr>
-                            <td class="px-4 py-3">Scheduling, results, standings</td>
-                            <td class="px-4 py-3 text-emerald-300">Included</td>
-                            <td class="px-4 py-3 text-emerald-300">Included</td>
-                        </tr>
-                        <tr>
-                            <td class="px-4 py-3">Result audit history</td>
-                            <td class="px-4 py-3 text-emerald-300">Included</td>
-                            <td class="px-4 py-3 text-emerald-300">Included</td>
-                        </tr>
-                        <tr>
-                            <td class="px-4 py-3">Analytics dashboard</td>
-                            <td class="px-4 py-3 text-slate-400">Not included</td>
-                            <td class="px-4 py-3 text-emerald-300">Included</td>
-                        </tr>
-                        <tr>
-                            <td class="px-4 py-3">Bracket generator + progression</td>
-                            <td class="px-4 py-3 text-slate-400">Not included</td>
-                            <td class="px-4 py-3 text-emerald-300">Included</td>
-                        </tr>
-                        <tr>
-                            <td class="px-4 py-3">Bracket audits + CSV/PDF exports</td>
-                            <td class="px-4 py-3 text-slate-400">Not included</td>
-                            <td class="px-4 py-3 text-emerald-300">Included</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </section>
-
-        <section class="rounded-2xl border border-white/10 bg-slate-900/75 p-6">
-            <h3 class="text-xl font-semibold text-white">Self-service upgrade flow</h3>
-            <ol class="mt-3 list-decimal space-y-2 pl-5 text-sm text-slate-200">
-                <li>Start with Basic and run your intramurals normally.</li>
-                <li>Request Pro upgrade from your tenant dashboard.</li>
-                <li>Central admin reviews and approves the request.</li>
-                <li>Pro features unlock automatically in your tenant workspace.</li>
-            </ol>
-            <p class="mt-3 text-xs text-slate-400">When a Basic user opens a Pro-only feature, the system shows an upgrade prompt instead of a dead-end block.</p>
         </section>
 
         <section id="subscribe" class="rounded-2xl border border-white/10 bg-slate-900/75 p-6">
@@ -164,10 +115,26 @@
                 <div>
                     <label class="mb-2 block text-sm text-slate-300" for="plan">Plan</label>
                     <select id="plan" name="plan" class="w-full rounded-xl border border-white/10 bg-slate-950/70 text-slate-100" required>
-                        <option value="basic" @selected(old('plan') === 'basic')>Basic</option>
-                        <option value="pro" @selected(old('plan') === 'pro')>Pro</option>
+                        @foreach ($plans as $plan)
+                            <option value="{{ $plan->code }}" @selected(old('plan', 'basic') === $plan->code)>{{ $plan->name }}</option>
+                        @endforeach
                     </select>
                     @error('plan')<p class="mt-1 text-xs text-rose-300">{{ $message }}</p>@enderror
+                </div>
+
+                <div>
+                    <label class="mb-2 block text-sm text-slate-300" for="billing_cycle">Billing Cycle</label>
+                    <select id="billing_cycle" name="billing_cycle" class="w-full rounded-xl border border-white/10 bg-slate-950/70 text-slate-100" required>
+                        <option value="monthly" @selected(old('billing_cycle', 'monthly') === 'monthly')>Monthly</option>
+                        <option value="yearly" @selected(old('billing_cycle') === 'yearly')>Yearly</option>
+                    </select>
+                    @error('billing_cycle')<p class="mt-1 text-xs text-rose-300">{{ $message }}</p>@enderror
+                </div>
+
+                <div>
+                    <label class="mb-2 block text-sm text-slate-300" for="coupon_code">Promo Code (optional)</label>
+                    <input id="coupon_code" name="coupon_code" value="{{ old('coupon_code') }}" class="w-full rounded-xl border border-white/10 bg-slate-950/70 text-slate-100">
+                    @error('coupon_code')<p class="mt-1 text-xs text-rose-300">{{ $message }}</p>@enderror
                 </div>
 
                 <div class="md:col-span-2">

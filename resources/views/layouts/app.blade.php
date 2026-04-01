@@ -43,7 +43,15 @@
                     @isset($header)
                         <header class="isms-header relative z-10 border-b shadow-lg shadow-slate-950/20">
                             <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-                                {{ $header }}
+                                <div class="flex flex-wrap items-start justify-between gap-3">
+                                    <div class="min-w-0 flex-1">
+                                        {{ $header }}
+                                    </div>
+
+                                    <a href="{{ route('tenant.subscription.show') }}" class="inline-flex items-center rounded-lg border px-3 py-2 text-sm transition {{ request()->routeIs('tenant.subscription.*') ? 'border-cyan-300/40 bg-cyan-500/20 text-cyan-100' : 'border-white/10 bg-white/5 text-slate-200 hover:bg-white/10' }}">
+                                        Subscription
+                                    </a>
+                                </div>
                             </div>
                         </header>
                     @endisset
@@ -61,6 +69,8 @@
                     </main>
                 </div>
             </div>
+
+            @include('tenant.subscription.partials.upgrade-modal')
         @else
             <div class="isms-shell min-h-screen">
                 @include('layouts.navigation')

@@ -39,19 +39,25 @@
 
             <a href="{{ route('tenant.audits.game-results.index') }}" class="block rounded-lg px-3 py-2 {{ request()->routeIs('tenant.audits.game-results.*') ? 'bg-cyan-500/20 text-cyan-100 border border-cyan-300/30' : 'isms-sidebar-link hover:bg-white/5 border border-transparent' }}">Result Audits</a>
 
-            <a href="{{ route('tenant.pro.analytics') }}" class="flex items-center justify-between rounded-lg px-3 py-2 {{ request()->routeIs('tenant.pro.analytics') ? 'bg-emerald-500/20 text-emerald-100 border border-emerald-300/30' : 'isms-sidebar-link hover:bg-white/5 border border-transparent' }}">
-                <span>Analytics</span>
-                @if ($tenantCurrentPlan !== 'pro')
-                    <span class="rounded-full border border-amber-300/40 bg-amber-500/20 px-2 py-0.5 text-[10px] uppercase tracking-[0.14em] text-amber-100">Upgrade</span>
-                @endif
-            </a>
+            @if ($tenantCurrentPlan !== 'pro')
+                <div class="flex items-center justify-between rounded-lg border border-transparent px-3 py-2 isms-sidebar-link hover:bg-white/5">
+                    <a href="{{ route('tenant.pro.analytics') }}" class="flex-1">Analytics</a>
+                    <a href="{{ route('tenant.subscription.show', ['openUpgrade' => 1]) }}" class="rounded-full border border-amber-300/40 bg-amber-500/20 px-2 py-0.5 text-[10px] uppercase tracking-[0.14em] text-amber-100">Upgrade</a>
+                </div>
 
-            <a href="{{ route('tenant.pro.bracket') }}" class="flex items-center justify-between rounded-lg px-3 py-2 {{ request()->routeIs('tenant.pro.bracket*') ? 'bg-emerald-500/20 text-emerald-100 border border-emerald-300/30' : 'isms-sidebar-link hover:bg-white/5 border border-transparent' }}">
-                <span>Bracket</span>
-                @if ($tenantCurrentPlan !== 'pro')
-                    <span class="rounded-full border border-amber-300/40 bg-amber-500/20 px-2 py-0.5 text-[10px] uppercase tracking-[0.14em] text-amber-100">Upgrade</span>
-                @endif
-            </a>
+                <div class="flex items-center justify-between rounded-lg border border-transparent px-3 py-2 isms-sidebar-link hover:bg-white/5">
+                    <a href="{{ route('tenant.pro.bracket') }}" class="flex-1">Bracket</a>
+                    <a href="{{ route('tenant.subscription.show', ['openUpgrade' => 1]) }}" class="rounded-full border border-amber-300/40 bg-amber-500/20 px-2 py-0.5 text-[10px] uppercase tracking-[0.14em] text-amber-100">Upgrade</a>
+                </div>
+            @else
+                <a href="{{ route('tenant.pro.analytics') }}" class="flex items-center justify-between rounded-lg px-3 py-2 {{ request()->routeIs('tenant.pro.analytics') ? 'bg-emerald-500/20 text-emerald-100 border border-emerald-300/30' : 'isms-sidebar-link hover:bg-white/5 border border-transparent' }}">
+                    <span>Analytics</span>
+                </a>
+
+                <a href="{{ route('tenant.pro.bracket') }}" class="flex items-center justify-between rounded-lg px-3 py-2 {{ request()->routeIs('tenant.pro.bracket*') ? 'bg-emerald-500/20 text-emerald-100 border border-emerald-300/30' : 'isms-sidebar-link hover:bg-white/5 border border-transparent' }}">
+                    <span>Bracket</span>
+                </a>
+            @endif
         @endif
     </nav>
 

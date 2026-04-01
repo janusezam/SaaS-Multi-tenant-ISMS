@@ -2,7 +2,6 @@
 
 use App\Models\SuperAdmin;
 use App\Models\University;
-use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
 
 test('public user can view landing and pricing pages', function () {
@@ -20,6 +19,7 @@ test('public pricing signup creates pending tenant and subscription', function (
         'tenant_admin_email' => 'public.admin@example.test',
         'subdomain' => $tenantId,
         'plan' => 'basic',
+        'billing_cycle' => 'monthly',
     ]);
 
     $response->assertRedirect(route('public.pricing'));
@@ -54,6 +54,7 @@ test('approving a public pending tenant enables database provisioning', function
         'tenant_admin_email' => 'pending.admin@example.test',
         'subdomain' => $tenantId,
         'plan' => 'basic',
+        'billing_cycle' => 'monthly',
     ])->assertRedirect(route('public.pricing'));
 
     $superAdmin = SuperAdmin::query()->create([
@@ -73,30 +74,4 @@ test('approving a public pending tenant enables database provisioning', function
     expect($university->status)->toBe('active');
     expect($university->subscription?->status)->toBe('active');
     expect($university->getInternal('create_database'))->toBeTrue();
-});
-
-test('signed upgrade request from tenant context is stored centrally', function () {
-    $university = University::withoutEvents(fn () => University::query()->create([
-        'id' => 'upgrade-tenant',
-        'name' => 'Upgrade Tenant University',
-        'plan' => 'basic',
-        'status' => 'active',
-    ]));
-
-    $signedUrl = URL::temporarySignedRoute('central.upgrade.requests.store', now()->addMinutes(5), [
-        'tenant' => $university->id,
-        'plan' => 'pro',
-        'email' => 'admin@upgrade-tenant.test',
-    ]);
-
-    $response = $this->get($signedUrl);
-
-    $response->assertOk();
-
-    $this->assertDatabaseHas('subscription_upgrade_requests', [
-        'tenant_id' => 'upgrade-tenant',
-        'requested_plan' => 'pro',
-        'status' => 'pending',
-        'requested_by_email' => 'admin@upgrade-tenant.test',
-    ]);
 });

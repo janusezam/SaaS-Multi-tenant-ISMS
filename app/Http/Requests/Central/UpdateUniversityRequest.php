@@ -29,7 +29,7 @@ class UpdateUniversityRequest extends FormRequest
             'school_address' => ['required', 'string', 'max:255'],
             'tenant_admin_name' => ['required', 'string', 'max:255'],
             'tenant_admin_email' => ['required', 'string', 'email', 'max:255'],
-            'plan' => ['required', Rule::in(['basic', 'pro'])],
+            'plan' => ['required', Rule::exists('plans', 'code')->where('is_active', true)],
             'status' => ['required', Rule::in($this->allowedStatuses())],
             'subscription_starts_at' => ['nullable', 'date'],
             'expires_at' => ['nullable', 'date'],

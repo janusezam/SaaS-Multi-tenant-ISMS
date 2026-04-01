@@ -7,7 +7,7 @@ test('central login screen can be rendered', function () {
     $response = $this->get(route('central.login'));
 
     $response->assertOk();
-    $response->assertSee('Super Admin Access');
+    $response->assertSee('Super Admin Login');
 });
 
 test('super admins can authenticate using central login', function () {

@@ -42,7 +42,6 @@
                     @forelse ($universities as $university)
                         @php
                             $subscription = $university->subscription;
-                            $pendingUpgradeRequest = $university->upgradeRequests->firstWhere('status', 'pending');
                             $plan = $subscription?->plan ?? $university->plan;
                             $status = $subscription?->status ?? $university->status;
                             $startsAt = $subscription?->start_date ?? $university->subscription_starts_at;
@@ -63,28 +62,23 @@
                                     <span class="rounded-full px-2 py-1 text-xs {{ $status === 'active' ? 'bg-emerald-500/20 text-emerald-200' : 'bg-amber-500/20 text-amber-200' }}">
                                         {{ $status }}
                                     </span>
-                                    @if ($pendingUpgradeRequest)
-                                        <span class="rounded-full bg-amber-500/20 px-2 py-1 text-xs text-amber-200">Upgrade Pending</span>
-                                    @endif
                                 </div>
+                                <p class="mt-1 text-xs text-slate-400">
+                                    {{ strtoupper((string) ($subscription?->billing_cycle ?? 'monthly')) }}
+                                    · Coupon: {{ $subscription?->coupon_code ?: 'none' }}
+                                    · Final: ${{ number_format((float) ($subscription?->final_price ?? 0), 2) }}
+                                </p>
                             </td>
                             <td class="px-4 py-3">{{ $startsAt?->format('M d, Y') ?? 'Not set' }}</td>
                             <td class="px-4 py-3">{{ $dueDate?->format('M d, Y') ?? 'No expiry' }}</td>
                             <td class="px-4 py-3">
                                 <div class="flex flex-wrap gap-2">
                                     @if ($status === 'pending')
-                                        <form method="POST" action="{{ route('central.universities.approve', $university) }}" onsubmit="return confirm('Approve this school and send tenant admin invite?');">
+                                        <form method="POST" action="{{ route('central.universities.approve', $university) }}" onsubmit="return confirm('Approve this school and send tenant admin invite?');" class="flex flex-wrap items-center gap-2">
                                             @csrf
                                             @method('PATCH')
+                                            <input type="number" step="0.01" min="0" name="manual_price_override" placeholder="Manual final price" class="w-36 rounded border border-white/10 bg-slate-950/70 px-2 py-1 text-xs text-slate-100">
                                             <button type="submit" class="rounded-md border border-emerald-300/30 bg-emerald-500/20 px-3 py-1 text-xs text-emerald-100 hover:bg-emerald-500/30">Approve</button>
-                                        </form>
-                                    @endif
-
-                                    @if ($pendingUpgradeRequest)
-                                        <form method="POST" action="{{ route('central.universities.approve-upgrade', $university) }}" onsubmit="return confirm('Approve this Pro upgrade request?');">
-                                            @csrf
-                                            @method('PATCH')
-                                            <button type="submit" class="rounded-md border border-amber-300/30 bg-amber-500/20 px-3 py-1 text-xs text-amber-100 hover:bg-amber-500/30">Approve Upgrade</button>
                                         </form>
                                     @endif
 

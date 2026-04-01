@@ -53,7 +53,7 @@ class StoreUniversityRequest extends FormRequest
                 Rule::notIn($this->reservedSubdomains()),
                 'unique:tenants,id',
             ],
-            'plan' => ['required', Rule::in(['basic', 'pro'])],
+            'plan' => ['required', Rule::exists('plans', 'code')->where('is_active', true)],
             'subscription_starts_at' => ['nullable', 'date'],
             'expires_at' => ['nullable', 'date'],
             'tenant_domain' => ['required', 'string', 'max:255', 'unique:domains,domain'],

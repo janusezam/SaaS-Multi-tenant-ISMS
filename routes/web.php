@@ -1,10 +1,13 @@
 <?php
 
 use App\Http\Controllers\Central\Auth\AuthenticatedSessionController as CentralAuthenticatedSessionController;
+use App\Http\Controllers\Central\BusinessControl\CouponController;
+use App\Http\Controllers\Central\BusinessControl\DashboardController;
+use App\Http\Controllers\Central\BusinessControl\PlanController;
+use App\Http\Controllers\Central\BusinessControl\UpgradeRequestController;
 use App\Http\Controllers\Central\PublicSubscriptionController;
 use App\Http\Controllers\Central\SubscriptionNotificationLogController;
 use App\Http\Controllers\Central\UniversityController;
-use App\Http\Controllers\Central\UpgradeRequestController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -28,9 +31,6 @@ Route::get('/landing', [PublicSubscriptionController::class, 'landing'])->name('
 
 Route::get('/pricing', [PublicSubscriptionController::class, 'pricing'])->name('public.pricing');
 Route::post('/subscribe', [PublicSubscriptionController::class, 'subscribe'])->name('public.subscribe');
-Route::get('/central/upgrade/request', [UpgradeRequestController::class, 'store'])
-    ->middleware('signed')
-    ->name('central.upgrade.requests.store');
 
 Route::get('/dashboard', function () {
     return view('dashboard');
@@ -56,6 +56,22 @@ Route::prefix('central')->name('central.')->group(function () {
 
         Route::resource('universities', UniversityController::class)->except(['show']);
 
+        Route::prefix('business-control')->name('business-control.')->group(function () {
+            Route::get('/', [DashboardController::class, 'index'])->name('index');
+
+            Route::get('plans', [PlanController::class, 'index'])->name('plans.index');
+            Route::post('plans', [PlanController::class, 'store'])->name('plans.store');
+            Route::patch('plans/{plan}', [PlanController::class, 'update'])->name('plans.update');
+
+            Route::get('coupons', [CouponController::class, 'index'])->name('coupons.index');
+            Route::post('coupons', [CouponController::class, 'store'])->name('coupons.store');
+            Route::patch('coupons/{coupon}', [CouponController::class, 'update'])->name('coupons.update');
+
+            Route::get('upgrade-requests', [UpgradeRequestController::class, 'index'])->name('upgrade-requests.index');
+            Route::patch('upgrade-requests/{upgradeRequest}/approve', [UpgradeRequestController::class, 'approve'])->name('upgrade-requests.approve');
+            Route::patch('upgrade-requests/{upgradeRequest}/reject', [UpgradeRequestController::class, 'reject'])->name('upgrade-requests.reject');
+        });
+
         Route::patch('universities/{university}/suspend', [UniversityController::class, 'suspend'])
             ->name('universities.suspend');
 
@@ -67,9 +83,6 @@ Route::prefix('central')->name('central.')->group(function () {
 
         Route::patch('universities/{university}/approve', [UniversityController::class, 'approve'])
             ->name('universities.approve');
-
-        Route::patch('universities/{university}/approve-upgrade', [UniversityController::class, 'approveUpgrade'])
-            ->name('universities.approve-upgrade');
     });
 });
 

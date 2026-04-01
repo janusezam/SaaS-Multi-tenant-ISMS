@@ -29,7 +29,6 @@ class ProFeatureController extends Controller
 
         return view('tenant.pro.analytics', [
             'isLocked' => $isLocked,
-            'canRequestUpgrade' => auth()->user()?->role === 'university_admin',
             'totalSports' => Sport::query()->count(),
             'totalTeams' => Team::query()->count(),
             'totalGames' => Game::query()->count(),
@@ -64,7 +63,6 @@ class ProFeatureController extends Controller
 
         return view('tenant.pro.bracket', [
             'isLocked' => $isLocked,
-            'canRequestUpgrade' => auth()->user()?->role === 'university_admin',
             'sports' => Sport::query()->where('is_active', true)->orderBy('name')->get(),
             'selectedSportId' => $sportId,
             'rounds' => $storedBracketRounds !== [] ? $storedBracketRounds : $previewRounds,

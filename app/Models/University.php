@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Carbon;
 use Stancl\Tenancy\Contracts\TenantWithDatabase;
@@ -65,11 +64,6 @@ class University extends Tenant implements TenantWithDatabase
     public function subscription(): HasOne
     {
         return $this->hasOne(Subscription::class, 'tenant_id', 'id');
-    }
-
-    public function upgradeRequests(): HasMany
-    {
-        return $this->hasMany(SubscriptionUpgradeRequest::class, 'tenant_id', 'id');
     }
 
     public function currentPlan(): string

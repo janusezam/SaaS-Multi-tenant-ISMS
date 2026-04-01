@@ -1,0 +1,39 @@
+<?php
+
+namespace App\Http\Requests\Tenant;
+
+use Illuminate\Contracts\Validation\ValidationRule;
+use Illuminate\Foundation\Http\FormRequest;
+
+class PreviewPricingRequest extends FormRequest
+{
+    /**
+     * Determine if the user is authorized to make this request.
+     */
+    public function authorize(): bool
+    {
+        return true;
+    }
+
+    protected function prepareForValidation(): void
+    {
+        $this->merge([
+            'plan' => (string) ($this->input('plan') ?: 'pro'),
+            'coupon_code' => trim((string) $this->input('coupon_code')),
+        ]);
+    }
+
+    /**
+     * Get the validation rules that apply to the request.
+     *
+     * @return array<string, ValidationRule|array<mixed>|string>
+     */
+    public function rules(): array
+    {
+        return [
+            'plan' => ['required', 'string', 'max:30'],
+            'billing_cycle' => ['required', 'string', 'in:monthly,yearly'],
+            'coupon_code' => ['nullable', 'string', 'max:80'],
+        ];
+    }
+}

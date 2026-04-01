@@ -3,10 +3,12 @@
 namespace App\Http\Controllers\Central;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Central\ApproveUniversityRequest;
 use App\Http\Requests\Central\ExtendUniversitySubscriptionRequest;
 use App\Http\Requests\Central\StoreUniversityRequest;
 use App\Http\Requests\Central\UpdateUniversityRequest;
 use App\Mail\TenantAdminInviteMail;
+use App\Models\Plan;
 use App\Models\Subscription;
 use App\Models\University;
 use App\Models\User;
@@ -34,7 +36,7 @@ class UniversityController extends Controller
     public function index(): View
     {
         $universities = University::query()
-            ->with(['domains', 'subscription', 'upgradeRequests'])
+            ->with(['domains', 'subscription'])
             ->latest()
             ->paginate(12);
 
@@ -48,7 +50,9 @@ class UniversityController extends Controller
      */
     public function create(): View
     {
-        return view('central.universities.create');
+        return view('central.universities.create', [
+            'plans' => Plan::query()->active()->orderBy('sort_order')->get(),
+        ]);
     }
 
     /**
@@ -106,6 +110,7 @@ class UniversityController extends Controller
     {
         return view('central.universities.edit', [
             'university' => $university,
+            'plans' => Plan::query()->active()->orderBy('sort_order')->get(),
         ]);
     }
 
@@ -181,7 +186,7 @@ class UniversityController extends Controller
     /**
      * Approve and activate a pending university.
      */
-    public function approve(University $university): RedirectResponse
+    public function approve(ApproveUniversityRequest $request, University $university): RedirectResponse
     {
         $subscription = $university->subscription;
 
@@ -199,9 +204,25 @@ class UniversityController extends Controller
                 ->with('status', 'Approval failed while provisioning tenant database. Please retry approval.');
         }
 
-        DB::transaction(function () use ($university, $subscription): void {
+        $manualPriceOverride = $request->validated('manual_price_override');
+
+        DB::transaction(function () use ($university, $subscription, $manualPriceOverride): void {
+            $finalPrice = $manualPriceOverride !== null
+                ? (float) $manualPriceOverride
+                : $subscription->final_price;
+
+            $snapshot = is_array($subscription->pricing_snapshot)
+                ? $subscription->pricing_snapshot
+                : [];
+
+            if ($manualPriceOverride !== null) {
+                $snapshot['final_price'] = $finalPrice;
+            }
+
             $subscription->update([
                 'status' => 'active',
+                'final_price' => $finalPrice,
+                'pricing_snapshot' => $snapshot === [] ? null : $snapshot,
                 'start_date' => $subscription->start_date ?? now()->toDateString(),
                 'approved_at' => now(),
             ]);
@@ -249,52 +270,6 @@ class UniversityController extends Controller
         (new CreateDatabase($university))->handle(app(TenancyDatabaseManager::class));
         (new MigrateDatabase($university))->handle();
         (new SeedDatabase($university))->handle();
-    }
-
-    /**
-     * Approve the latest pending upgrade request and apply new plan.
-     */
-    public function approveUpgrade(University $university): RedirectResponse
-    {
-        $previousPlan = (string) $university->plan;
-
-        $upgradeRequest = $university->upgradeRequests()
-            ->where('status', 'pending')
-            ->latest()
-            ->first();
-
-        if ($upgradeRequest === null) {
-            return redirect()
-                ->route('central.universities.index')
-                ->with('status', 'No pending upgrade request found for this school.');
-        }
-
-        DB::transaction(function () use ($university, $upgradeRequest): void {
-            $requestedPlan = (string) $upgradeRequest->requested_plan;
-
-            $university->update([
-                'plan' => $requestedPlan,
-            ]);
-
-            $university->subscription()?->update([
-                'plan' => $requestedPlan,
-            ]);
-
-            $upgradeRequest->update([
-                'status' => 'approved',
-                'approved_at' => now(),
-            ]);
-        });
-
-        $university->load('domains');
-
-        $this->subscriptionNotificationService->send($university, 'plan_changed', [
-            'previous_plan' => $previousPlan,
-        ]);
-
-        return redirect()
-            ->route('central.universities.index')
-            ->with('status', 'Upgrade request approved and tenant plan updated.');
     }
 
     /**

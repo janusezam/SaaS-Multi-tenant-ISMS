@@ -1,0 +1,127 @@
+<?php
+
+namespace App\Http\Controllers\Tenant;
+
+use App\Http\Controllers\Controller;
+use App\Http\Requests\Tenant\PreviewPricingRequest;
+use App\Http\Requests\Tenant\StoreUpgradeRequest;
+use App\Models\Plan;
+use App\Models\Subscription;
+use App\Models\SubscriptionUpgradeRequest;
+use App\Services\BusinessControl\PricingEngine;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Validation\ValidationException;
+use Illuminate\View\View;
+
+class SubscriptionController extends Controller
+{
+    public function show(): View
+    {
+        $tenantId = (string) (tenant()?->id ?? '');
+
+        $subscription = Subscription::query()->where('tenant_id', $tenantId)->first();
+        $pendingUpgradeRequest = SubscriptionUpgradeRequest::query()
+            ->where('tenant_id', $tenantId)
+            ->where('status', 'pending')
+            ->latest()
+            ->first();
+
+        $proPlan = Plan::query()->active()->where('code', 'pro')->first();
+
+        return view('tenant.subscription.show', [
+            'subscription' => $subscription,
+            'pendingUpgradeRequest' => $pendingUpgradeRequest,
+            'proPlan' => $proPlan,
+            'canSubmitUpgradeRequest' => auth()->user()?->role === 'university_admin',
+            'openUpgradeModal' => request()->boolean('openUpgrade'),
+        ]);
+    }
+
+    public function preview(PreviewPricingRequest $request, PricingEngine $pricingEngine): JsonResponse
+    {
+        $quote = $pricingEngine->quote(
+            (string) $request->validated('plan'),
+            (string) $request->validated('billing_cycle'),
+            $request->validated('coupon_code'),
+        );
+
+        return response()->json([
+            'quote' => $quote,
+            'pending' => $this->hasPendingUpgradeRequest(),
+        ]);
+    }
+
+    public function submit(StoreUpgradeRequest $request, PricingEngine $pricingEngine): RedirectResponse|JsonResponse
+    {
+        $user = auth()->user();
+
+        if ($user?->role !== 'university_admin') {
+            throw ValidationException::withMessages([
+                'role' => 'Only university admins can submit upgrade requests.',
+            ]);
+        }
+
+        $tenant = tenant();
+
+        if ($tenant === null) {
+            abort(404);
+        }
+
+        if ($tenant->currentPlan() === 'pro') {
+            throw ValidationException::withMessages([
+                'requested_plan' => 'Your school is already on Pro.',
+            ]);
+        }
+
+        if ($this->hasPendingUpgradeRequest()) {
+            throw ValidationException::withMessages([
+                'request' => 'An upgrade request is already pending.',
+            ]);
+        }
+
+        $validated = $request->validated();
+
+        $quote = $pricingEngine->quote(
+            (string) $validated['requested_plan'],
+            (string) $validated['billing_cycle'],
+            $validated['coupon_code'] ?? null,
+        );
+
+        $pendingRequest = SubscriptionUpgradeRequest::query()->create([
+            'tenant_id' => (string) $tenant->id,
+            'requested_plan' => (string) $quote['plan']['code'],
+            'billing_cycle' => (string) $quote['billing_cycle'],
+            'coupon_id' => $quote['coupon']['id'] ?? null,
+            'coupon_code' => $quote['coupon']['code'] ?? null,
+            'base_price' => $quote['base_price'],
+            'discount_amount' => $quote['discount_amount'],
+            'final_price' => $quote['final_price'],
+            'requested_by_email' => (string) $user->email,
+            'requested_by_user_id' => $user->id,
+            'status' => 'pending',
+            'pricing_snapshot' => $quote,
+        ]);
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'status' => 'pending',
+                'request_id' => $pendingRequest->id,
+            ]);
+        }
+
+        return redirect()
+            ->route('tenant.subscription.show')
+            ->with('status', 'Upgrade request submitted and is now pending central approval.');
+    }
+
+    private function hasPendingUpgradeRequest(): bool
+    {
+        $tenantId = (string) (tenant()?->id ?? '');
+
+        return SubscriptionUpgradeRequest::query()
+            ->where('tenant_id', $tenantId)
+            ->where('status', 'pending')
+            ->exists();
+    }
+}

@@ -49,8 +49,9 @@
                     <div>
                         <label class="mb-2 block text-sm text-slate-300" for="plan">Plan</label>
                         <select id="plan" name="plan" class="w-full rounded-xl border border-white/10 bg-slate-950/60 text-slate-100" required>
-                            <option value="basic" @selected(old('plan') === 'basic')>Basic</option>
-                            <option value="pro" @selected(old('plan') === 'pro')>Pro</option>
+                            @foreach ($plans as $plan)
+                                <option value="{{ $plan->code }}" @selected(old('plan', 'basic') === $plan->code)>{{ $plan->name }}</option>
+                            @endforeach
                         </select>
                         @error('plan')<p class="mt-1 text-xs text-rose-300">{{ $message }}</p>@enderror
                     </div>

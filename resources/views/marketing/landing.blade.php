@@ -34,7 +34,7 @@
             <ul class="mt-4 grid gap-3 text-sm text-slate-200">
                 <li class="rounded-xl border border-white/10 bg-slate-900/60 px-4 py-3"><span class="font-semibold text-cyan-100">Basic:</span> Sports, venues, teams, players, schedules, results, standings, and result audit history.</li>
                 <li class="rounded-xl border border-white/10 bg-slate-900/60 px-4 py-3"><span class="font-semibold text-emerald-100">Pro:</span> Everything in Basic plus analytics, bracket generation, bracket audits, and CSV/PDF exports.</li>
-                <li class="rounded-xl border border-white/10 bg-slate-900/60 px-4 py-3">Self-service upgrade request inside tenant dashboard, then central admin approval unlocks Pro features.</li>
+                <li class="rounded-xl border border-white/10 bg-slate-900/60 px-4 py-3">Subscription plans are managed centrally for each school workspace.</li>
                 <li class="rounded-xl border border-white/10 bg-slate-900/60 px-4 py-3">Dedicated school subdomain with centralized subscription management and tenant-level enforcement.</li>
             </ul>
         </section>
