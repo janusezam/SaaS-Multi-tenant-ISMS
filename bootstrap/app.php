@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\AuthenticateSuperAdmin;
+use App\Http\Middleware\CheckFeature;
 use App\Http\Middleware\CheckPlan;
 use App\Http\Middleware\CheckRole;
 use App\Http\Middleware\EnsureTenantPasswordIsUpdated;
@@ -23,6 +24,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'check.role' => CheckRole::class,
             'check.plan' => CheckPlan::class,
+            'check.feature' => CheckFeature::class,
             'auth.super_admin' => AuthenticateSuperAdmin::class,
             'tenant.subscription' => EnsureTenantSubscriptionIsActive::class,
             'tenant.password.updated' => EnsureTenantPasswordIsUpdated::class,

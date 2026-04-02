@@ -25,7 +25,7 @@ class ProFeatureController extends Controller
     {
         $this->authorize('viewAny', BracketMatch::class);
 
-        $isLocked = ! $this->isProPlan();
+        $isLocked = ! $this->hasFeature('analytics');
 
         return view('tenant.pro.analytics', [
             'isLocked' => $isLocked,
@@ -40,7 +40,7 @@ class ProFeatureController extends Controller
     {
         $this->authorize('viewAny', BracketMatch::class);
 
-        $isLocked = ! $this->isProPlan();
+        $isLocked = ! $this->hasFeature('bracket');
 
         $sportId = $request->integer('sport_id') ?: null;
         $storedBracketRounds = [];
@@ -554,8 +554,14 @@ class ProFeatureController extends Controller
         }
     }
 
-    private function isProPlan(): bool
+    private function hasFeature(string $featureKey): bool
     {
-        return tenant()?->currentPlan() === 'pro';
+        $tenant = tenant();
+
+        if ($tenant === null || ! method_exists($tenant, 'hasFeature')) {
+            return false;
+        }
+
+        return $tenant->hasFeature($featureKey);
     }
 }

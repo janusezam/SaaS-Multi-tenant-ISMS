@@ -6,9 +6,6 @@
                 <h2 class="text-2xl font-semibold text-slate-100">School Management</h2>
             </div>
             <div class="flex items-center gap-2">
-                <a href="{{ route('central.subscription-notification-logs.index') }}" class="rounded-xl border border-white/20 bg-white/5 px-4 py-2 text-sm font-medium text-slate-100 hover:bg-white/10">
-                    Notification Logs
-                </a>
                 <a href="{{ route('central.universities.create') }}" class="rounded-xl border border-cyan-300/40 bg-cyan-500/20 px-4 py-2 text-sm font-medium text-cyan-100 hover:bg-cyan-500/30">
                     Add School
                 </a>

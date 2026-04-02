@@ -32,63 +32,112 @@
     </head>
     <body class="isms-theme antialiased">
         @if (tenant() !== null)
-            <div class="md:hidden">
-                @include('layouts.navigation')
-            </div>
+            @if (request()->routeIs('tenant.subscription.*'))
+                <div class="isms-shell min-h-screen">
+                    <header class="isms-header relative z-10 border-b shadow-lg shadow-slate-950/20">
+                        <div class="mx-auto flex w-full max-w-7xl items-center justify-between gap-3 px-4 py-4 sm:px-6 lg:px-8">
+                            <a href="{{ route('tenant.dashboard') }}" class="inline-flex items-center gap-2 rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-sm text-slate-200 transition hover:bg-white/10">
+                                <span aria-hidden="true">&larr;</span>
+                                <span>Back to App</span>
+                            </a>
 
-            <div class="isms-shell min-h-screen md:flex">
-                @include('layouts.tenant-sidebar')
-
-                <div class="flex-1 min-w-0">
-                    @isset($header)
-                        <header class="isms-header relative z-10 border-b shadow-lg shadow-slate-950/20">
-                            <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-                                <div class="flex flex-wrap items-start justify-between gap-3">
-                                    <div class="min-w-0 flex-1">
-                                        {{ $header }}
-                                    </div>
-
-                                    <a href="{{ route('tenant.subscription.show') }}" class="inline-flex items-center rounded-lg border px-3 py-2 text-sm transition {{ request()->routeIs('tenant.subscription.*') ? 'border-cyan-300/40 bg-cyan-500/20 text-cyan-100' : 'border-white/10 bg-white/5 text-slate-200 hover:bg-white/10' }}">
-                                        Subscription
-                                    </a>
-                                </div>
-                            </div>
-                        </header>
-                    @endisset
-
-                    @if (session('upgrade_notice'))
-                        <div class="max-w-7xl mx-auto px-4 pt-4 sm:px-6 lg:px-8">
-                            <div class="rounded-xl border border-amber-300/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
-                                {{ session('upgrade_notice') }}
-                            </div>
+                            <button type="button" data-theme-toggle class="isms-theme-toggle">
+                                <span data-theme-label>Light mode</span>
+                            </button>
                         </div>
-                    @endif
+                    </header>
 
                     <main>
                         {{ $slot }}
                     </main>
                 </div>
-            </div>
+            @else
+                <div class="md:hidden">
+                    @include('layouts.navigation')
+                </div>
+
+                <div class="isms-shell min-h-screen md:flex">
+                    @include('layouts.tenant-sidebar')
+
+                    <div class="flex-1 min-w-0">
+                        @isset($header)
+                            <header class="isms-header relative z-10 border-b shadow-lg shadow-slate-950/20">
+                                <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+                                    <div class="flex flex-wrap items-start justify-between gap-3">
+                                        <div class="min-w-0 flex-1">
+                                            {{ $header }}
+                                        </div>
+
+                                        <a href="{{ route('tenant.subscription.show') }}" class="inline-flex items-center rounded-lg border px-3 py-2 text-sm transition {{ request()->routeIs('tenant.subscription.*') ? 'border-cyan-300/40 bg-cyan-500/20 text-cyan-100' : 'border-white/10 bg-white/5 text-slate-200 hover:bg-white/10' }}">
+                                            Subscription
+                                        </a>
+                                    </div>
+                                </div>
+                            </header>
+                        @endisset
+
+                        @if (session('upgrade_notice'))
+                            <div class="max-w-7xl mx-auto px-4 pt-4 sm:px-6 lg:px-8">
+                                <div class="rounded-xl border border-amber-300/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
+                                    {{ session('upgrade_notice') }}
+                                </div>
+                            </div>
+                        @endif
+
+                        <main>
+                            {{ $slot }}
+                        </main>
+                    </div>
+                </div>
+            @endif
 
             @include('tenant.subscription.partials.upgrade-modal')
         @else
-            <div class="isms-shell min-h-screen">
-                @include('layouts.navigation')
+            @if (request()->routeIs('central.*'))
+                <div class="md:hidden">
+                    @include('layouts.navigation')
+                </div>
 
-                <!-- Page Heading -->
-                @isset($header)
-                    <header class="isms-header relative z-10 border-b shadow-lg shadow-slate-950/20">
-                        <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-                            {{ $header }}
-                        </div>
-                    </header>
-                @endisset
+                <div class="isms-shell min-h-screen md:flex">
+                    @include('layouts.central-sidebar')
 
-                <!-- Page Content -->
-                <main>
-                    {{ $slot }}
-                </main>
-            </div>
+                    <div class="flex-1 min-w-0">
+                        @isset($header)
+                            <header class="isms-header relative z-10 border-b shadow-lg shadow-slate-950/20">
+                                <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+                                    <div class="flex flex-wrap items-center justify-between gap-3">
+                                        <div class="min-w-0 flex-1">
+                                            {{ $header }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </header>
+                        @endisset
+
+                        <main>
+                            {{ $slot }}
+                        </main>
+                    </div>
+                </div>
+            @else
+                <div class="isms-shell min-h-screen">
+                    @include('layouts.navigation')
+
+                    <!-- Page Heading -->
+                    @isset($header)
+                        <header class="isms-header relative z-10 border-b shadow-lg shadow-slate-950/20">
+                            <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+                                {{ $header }}
+                            </div>
+                        </header>
+                    @endisset
+
+                    <!-- Page Content -->
+                    <main>
+                        {{ $slot }}
+                    </main>
+                </div>
+            @endif
         @endif
     </body>
 </html>

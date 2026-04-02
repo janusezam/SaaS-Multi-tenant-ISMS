@@ -7,6 +7,7 @@ use App\Http\Requests\Central\StoreCouponRequest;
 use App\Http\Requests\Central\UpdateCouponRequest;
 use App\Models\Coupon;
 use App\Models\Plan;
+use App\Models\SubscriptionUpgradeRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
@@ -22,7 +23,10 @@ class CouponController extends Controller
 
     public function store(StoreCouponRequest $request): RedirectResponse
     {
-        Coupon::query()->create($request->validated());
+        $payload = $request->validated();
+        $payload['name'] = (string) ($payload['name'] ?? $payload['code']);
+
+        Coupon::query()->create($payload);
 
         return redirect()
             ->route('central.business-control.coupons.index')
@@ -31,10 +35,26 @@ class CouponController extends Controller
 
     public function update(UpdateCouponRequest $request, Coupon $coupon): RedirectResponse
     {
-        $coupon->update($request->validated());
+        $payload = $request->validated();
+        $payload['name'] = (string) ($payload['name'] ?? $payload['code']);
+
+        $coupon->update($payload);
 
         return redirect()
             ->route('central.business-control.coupons.index')
             ->with('status', 'Coupon updated successfully.');
+    }
+
+    public function redemptions(Coupon $coupon): View
+    {
+        return view('central.business-control.coupons.redemptions', [
+            'coupon' => $coupon,
+            'redemptions' => SubscriptionUpgradeRequest::query()
+                ->with('university')
+                ->where('coupon_id', $coupon->id)
+                ->where('status', 'approved')
+                ->latest('approved_at')
+                ->paginate(20),
+        ]);
     }
 }

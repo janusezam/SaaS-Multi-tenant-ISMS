@@ -81,7 +81,7 @@ Route::middleware([
                 Route::get('analytics', [ProFeatureController::class, 'analytics'])->name('analytics');
                 Route::get('bracket', [ProFeatureController::class, 'bracket'])->name('bracket');
 
-                Route::middleware('check.plan:pro')->group(function () {
+                Route::middleware('check.feature:bracket')->group(function () {
                     Route::get('bracket/audits', [ProFeatureController::class, 'bracketAudits'])->name('bracket.audits');
                     Route::post('bracket/generate', [ProFeatureController::class, 'generateBracket'])->name('bracket.generate');
                     Route::patch('bracket/matches/{match}/winner', [ProFeatureController::class, 'storeBracketResult'])->name('bracket.matches.winner');

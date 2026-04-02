@@ -1,13 +1,8 @@
 <x-app-layout>
     <x-slot name="header">
-        <div class="flex items-center justify-between gap-3">
-            <div>
-                <p class="text-xs uppercase tracking-[0.2em] text-cyan-300/80">Central App</p>
-                <h2 class="text-2xl font-semibold text-slate-100">Subscription Notification Logs</h2>
-            </div>
-            <a href="{{ route('central.universities.index') }}" class="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-slate-200 hover:bg-white/10">
-                Back to Schools
-            </a>
+        <div>
+            <p class="text-xs uppercase tracking-[0.2em] text-cyan-300/80">Central App</p>
+            <h2 class="text-2xl font-semibold text-slate-100">Subscription Notification Logs</h2>
         </div>
     </x-slot>
 

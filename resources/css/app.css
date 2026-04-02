@@ -322,6 +322,73 @@
 		color-scheme: dark;
 	}
 
+	.tenant-subscription-pricing [data-basic-current-plan-btn] {
+		border-color: rgba(148, 163, 184, 0.45);
+		background-color: rgba(226, 232, 240, 0.85);
+		color: #334155;
+	}
+
+	.tenant-subscription-pricing [data-pro-upgrade-btn]:disabled {
+		border-color: rgba(59, 130, 246, 0.35);
+		background-color: rgba(56, 189, 248, 0.2);
+		color: #075985;
+	}
+
+	:root[data-theme='dark'] .tenant-subscription-pricing [data-basic-current-plan-btn] {
+		border-color: rgba(255, 255, 255, 0.2);
+		background-color: rgba(30, 41, 59, 0.85);
+		color: #cbd5e1;
+	}
+
+	:root[data-theme='light'] .business-control-page .bg-white {
+		background-color: #ffffff !important;
+	}
+
+	:root[data-theme='light'] .business-control-page .border-slate-200 {
+		border-color: #cbd5e1 !important;
+	}
+
+	:root[data-theme='light'] .business-control-page .bg-slate-100 {
+		background-color: #e2e8f0 !important;
+	}
+
+	:root[data-theme='light'] .business-control-page .text-slate-700 {
+		color: #334155 !important;
+	}
+
+	:root[data-theme='light'] .business-control-page .text-slate-800,
+	:root[data-theme='light'] .business-control-page .text-slate-900 {
+		color: #0f172a !important;
+	}
+
+	:root[data-theme='light'] .business-control-page .shadow-sm {
+		box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06) !important;
+	}
+
+	:root[data-theme='light'] .business-control-page input,
+	:root[data-theme='light'] .business-control-page select,
+	:root[data-theme='light'] .business-control-page textarea {
+		border-color: #94a3b8;
+	}
+
+	:root[data-theme='light'] .business-control-page .hover\:bg-cyan-200:hover {
+		background-color: #a5f3fc !important;
+	}
+
+	:root[data-theme='light'] .business-control-page .hover\:bg-emerald-200:hover {
+		background-color: #bbf7d0 !important;
+	}
+
+	:root[data-theme='light'] .business-control-page .hover\:bg-rose-200:hover {
+		background-color: #fecdd3 !important;
+	}
+
+	:root[data-theme='dark'] .tenant-subscription-pricing [data-pro-upgrade-btn]:disabled {
+		border-color: rgba(125, 211, 252, 0.35);
+		background-color: rgba(14, 116, 144, 0.35);
+		color: #dbeafe;
+	}
+
 	:root[data-theme='light'] .hover\:bg-white\/10:hover,
 	:root[data-theme='light'] .focus\:bg-white\/10:focus {
 		background-color: rgba(15, 23, 42, 0.1) !important;

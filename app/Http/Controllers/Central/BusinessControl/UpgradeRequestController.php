@@ -18,12 +18,12 @@ class UpgradeRequestController extends Controller
     {
         return view('central.business-control.upgrade-requests.index', [
             'pendingRequests' => SubscriptionUpgradeRequest::query()
-                ->with(['university', 'coupon'])
+                ->with(['university.subscription', 'coupon'])
                 ->where('status', 'pending')
                 ->latest()
                 ->get(),
             'recentlyProcessedRequests' => SubscriptionUpgradeRequest::query()
-                ->with(['university', 'coupon', 'processedBy'])
+                ->with(['university.subscription', 'coupon', 'processedBy'])
                 ->whereIn('status', ['approved', 'rejected'])
                 ->latest()
                 ->limit(20)

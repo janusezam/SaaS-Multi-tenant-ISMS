@@ -3,9 +3,11 @@
     $canManageModules = in_array($user?->role, ['university_admin', 'sports_facilitator'], true);
     $canManageUsers = $user?->role === 'university_admin';
     $tenantCurrentPlan = tenant()?->currentPlan();
+    $tenantHasAnalytics = tenant() !== null && tenant()->hasFeature('analytics');
+    $tenantHasBracket = tenant() !== null && tenant()->hasFeature('bracket');
 @endphp
 
-<aside class="isms-sidebar hidden md:flex md:w-72 md:shrink-0 md:flex-col border-r">
+<aside class="isms-sidebar hidden border-r md:sticky md:top-0 md:flex md:h-screen md:w-72 md:shrink-0 md:flex-col md:self-start md:overflow-y-auto">
     <div class="flex h-16 items-center gap-3 border-b px-5" style="border-color: var(--isms-stroke);">
         <a href="{{ route('tenant.dashboard') }}" class="inline-flex items-center gap-2">
             <x-application-logo class="block h-8 w-auto fill-current text-cyan-300" />
@@ -39,21 +41,23 @@
 
             <a href="{{ route('tenant.audits.game-results.index') }}" class="block rounded-lg px-3 py-2 {{ request()->routeIs('tenant.audits.game-results.*') ? 'bg-cyan-500/20 text-cyan-100 border border-cyan-300/30' : 'isms-sidebar-link hover:bg-white/5 border border-transparent' }}">Result Audits</a>
 
-            @if ($tenantCurrentPlan !== 'pro')
+            @if (! $tenantHasAnalytics)
                 <div class="flex items-center justify-between rounded-lg border border-transparent px-3 py-2 isms-sidebar-link hover:bg-white/5">
                     <a href="{{ route('tenant.pro.analytics') }}" class="flex-1">Analytics</a>
-                    <a href="{{ route('tenant.subscription.show', ['openUpgrade' => 1]) }}" class="rounded-full border border-amber-300/40 bg-amber-500/20 px-2 py-0.5 text-[10px] uppercase tracking-[0.14em] text-amber-100">Upgrade</a>
-                </div>
-
-                <div class="flex items-center justify-between rounded-lg border border-transparent px-3 py-2 isms-sidebar-link hover:bg-white/5">
-                    <a href="{{ route('tenant.pro.bracket') }}" class="flex-1">Bracket</a>
                     <a href="{{ route('tenant.subscription.show', ['openUpgrade' => 1]) }}" class="rounded-full border border-amber-300/40 bg-amber-500/20 px-2 py-0.5 text-[10px] uppercase tracking-[0.14em] text-amber-100">Upgrade</a>
                 </div>
             @else
                 <a href="{{ route('tenant.pro.analytics') }}" class="flex items-center justify-between rounded-lg px-3 py-2 {{ request()->routeIs('tenant.pro.analytics') ? 'bg-emerald-500/20 text-emerald-100 border border-emerald-300/30' : 'isms-sidebar-link hover:bg-white/5 border border-transparent' }}">
                     <span>Analytics</span>
                 </a>
+            @endif
 
+            @if (! $tenantHasBracket)
+                <div class="flex items-center justify-between rounded-lg border border-transparent px-3 py-2 isms-sidebar-link hover:bg-white/5">
+                    <a href="{{ route('tenant.pro.bracket') }}" class="flex-1">Bracket</a>
+                    <a href="{{ route('tenant.subscription.show', ['openUpgrade' => 1]) }}" class="rounded-full border border-amber-300/40 bg-amber-500/20 px-2 py-0.5 text-[10px] uppercase tracking-[0.14em] text-amber-100">Upgrade</a>
+                </div>
+            @else
                 <a href="{{ route('tenant.pro.bracket') }}" class="flex items-center justify-between rounded-lg px-3 py-2 {{ request()->routeIs('tenant.pro.bracket*') ? 'bg-emerald-500/20 text-emerald-100 border border-emerald-300/30' : 'isms-sidebar-link hover:bg-white/5 border border-transparent' }}">
                     <span>Bracket</span>
                 </a>

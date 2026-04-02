@@ -1,10 +1,13 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="text-2xl font-semibold text-slate-900 dark:text-slate-100">Business Control</h2>
+        <div>
+            <p class="text-xs uppercase tracking-[0.2em] text-cyan-300/80">Central App</p>
+            <h2 class="text-2xl font-semibold text-slate-100">Business Control</h2>
+        </div>
     </x-slot>
 
     <div class="mx-auto max-w-7xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
-        <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-6">
             <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-slate-900/80">
                 <p class="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Active Plans</p>
                 <p class="mt-2 text-3xl font-semibold text-slate-900 dark:text-slate-100">{{ number_format((int) $metrics['activePlans']) }}</p>
@@ -20,6 +23,14 @@
             <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-slate-900/80">
                 <p class="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Active Schools</p>
                 <p class="mt-2 text-3xl font-semibold text-slate-900 dark:text-slate-100">{{ number_format((int) $metrics['activeUniversities']) }}</p>
+            </div>
+            <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-slate-900/80">
+                <p class="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Schools on Basic</p>
+                <p class="mt-2 text-3xl font-semibold text-slate-900 dark:text-slate-100">{{ number_format((int) $metrics['basicSchools']) }}</p>
+            </div>
+            <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-slate-900/80">
+                <p class="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Schools on Pro</p>
+                <p class="mt-2 text-3xl font-semibold text-slate-900 dark:text-slate-100">{{ number_format((int) $metrics['proSchools']) }}</p>
             </div>
         </div>
 
@@ -67,6 +78,25 @@
                         @empty
                             <p class="text-slate-500 dark:text-slate-400">No active plans.</p>
                         @endforelse
+                    </div>
+                </div>
+
+                <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-slate-900/80">
+                    <h3 class="text-sm font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">Billing Cycle Distribution</h3>
+                    @php
+                        $billingTotal = (int) (($billingDistribution['monthly'] ?? 0) + ($billingDistribution['yearly'] ?? 0));
+                        $monthlyPercent = $billingTotal > 0 ? (($billingDistribution['monthly'] ?? 0) / $billingTotal) * 100 : 0;
+                        $yearlyPercent = $billingTotal > 0 ? (($billingDistribution['yearly'] ?? 0) / $billingTotal) * 100 : 0;
+                    @endphp
+                    <div class="mt-3 space-y-2 text-sm text-slate-700 dark:text-slate-200">
+                        <div class="flex items-center justify-between rounded-lg bg-slate-100 px-3 py-2 dark:bg-slate-950/50">
+                            <span>Monthly</span>
+                            <span>{{ (int) ($billingDistribution['monthly'] ?? 0) }} ({{ number_format($monthlyPercent, 1) }}%)</span>
+                        </div>
+                        <div class="flex items-center justify-between rounded-lg bg-slate-100 px-3 py-2 dark:bg-slate-950/50">
+                            <span>Yearly</span>
+                            <span>{{ (int) ($billingDistribution['yearly'] ?? 0) }} ({{ number_format($yearlyPercent, 1) }}%)</span>
+                        </div>
                     </div>
                 </div>
 

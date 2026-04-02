@@ -19,6 +19,7 @@ class SubscriptionController extends Controller
     public function show(): View
     {
         $tenantId = (string) (tenant()?->id ?? '');
+        $tenant = tenant();
 
         $subscription = Subscription::query()->where('tenant_id', $tenantId)->first();
         $pendingUpgradeRequest = SubscriptionUpgradeRequest::query()
@@ -27,12 +28,28 @@ class SubscriptionController extends Controller
             ->latest()
             ->first();
 
-        $proPlan = Plan::query()->active()->where('code', 'pro')->first();
+        $plans = Plan::query()
+            ->active()
+            ->whereIn('code', ['basic', 'pro'])
+            ->orderBy('sort_order')
+            ->get()
+            ->keyBy('code');
+
+        $currentPlanCode = (string) ($subscription?->plan ?? $tenant?->currentPlan() ?? 'basic');
+        $currentBillingCycle = (string) ($subscription?->billing_cycle ?? 'monthly');
+        $effectivePrice = (float) ($subscription?->final_price ?? 0);
+        $expiryDate = $subscription?->due_date ?? $tenant?->currentDueDate();
 
         return view('tenant.subscription.show', [
             'subscription' => $subscription,
             'pendingUpgradeRequest' => $pendingUpgradeRequest,
-            'proPlan' => $proPlan,
+            'basicPlan' => $plans->get('basic'),
+            'proPlan' => $plans->get('pro'),
+            'tenantName' => (string) ($tenant?->name ?? 'Tenant School'),
+            'currentPlanCode' => $currentPlanCode,
+            'currentBillingCycle' => $currentBillingCycle,
+            'effectivePrice' => $effectivePrice,
+            'expiryDate' => $expiryDate,
             'canSubmitUpgradeRequest' => auth()->user()?->role === 'university_admin',
             'openUpgradeModal' => request()->boolean('openUpgrade'),
         ]);

@@ -95,4 +95,15 @@ class University extends Tenant implements TenantWithDatabase
 
         return $dueDate->endOfDay()->isFuture();
     }
+
+    public function hasFeature(string $featureKey): bool
+    {
+        $plan = Plan::query()->where('code', $this->currentPlan())->first();
+
+        if ($plan === null) {
+            return false;
+        }
+
+        return $plan->hasFeature($featureKey);
+    }
 }

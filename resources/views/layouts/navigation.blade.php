@@ -9,6 +9,8 @@
             ? 'central.logout'
             : (tenant() !== null ? 'tenant.logout' : 'logout');
         $tenantCurrentPlan = tenant()?->currentPlan();
+        $tenantHasAnalytics = tenant() !== null && tenant()->hasFeature('analytics');
+        $tenantHasBracket = tenant() !== null && tenant()->hasFeature('bracket');
         $canManageTenantUsers = tenant() !== null && ($authenticatedUser?->role === 'university_admin');
     @endphp
 
@@ -25,21 +27,9 @@
 
                 <!-- Navigation Links -->
                 <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                    <x-nav-link :href="route($dashboardRoute)" :active="request()->routeIs('dashboard') || request()->routeIs('tenant.dashboard')">
-                        <span class="isms-text">{{ __('Dashboard') }}</span>
-                    </x-nav-link>
-
-                    @if ($isCentralRequest)
-                        <x-nav-link :href="route('central.universities.index')" :active="request()->routeIs('central.universities.*')">
-                            <span class="isms-text">School Management</span>
-                        </x-nav-link>
-
-                        <x-nav-link :href="route('central.business-control.index')" :active="request()->routeIs('central.business-control.*')">
-                            <span class="isms-text">Business Control</span>
-                        </x-nav-link>
-
-                        <x-nav-link :href="route('central.business-control.upgrade-requests.index')" :active="request()->routeIs('central.business-control.upgrade-requests.*')">
-                            <span class="isms-text">Upgrade Requests</span>
+                    @if (! $isCentralRequest)
+                        <x-nav-link :href="route($dashboardRoute)" :active="request()->routeIs('dashboard') || request()->routeIs('tenant.dashboard')">
+                            <span class="isms-text">{{ __('Dashboard') }}</span>
                         </x-nav-link>
                     @endif
 
@@ -82,11 +72,13 @@
                             </x-nav-link>
                         @endif
 
-                        @if ($tenantCurrentPlan === 'pro')
+                        @if ($tenantHasAnalytics)
                             <x-nav-link :href="route('tenant.pro.analytics')" :active="request()->routeIs('tenant.pro.analytics')">
                                 <span class="isms-text">Analytics</span>
                             </x-nav-link>
+                        @endif
 
+                        @if ($tenantHasBracket)
                             <x-nav-link :href="route('tenant.pro.bracket')" :active="request()->routeIs('tenant.pro.bracket')">
                                 <span class="isms-text">Bracket</span>
                             </x-nav-link>
@@ -150,9 +142,11 @@
     <!-- Responsive Navigation Menu -->
     <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden">
         <div class="isms-menu-panel pt-2 pb-3 space-y-1">
-            <x-responsive-nav-link :href="route($dashboardRoute)" :active="request()->routeIs('dashboard') || request()->routeIs('tenant.dashboard')">
-                {{ __('Dashboard') }}
-            </x-responsive-nav-link>
+            @if (! $isCentralRequest)
+                <x-responsive-nav-link :href="route($dashboardRoute)" :active="request()->routeIs('dashboard') || request()->routeIs('tenant.dashboard')">
+                    {{ __('Dashboard') }}
+                </x-responsive-nav-link>
+            @endif
 
             @if ($isCentralRequest)
                 <x-responsive-nav-link :href="route('central.universities.index')" :active="request()->routeIs('central.universities.*')">
@@ -207,11 +201,13 @@
                     </x-responsive-nav-link>
                 @endif
 
-                @if ($tenantCurrentPlan === 'pro')
+                @if ($tenantHasAnalytics)
                     <x-responsive-nav-link :href="route('tenant.pro.analytics')" :active="request()->routeIs('tenant.pro.analytics')">
                         Analytics
                     </x-responsive-nav-link>
+                @endif
 
+                @if ($tenantHasBracket)
                     <x-responsive-nav-link :href="route('tenant.pro.bracket')" :active="request()->routeIs('tenant.pro.bracket')">
                         Bracket
                     </x-responsive-nav-link>

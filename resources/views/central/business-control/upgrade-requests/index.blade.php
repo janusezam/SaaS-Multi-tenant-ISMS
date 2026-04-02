@@ -3,7 +3,7 @@
         <h2 class="text-2xl font-semibold text-slate-900 dark:text-slate-100">Business Control · Upgrade Requests</h2>
     </x-slot>
 
-    <div class="mx-auto max-w-7xl space-y-5 px-4 py-8 sm:px-6 lg:px-8">
+    <div class="business-control-page mx-auto max-w-7xl space-y-5 px-4 py-8 sm:px-6 lg:px-8">
         @if (session('status'))
             <div class="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-300/30 dark:bg-emerald-500/10 dark:text-emerald-100">
                 {{ session('status') }}
@@ -20,10 +20,12 @@
                             <div>
                                 <p class="text-sm font-semibold text-slate-900 dark:text-slate-100">{{ $upgradeRequest->university?->name ?? $upgradeRequest->tenant_id }}</p>
                                 <p class="text-xs text-slate-600 dark:text-slate-400">
-                                    {{ strtoupper($upgradeRequest->requested_plan) }} · {{ strtoupper($upgradeRequest->billing_cycle) }} ·
+                                    Current: {{ strtoupper((string) ($upgradeRequest->university?->subscription?->plan ?? $upgradeRequest->university?->plan ?? 'basic')) }} ·
+                                    Requested: {{ strtoupper($upgradeRequest->requested_plan) }} ·
+                                    {{ strtoupper($upgradeRequest->billing_cycle) }} ·
                                     Base: ${{ number_format((float) $upgradeRequest->base_price, 2) }} ·
                                     Discount: ${{ number_format((float) $upgradeRequest->discount_amount, 2) }} ·
-                                    Final: ${{ number_format((float) $upgradeRequest->final_price, 2) }}
+                                    Effective: ${{ number_format((float) $upgradeRequest->final_price, 2) }}
                                 </p>
                                 <p class="text-xs text-slate-600 dark:text-slate-400">Coupon: {{ $upgradeRequest->coupon_code ?: 'None' }} · Requested by {{ $upgradeRequest->requested_by_email }}</p>
                                 <p class="mt-2">

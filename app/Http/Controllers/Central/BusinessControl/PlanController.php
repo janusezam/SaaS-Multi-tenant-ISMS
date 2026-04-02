@@ -20,7 +20,17 @@ class PlanController extends Controller
 
     public function store(StorePlanRequest $request): RedirectResponse
     {
-        Plan::query()->create($request->validated());
+        $payload = $request->validated();
+        $payload['feature_flags'] = $payload['feature_flags'] ?? [
+            'analytics' => false,
+            'bracket' => false,
+        ];
+        $payload['yearly_discount_percent'] = $this->computeYearlyDiscountPercent(
+            (float) $payload['monthly_price'],
+            (float) $payload['yearly_price'],
+        );
+
+        Plan::query()->create($payload);
 
         return redirect()
             ->route('central.business-control.plans.index')
@@ -29,10 +39,32 @@ class PlanController extends Controller
 
     public function update(UpdatePlanRequest $request, Plan $plan): RedirectResponse
     {
-        $plan->update($request->validated());
+        $payload = $request->validated();
+        $payload['feature_flags'] = $payload['feature_flags'] ?? [
+            'analytics' => false,
+            'bracket' => false,
+        ];
+        $payload['yearly_discount_percent'] = $this->computeYearlyDiscountPercent(
+            (float) $payload['monthly_price'],
+            (float) $payload['yearly_price'],
+        );
+
+        $plan->update($payload);
 
         return redirect()
             ->route('central.business-control.plans.index')
             ->with('status', 'Plan updated successfully.');
+    }
+
+    private function computeYearlyDiscountPercent(float $monthlyPrice, float $yearlyPrice): float
+    {
+        if ($monthlyPrice <= 0) {
+            return 0.0;
+        }
+
+        $annualMonthlyBaseline = $monthlyPrice * 12;
+        $discountPercent = (1 - ($yearlyPrice / $annualMonthlyBaseline)) * 100;
+
+        return round(max(0, $discountPercent), 2);
     }
 }

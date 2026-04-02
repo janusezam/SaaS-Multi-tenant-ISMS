@@ -66,6 +66,7 @@ Route::prefix('central')->name('central.')->group(function () {
             Route::get('coupons', [CouponController::class, 'index'])->name('coupons.index');
             Route::post('coupons', [CouponController::class, 'store'])->name('coupons.store');
             Route::patch('coupons/{coupon}', [CouponController::class, 'update'])->name('coupons.update');
+            Route::get('coupons/{coupon}/redemptions', [CouponController::class, 'redemptions'])->name('coupons.redemptions');
 
             Route::get('upgrade-requests', [UpgradeRequestController::class, 'index'])->name('upgrade-requests.index');
             Route::patch('upgrade-requests/{upgradeRequest}/approve', [UpgradeRequestController::class, 'approve'])->name('upgrade-requests.approve');
