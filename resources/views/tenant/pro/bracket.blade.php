@@ -42,6 +42,17 @@
             </form>
         @endif
 
+        <div class="rounded-2xl border border-white/10 bg-slate-900/85 px-4 py-3 text-sm text-slate-300">
+            @if ($selectedSportId)
+                @php
+                    $selectedSportName = optional($sports->firstWhere('id', (int) $selectedSportId))->name ?? 'Selected Sport';
+                @endphp
+                Viewing bracket for <span class="font-semibold text-cyan-200">{{ $selectedSportName }}</span>
+            @else
+                Viewing <span class="font-semibold text-cyan-200">All Sports Preview</span>. Choose a sport above to persist or regenerate a specific bracket.
+            @endif
+        </div>
+
         <div class="grid gap-4 lg:grid-cols-3">
             @forelse ($rounds as $round)
                 <div class="rounded-2xl border border-white/10 bg-slate-900/85 p-4">
@@ -50,14 +61,22 @@
                     <div class="mt-3 space-y-3">
                         @foreach ($round['matches'] as $index => $match)
                             <div class="rounded-xl border border-white/10 bg-slate-950/60 p-3">
-                                <p class="text-[10px] uppercase tracking-[0.18em] text-slate-400">Match {{ $index + 1 }}</p>
+                                <div class="flex items-center justify-between gap-2">
+                                    <p class="text-[10px] uppercase tracking-[0.18em] text-slate-400">Match {{ $index + 1 }}</p>
+                                    @php
+                                        $isCompleted = !empty($match['winner']);
+                                    @endphp
+                                    <span class="inline-flex rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] {{ $isCompleted ? 'border-emerald-300/40 bg-emerald-500/20 text-emerald-100' : 'border-cyan-300/40 bg-cyan-500/20 text-cyan-100' }}">
+                                        {{ $isCompleted ? 'Completed' : 'Scheduled' }}
+                                    </span>
+                                </div>
                                 <p class="mt-1 text-sm text-slate-100">{{ $match['home'] }}</p>
                                 <p class="text-xs text-slate-500">vs</p>
                                 <p class="text-sm text-slate-100">{{ $match['away'] }}</p>
 
                                 @if (($hasStoredBracket ?? false) && isset($match['id']))
                                     @if (!empty($match['winner']))
-                                        <p class="mt-2 text-xs text-emerald-300">Winner: {{ $match['winner'] }}</p>
+                                        <p class="mt-2 rounded-lg border border-emerald-300/35 bg-emerald-500/20 px-2 py-1 text-xs font-semibold text-emerald-100">Winner: {{ $match['winner'] }}</p>
                                     @elseif (!empty($match['home_team_id']) && !empty($match['away_team_id']))
                                         <form method="POST" action="{{ route('tenant.pro.bracket.matches.winner', $match['id']) }}" class="mt-2 flex items-center gap-2">
                                             @csrf
