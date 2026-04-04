@@ -1,16 +1,165 @@
 <x-app-layout>
+    @php
+        $hasTeamsTable = \Illuminate\Support\Facades\Schema::hasTable('teams');
+        $hasGamesTable = \Illuminate\Support\Facades\Schema::hasTable('games');
+
+        $coachUser = auth()->user();
+        $myTeam = null;
+        $upcomingMatches = collect();
+        $recentResults = collect();
+        $standingRank = null;
+        $wins = 0;
+        $losses = 0;
+
+        if ($hasTeamsTable && $coachUser !== null) {
+            $myTeam = \App\Models\Team::query()
+                ->with('sport')
+                ->where('coach_email', $coachUser->email)
+                ->first();
+        }
+
+        if ($hasGamesTable && $myTeam !== null) {
+            $upcomingMatches = \App\Models\Game::query()
+                ->with(['homeTeam', 'awayTeam', 'venue', 'sport'])
+                ->where(function ($query) use ($myTeam): void {
+                    $query->where('home_team_id', $myTeam->id)
+                        ->orWhere('away_team_id', $myTeam->id);
+                })
+                ->where('scheduled_at', '>=', now())
+                ->orderBy('scheduled_at')
+                ->limit(6)
+                ->get();
+
+            $recentResults = \App\Models\Game::query()
+                ->with(['homeTeam', 'awayTeam', 'venue', 'sport'])
+                ->where(function ($query) use ($myTeam): void {
+                    $query->where('home_team_id', $myTeam->id)
+                        ->orWhere('away_team_id', $myTeam->id);
+                })
+                ->where('status', 'completed')
+                ->latest('scheduled_at')
+                ->limit(5)
+                ->get();
+
+            foreach ($recentResults as $game) {
+                $isHome = (int) $game->home_team_id === (int) $myTeam->id;
+                $myScore = $isHome ? (int) ($game->home_score ?? 0) : (int) ($game->away_score ?? 0);
+                $opponentScore = $isHome ? (int) ($game->away_score ?? 0) : (int) ($game->home_score ?? 0);
+
+                if ($myScore > $opponentScore) {
+                    $wins++;
+                } elseif ($myScore < $opponentScore) {
+                    $losses++;
+                }
+            }
+
+            if ($myTeam->sport_id !== null) {
+                $completedSportGames = \App\Models\Game::query()
+                    ->with(['homeTeam', 'awayTeam'])
+                    ->where('sport_id', $myTeam->sport_id)
+                    ->where('status', 'completed')
+                    ->get();
+
+                $standingsRows = app(\App\Support\StandingsCalculator::class)->calculate($completedSportGames);
+
+                foreach ($standingsRows as $index => $row) {
+                    if (($row['team'] ?? null) === $myTeam->name) {
+                        $standingRank = $index + 1;
+                        break;
+                    }
+                }
+            }
+        }
+    @endphp
+
     <x-slot name="header">
         <h2 class="text-2xl font-semibold text-slate-100">Team Coach Dashboard</h2>
     </x-slot>
 
-    <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <div class="rounded-2xl border border-white/10 bg-slate-900/85 p-6 text-slate-200">
-            <p class="text-sm text-cyan-200">Manage your roster, game schedules, and performance reports.</p>
-            <ul class="mt-4 space-y-2">
-                <li class="rounded-xl bg-white/5 px-4 py-3">Upcoming training sessions: 4</li>
-                <li class="rounded-xl bg-white/5 px-4 py-3">Matches this week: 2</li>
-                <li class="rounded-xl bg-white/5 px-4 py-3">Players requiring clearance: 1</li>
-            </ul>
+    <div class="mx-auto max-w-7xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
+        <div class="rounded-2xl border border-cyan-300/25 bg-slate-900/85 p-6 text-slate-200">
+            <p class="text-sm text-cyan-200">View your team's schedule, standing, and recent performance at a glance.</p>
+            <p class="mt-2 text-sm text-slate-300">
+                {{ $myTeam?->name ?? 'No team linked to your account yet.' }}
+                @if ($myTeam?->sport?->name)
+                    · {{ $myTeam->sport->name }}
+                @endif
+            </p>
+        </div>
+
+        <section class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            <article class="rounded-2xl border border-white/10 bg-slate-900/85 p-5">
+                <p class="text-xs uppercase tracking-[0.16em] text-slate-400">Upcoming Matches</p>
+                <p class="mt-2 text-3xl font-semibold text-cyan-200">{{ number_format($upcomingMatches->count()) }}</p>
+            </article>
+            <article class="rounded-2xl border border-white/10 bg-slate-900/85 p-5">
+                <p class="text-xs uppercase tracking-[0.16em] text-slate-400">Team Standing Rank</p>
+                <p class="mt-2 text-3xl font-semibold text-emerald-200">{{ $standingRank !== null ? '#'.$standingRank : 'N/A' }}</p>
+            </article>
+            <article class="rounded-2xl border border-white/10 bg-slate-900/85 p-5">
+                <p class="text-xs uppercase tracking-[0.16em] text-slate-400">Team Win/Loss Record</p>
+                <p class="mt-2 text-3xl font-semibold text-amber-200">{{ $wins }} - {{ $losses }}</p>
+            </article>
+        </section>
+
+        <section class="space-y-3">
+            <h3 class="text-lg font-semibold text-slate-100">My Team Next Matches</h3>
+            <div class="space-y-3">
+                @forelse ($upcomingMatches as $game)
+                    @php
+                        $isHome = (int) $game->home_team_id === (int) $myTeam?->id;
+                        $opponent = $isHome ? $game->awayTeam?->name : $game->homeTeam?->name;
+                    @endphp
+                    <article class="rounded-2xl border border-white/10 bg-slate-900/85 p-4">
+                        <p class="text-sm font-semibold text-slate-100">vs {{ $opponent ?? 'TBD Team' }}</p>
+                        <p class="mt-1 text-xs text-slate-400">
+                            {{ $game->scheduled_at?->format('M d, Y h:i A') }}
+                            · {{ $game->venue?->name ?? 'No venue assigned' }}
+                            · {{ $game->sport?->name ?? 'Sport' }}
+                        </p>
+                    </article>
+                @empty
+                    <div class="rounded-2xl border border-white/10 bg-slate-900/85 p-6 text-center text-sm text-slate-400">
+                        No upcoming matches found.
+                    </div>
+                @endforelse
+            </div>
+        </section>
+
+        <section class="space-y-3">
+            <h3 class="text-lg font-semibold text-slate-100">Recent Results (Read-Only)</h3>
+            <div class="space-y-3">
+                @forelse ($recentResults as $game)
+                    @php
+                        $isHome = (int) $game->home_team_id === (int) $myTeam?->id;
+                        $myScore = $isHome ? (int) ($game->home_score ?? 0) : (int) ($game->away_score ?? 0);
+                        $opponentScore = $isHome ? (int) ($game->away_score ?? 0) : (int) ($game->home_score ?? 0);
+                        $resultLabel = $myScore > $opponentScore ? 'WIN' : ($myScore < $opponentScore ? 'LOSS' : 'DRAW');
+                    @endphp
+                    <article class="rounded-2xl border border-white/10 bg-slate-900/85 p-4">
+                        <div class="flex items-center justify-between gap-3">
+                            <p class="text-sm font-semibold text-slate-100">
+                                {{ $game->homeTeam?->name ?? 'TBD Team' }}
+                                <span class="px-1 text-slate-400">vs</span>
+                                {{ $game->awayTeam?->name ?? 'TBD Team' }}
+                            </p>
+                            <span class="inline-flex rounded-full border border-emerald-300/35 bg-emerald-500/20 px-2.5 py-1 text-xs font-semibold text-emerald-100">
+                                {{ $resultLabel }}
+                            </span>
+                        </div>
+                        <p class="mt-2 text-sm text-cyan-200">{{ $game->home_score ?? 0 }} - {{ $game->away_score ?? 0 }}</p>
+                        <p class="mt-1 text-xs text-slate-400">{{ $game->scheduled_at?->format('M d, Y') }} · {{ $game->venue?->name ?? 'No venue assigned' }}</p>
+                    </article>
+                @empty
+                    <div class="rounded-2xl border border-white/10 bg-slate-900/85 p-6 text-center text-sm text-slate-400">
+                        No recent completed matches found.
+                    </div>
+                @endforelse
+            </div>
+        </section>
+
+        <div class="rounded-2xl border border-white/10 bg-slate-900/85 p-6 text-sm text-slate-300">
+            For a full read-only history, open <a href="{{ route('tenant.coach.schedules') }}" class="font-semibold text-cyan-200 hover:text-cyan-100">Schedules</a>.
         </div>
     </div>
 </x-app-layout>

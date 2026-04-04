@@ -21,7 +21,9 @@ class CheckRole
             abort(Response::HTTP_UNAUTHORIZED);
         }
 
-        if (! in_array($user->role, $roles, true)) {
+        $isAuthorized = collect($roles)->contains(fn (string $role): bool => $user->hasTenantRole($role));
+
+        if (! $isAuthorized) {
             abort(Response::HTTP_FORBIDDEN);
         }
 

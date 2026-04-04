@@ -18,6 +18,7 @@ use App\Http\Controllers\Tenant\VenueController;
 use Illuminate\Support\Facades\Route;
 use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
 use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
+use Symfony\Component\HttpFoundation\Response;
 
 /*
 |--------------------------------------------------------------------------
@@ -63,19 +64,15 @@ Route::middleware([
         Route::get('/app/subscription/pricing-preview', [SubscriptionController::class, 'preview'])->name('tenant.subscription.preview');
         Route::post('/app/subscription/upgrade-requests', [SubscriptionController::class, 'submit'])->name('tenant.subscription.upgrade-requests.store');
 
+        Route::redirect('/app/oach/schdules', '/app/coach/schedules');
+        Route::redirect('/app/oach/my-team', '/app/coach/my-team');
+        Route::redirect('/app/player/my-shcedule', '/app/player/my-schedule');
+
         Route::middleware('check.role:university_admin')->prefix('/app')->name('tenant.')->group(function () {
             Route::resource('users', TenantUserController::class)->except(['show']);
-        });
-
-        Route::middleware('check.role:university_admin,sports_facilitator')->prefix('/app')->name('tenant.')->group(function () {
             Route::resource('sports', SportController::class)->except(['show']);
-            Route::resource('venues', VenueController::class)->except(['show']);
             Route::resource('teams', TeamController::class)->except(['show']);
             Route::resource('players', PlayerController::class)->except(['show']);
-            Route::resource('games', GameController::class)->except(['show']);
-            Route::get('audits/game-results', [GameController::class, 'auditsIndex'])->name('audits.game-results.index');
-            Route::patch('games/{game}/result', [GameController::class, 'submitResult'])->name('games.result');
-            Route::get('games/{game}/audits', [GameController::class, 'auditTrail'])->name('games.audits');
 
             Route::prefix('pro')->name('pro.')->group(function () {
                 Route::get('analytics', [ProFeatureController::class, 'analytics'])->name('analytics');
@@ -92,6 +89,37 @@ Route::middleware([
                 });
             });
         });
+
+        Route::middleware('check.role:university_admin,sports_facilitator')->prefix('/app')->name('tenant.')->group(function () {
+            Route::resource('venues', VenueController::class)->except(['show']);
+            Route::resource('games', GameController::class)->except(['show']);
+            Route::get('audits/game-results', [GameController::class, 'auditsIndex'])->name('audits.game-results.index');
+            Route::patch('games/{game}/result', [GameController::class, 'submitResult'])->name('games.result');
+            Route::get('games/{game}/audits', [GameController::class, 'auditTrail'])->name('games.audits');
+        });
+
+        Route::redirect('/app/coach/shedules', '/app/coach/schedules');
+        Route::redirect('/app/coach/my-teams', '/app/coach/my-team');
+        Route::redirect('/app/player/my-schedules', '/app/player/my-schedule');
+        Route::redirect('/app/player/my-shedule', '/app/player/my-schedule');
+
+        Route::get('/app/coach/schedules', function () {
+            abort_unless(auth()->user()?->hasTenantRole('team_coach') === true, Response::HTTP_FORBIDDEN);
+
+            return view('tenant.coach.schedules');
+        })->name('tenant.coach.schedules');
+
+        Route::get('/app/coach/my-team', function () {
+            abort_unless(auth()->user()?->hasTenantRole('team_coach') === true, Response::HTTP_FORBIDDEN);
+
+            return view('tenant.coach.my-team');
+        })->name('tenant.coach.my-team');
+
+        Route::get('/app/player/my-schedule', function () {
+            abort_unless(auth()->user()?->hasTenantRole('student_player') === true, Response::HTTP_FORBIDDEN);
+
+            return view('tenant.player.my-schedule');
+        })->name('tenant.player.my-schedule');
 
         Route::get('/app/facilitator', function () {
             return 'Sports facilitator dashboard';

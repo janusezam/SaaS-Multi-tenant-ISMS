@@ -57,6 +57,23 @@ class User extends Authenticatable
 
     public function hasTenantRole(string $role): bool
     {
-        return $this->role === $role;
+        return self::normalizeTenantRole($this->role) === self::normalizeTenantRole($role);
+    }
+
+    public static function normalizeTenantRole(?string $role): ?string
+    {
+        if ($role === null || trim($role) === '') {
+            return null;
+        }
+
+        $normalized = strtolower(trim($role));
+
+        return match ($normalized) {
+            'university_admin', 'admin', 'university admin' => 'university_admin',
+            'sports_facilitator', 'facilitator', 'sports facilitator' => 'sports_facilitator',
+            'team_coach', 'coach', 'team coach' => 'team_coach',
+            'student_player', 'player', 'student player' => 'student_player',
+            default => $normalized,
+        };
     }
 }

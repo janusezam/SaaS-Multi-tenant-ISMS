@@ -41,8 +41,8 @@ beforeEach(function () {
     ]);
 });
 
-test('sports facilitator can create and update a team', function () {
-    $user = User::factory()->create(['role' => 'sports_facilitator']);
+test('university admin can create and update a team', function () {
+    $user = User::factory()->create(['role' => 'university_admin']);
 
     $sport = Sport::query()->create([
         'name' => 'Basketball',

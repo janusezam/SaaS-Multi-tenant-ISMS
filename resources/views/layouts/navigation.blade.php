@@ -11,7 +11,11 @@
         $tenantCurrentPlan = tenant()?->currentPlan();
         $tenantHasAnalytics = tenant() !== null && tenant()->hasFeature('analytics');
         $tenantHasBracket = tenant() !== null && tenant()->hasFeature('bracket');
-        $canManageTenantUsers = tenant() !== null && ($authenticatedUser?->role === 'university_admin');
+        $canManageTenantUsers = tenant() !== null && ($authenticatedUser?->hasTenantRole('university_admin') === true);
+        $isUniversityAdmin = tenant() !== null && ($authenticatedUser?->hasTenantRole('university_admin') === true);
+        $isFacilitator = tenant() !== null && ($authenticatedUser?->hasTenantRole('sports_facilitator') === true);
+        $isCoach = tenant() !== null && ($authenticatedUser?->hasTenantRole('team_coach') === true);
+        $isPlayer = tenant() !== null && ($authenticatedUser?->hasTenantRole('student_player') === true);
     @endphp
 
     <!-- Primary Navigation Menu -->
@@ -34,29 +38,51 @@
                     @endif
 
                     @if (tenant() !== null)
-                        <x-nav-link :href="route('tenant.sports.index')" :active="request()->routeIs('tenant.sports.*')">
-                            <span class="isms-text">Sports</span>
-                        </x-nav-link>
+                        @if ($isUniversityAdmin || $isFacilitator)
+                            <x-nav-link :href="route('tenant.venues.index')" :active="request()->routeIs('tenant.venues.*')">
+                                <span class="isms-text">Venues</span>
+                            </x-nav-link>
+                        @endif
 
-                        <x-nav-link :href="route('tenant.venues.index')" :active="request()->routeIs('tenant.venues.*')">
-                            <span class="isms-text">Venues</span>
-                        </x-nav-link>
+                        @if ($isUniversityAdmin || $isFacilitator)
+                            <x-nav-link :href="route('tenant.games.index')" :active="request()->routeIs('tenant.games.*')">
+                                <span class="isms-text">Schedules</span>
+                            </x-nav-link>
 
-                        <x-nav-link :href="route('tenant.teams.index')" :active="request()->routeIs('tenant.teams.*')">
-                            <span class="isms-text">Teams</span>
-                        </x-nav-link>
+                            <x-nav-link :href="route('tenant.audits.game-results.index')" :active="request()->routeIs('tenant.audits.game-results.*')">
+                                <span class="isms-text">Result Audits</span>
+                            </x-nav-link>
+                        @endif
 
-                        <x-nav-link :href="route('tenant.players.index')" :active="request()->routeIs('tenant.players.*')">
-                            <span class="isms-text">Players</span>
-                        </x-nav-link>
+                        @if ($isUniversityAdmin)
+                            <x-nav-link :href="route('tenant.sports.index')" :active="request()->routeIs('tenant.sports.*')">
+                                <span class="isms-text">Sports</span>
+                            </x-nav-link>
 
-                        <x-nav-link :href="route('tenant.games.index')" :active="request()->routeIs('tenant.games.*')">
-                            <span class="isms-text">Schedules</span>
-                        </x-nav-link>
+                            <x-nav-link :href="route('tenant.teams.index')" :active="request()->routeIs('tenant.teams.*')">
+                                <span class="isms-text">Teams</span>
+                            </x-nav-link>
 
-                        <x-nav-link :href="route('tenant.audits.game-results.index')" :active="request()->routeIs('tenant.audits.game-results.*')">
-                            <span class="isms-text">Result Audits</span>
-                        </x-nav-link>
+                            <x-nav-link :href="route('tenant.players.index')" :active="request()->routeIs('tenant.players.*')">
+                                <span class="isms-text">Players</span>
+                            </x-nav-link>
+                        @endif
+
+                        @if ($isCoach)
+                            <x-nav-link :href="route('tenant.coach.schedules')" :active="request()->routeIs('tenant.coach.schedules')">
+                                <span class="isms-text">Schedules</span>
+                            </x-nav-link>
+
+                            <x-nav-link :href="route('tenant.coach.my-team')" :active="request()->routeIs('tenant.coach.my-team')">
+                                <span class="isms-text">My Team</span>
+                            </x-nav-link>
+                        @endif
+
+                        @if ($isPlayer)
+                            <x-nav-link :href="route('tenant.player.my-schedule')" :active="request()->routeIs('tenant.player.my-schedule')">
+                                <span class="isms-text">My Schedule</span>
+                            </x-nav-link>
+                        @endif
 
                         <x-nav-link :href="route('tenant.standings.index')" :active="request()->routeIs('tenant.standings.*')">
                             <span class="isms-text">Standings</span>
@@ -72,13 +98,13 @@
                             </x-nav-link>
                         @endif
 
-                        @if ($tenantHasAnalytics)
+                        @if ($isUniversityAdmin && $tenantHasAnalytics)
                             <x-nav-link :href="route('tenant.pro.analytics')" :active="request()->routeIs('tenant.pro.analytics')">
                                 <span class="isms-text">Analytics</span>
                             </x-nav-link>
                         @endif
 
-                        @if ($tenantHasBracket)
+                        @if ($isUniversityAdmin && $tenantHasBracket)
                             <x-nav-link :href="route('tenant.pro.bracket')" :active="request()->routeIs('tenant.pro.bracket')">
                                 <span class="isms-text">Bracket</span>
                             </x-nav-link>
@@ -163,29 +189,51 @@
             @endif
 
             @if (tenant() !== null)
-                <x-responsive-nav-link :href="route('tenant.sports.index')" :active="request()->routeIs('tenant.sports.*')">
-                    Sports
-                </x-responsive-nav-link>
+                @if ($isUniversityAdmin || $isFacilitator)
+                    <x-responsive-nav-link :href="route('tenant.venues.index')" :active="request()->routeIs('tenant.venues.*')">
+                        Venues
+                    </x-responsive-nav-link>
+                @endif
 
-                <x-responsive-nav-link :href="route('tenant.venues.index')" :active="request()->routeIs('tenant.venues.*')">
-                    Venues
-                </x-responsive-nav-link>
+                @if ($isUniversityAdmin || $isFacilitator)
+                    <x-responsive-nav-link :href="route('tenant.games.index')" :active="request()->routeIs('tenant.games.*')">
+                        Schedules
+                    </x-responsive-nav-link>
 
-                <x-responsive-nav-link :href="route('tenant.teams.index')" :active="request()->routeIs('tenant.teams.*')">
-                    Teams
-                </x-responsive-nav-link>
+                    <x-responsive-nav-link :href="route('tenant.audits.game-results.index')" :active="request()->routeIs('tenant.audits.game-results.*')">
+                        Result Audits
+                    </x-responsive-nav-link>
+                @endif
 
-                <x-responsive-nav-link :href="route('tenant.players.index')" :active="request()->routeIs('tenant.players.*')">
-                    Players
-                </x-responsive-nav-link>
+                @if ($isUniversityAdmin)
+                    <x-responsive-nav-link :href="route('tenant.sports.index')" :active="request()->routeIs('tenant.sports.*')">
+                        Sports
+                    </x-responsive-nav-link>
 
-                <x-responsive-nav-link :href="route('tenant.games.index')" :active="request()->routeIs('tenant.games.*')">
-                    Schedules
-                </x-responsive-nav-link>
+                    <x-responsive-nav-link :href="route('tenant.teams.index')" :active="request()->routeIs('tenant.teams.*')">
+                        Teams
+                    </x-responsive-nav-link>
 
-                <x-responsive-nav-link :href="route('tenant.audits.game-results.index')" :active="request()->routeIs('tenant.audits.game-results.*')">
-                    Result Audits
-                </x-responsive-nav-link>
+                    <x-responsive-nav-link :href="route('tenant.players.index')" :active="request()->routeIs('tenant.players.*')">
+                        Players
+                    </x-responsive-nav-link>
+                @endif
+
+                @if ($isCoach)
+                    <x-responsive-nav-link :href="route('tenant.coach.schedules')" :active="request()->routeIs('tenant.coach.schedules')">
+                        Schedules
+                    </x-responsive-nav-link>
+
+                    <x-responsive-nav-link :href="route('tenant.coach.my-team')" :active="request()->routeIs('tenant.coach.my-team')">
+                        My Team
+                    </x-responsive-nav-link>
+                @endif
+
+                @if ($isPlayer)
+                    <x-responsive-nav-link :href="route('tenant.player.my-schedule')" :active="request()->routeIs('tenant.player.my-schedule')">
+                        My Schedule
+                    </x-responsive-nav-link>
+                @endif
 
                 <x-responsive-nav-link :href="route('tenant.standings.index')" :active="request()->routeIs('tenant.standings.*')">
                     Standings
@@ -201,13 +249,13 @@
                     </x-responsive-nav-link>
                 @endif
 
-                @if ($tenantHasAnalytics)
+                @if ($isUniversityAdmin && $tenantHasAnalytics)
                     <x-responsive-nav-link :href="route('tenant.pro.analytics')" :active="request()->routeIs('tenant.pro.analytics')">
                         Analytics
                     </x-responsive-nav-link>
                 @endif
 
-                @if ($tenantHasBracket)
+                @if ($isUniversityAdmin && $tenantHasBracket)
                     <x-responsive-nav-link :href="route('tenant.pro.bracket')" :active="request()->routeIs('tenant.pro.bracket')">
                         Bracket
                     </x-responsive-nav-link>

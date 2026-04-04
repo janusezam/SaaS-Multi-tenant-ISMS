@@ -102,6 +102,11 @@
             ->sortByDesc('win_rate')
             ->take(5)
             ->values();
+
+            $topTeamsLabels = $topPerformingTeams->pluck('team')->values();
+            $topTeamsWinRates = $topPerformingTeams->pluck('win_rate')->map(fn ($value): float => round((float) $value, 1))->values();
+            $topTeamsWins = $topPerformingTeams->pluck('wins')->values();
+            $topTeamsLosses = $topPerformingTeams->pluck('losses')->values();
     @endphp
 
     <x-slot name="header">
@@ -160,8 +165,15 @@
                     </div>
                 </div>
 
+                <div class="rounded-2xl border border-white/10 bg-slate-900/85 p-6 xl:col-span-7">
+                    <h3 class="text-lg font-semibold text-slate-100">Top Performing Teams (Horizontal)</h3>
+                    <div class="mt-4 h-80">
+                        <canvas id="analytics-top-teams-horizontal"></canvas>
+                    </div>
+                </div>
+
                 <div class="rounded-2xl border border-white/10 bg-slate-900/85 p-6 xl:col-span-4">
-                    <h3 class="text-lg font-semibold text-slate-100">Games per Sport (Bar)</h3>
+                    <h3 class="text-lg font-semibold text-slate-100">Games per Sport (Vertical Bar)</h3>
                     <div class="mt-4 h-72">
                         <canvas id="analytics-games-per-sport-bar"></canvas>
                     </div>
@@ -185,38 +197,6 @@
                     <h3 class="text-lg font-semibold text-slate-100">7-Day Match Trend (Line)</h3>
                     <div class="mt-4 h-72">
                         <canvas id="analytics-trend-line"></canvas>
-                    </div>
-                </div>
-
-                <div class="rounded-2xl border border-white/10 bg-slate-900/85 p-6 xl:col-span-7">
-                    <h3 class="text-lg font-semibold text-slate-100">Top Performing Teams</h3>
-                    <div class="mt-4 overflow-x-auto">
-                        <table class="min-w-full text-sm">
-                            <thead class="text-slate-400">
-                                <tr>
-                                    <th class="pb-2 text-left font-medium">Team</th>
-                                    <th class="pb-2 text-left font-medium">Sport</th>
-                                    <th class="pb-2 text-right font-medium">W</th>
-                                    <th class="pb-2 text-right font-medium">L</th>
-                                    <th class="pb-2 text-right font-medium">Win %</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-white/10 text-slate-200">
-                                @forelse ($topPerformingTeams as $team)
-                                    <tr>
-                                        <td class="py-2">{{ $team['team'] }}</td>
-                                        <td class="py-2">{{ $team['sport'] }}</td>
-                                        <td class="py-2 text-right">{{ $team['wins'] }}</td>
-                                        <td class="py-2 text-right">{{ $team['losses'] }}</td>
-                                        <td class="py-2 text-right font-semibold text-cyan-200">{{ number_format($team['win_rate'], 1) }}%</td>
-                                    </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="5" class="py-4 text-center text-slate-400">No performance data yet.</td>
-                                    </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
                     </div>
                 </div>
             </div>
@@ -249,6 +229,10 @@
             const trendLabels = @json($trendLabels);
             const trendScheduled = @json($trendScheduled);
             const trendCompleted = @json($trendCompleted);
+            const topTeamsLabels = @json($topTeamsLabels);
+            const topTeamsWinRates = @json($topTeamsWinRates);
+            const topTeamsWins = @json($topTeamsWins);
+            const topTeamsLosses = @json($topTeamsLosses);
 
             if (typeof Chart === 'undefined') {
                 return;
@@ -296,6 +280,7 @@
                         },
                         options: {
                             ...chartDefaults,
+                            indexAxis: 'x',
                             scales: {
                                 x: {
                                     ticks: { color: tickColor },
@@ -303,6 +288,57 @@
                                 },
                                 y: {
                                     beginAtZero: true,
+                                    ticks: { color: tickColor },
+                                    grid: { color: gridColor },
+                                },
+                            },
+                        },
+                    }));
+                }
+
+                const topTeamsCanvas = document.getElementById('analytics-top-teams-horizontal');
+                if (topTeamsCanvas) {
+                    chartInstances.push(new Chart(topTeamsCanvas, {
+                        type: 'bar',
+                        data: {
+                            labels: topTeamsLabels,
+                            datasets: [
+                                {
+                                    label: 'Win Rate %',
+                                    data: topTeamsWinRates,
+                                    backgroundColor: 'rgba(34, 211, 238, 0.65)',
+                                    borderColor: 'rgba(34, 211, 238, 1)',
+                                    borderWidth: 1,
+                                    borderRadius: 8,
+                                },
+                                {
+                                    label: 'Wins',
+                                    data: topTeamsWins,
+                                    backgroundColor: 'rgba(16, 185, 129, 0.45)',
+                                    borderColor: 'rgba(16, 185, 129, 1)',
+                                    borderWidth: 1,
+                                    borderRadius: 8,
+                                },
+                                {
+                                    label: 'Losses',
+                                    data: topTeamsLosses,
+                                    backgroundColor: 'rgba(244, 63, 94, 0.45)',
+                                    borderColor: 'rgba(244, 63, 94, 1)',
+                                    borderWidth: 1,
+                                    borderRadius: 8,
+                                },
+                            ],
+                        },
+                        options: {
+                            ...chartDefaults,
+                            indexAxis: 'y',
+                            scales: {
+                                x: {
+                                    beginAtZero: true,
+                                    ticks: { color: tickColor },
+                                    grid: { color: gridColor },
+                                },
+                                y: {
                                     ticks: { color: tickColor },
                                     grid: { color: gridColor },
                                 },

@@ -1,8 +1,9 @@
 @php
     $user = Auth::user();
-    $canManageModules = in_array($user?->role, ['university_admin', 'sports_facilitator'], true);
-    $canManageUsers = $user?->role === 'university_admin';
-    $tenantCurrentPlan = tenant()?->currentPlan();
+    $isUniversityAdmin = $user?->hasTenantRole('university_admin') === true;
+    $isFacilitator = $user?->hasTenantRole('sports_facilitator') === true;
+    $isCoach = $user?->hasTenantRole('team_coach') === true;
+    $isPlayer = $user?->hasTenantRole('student_player') === true;
     $tenantHasAnalytics = tenant() !== null && tenant()->hasFeature('analytics');
     $tenantHasBracket = tenant() !== null && tenant()->hasFeature('bracket');
 @endphp
@@ -24,22 +25,16 @@
 
         <a href="{{ route('tenant.standings.index') }}" class="block rounded-lg px-3 py-2 {{ request()->routeIs('tenant.standings.*') ? 'bg-cyan-500/20 text-cyan-100 border border-cyan-300/30' : 'isms-sidebar-link hover:bg-white/5 border border-transparent' }}">Standings</a>
 
-        @if ($canManageUsers)
+        @if ($isUniversityAdmin)
             <a href="{{ route('tenant.users.index') }}" class="block rounded-lg px-3 py-2 {{ request()->routeIs('tenant.users.*') ? 'bg-cyan-500/20 text-cyan-100 border border-cyan-300/30' : 'isms-sidebar-link hover:bg-white/5 border border-transparent' }}">Users</a>
         @endif
 
-        @if ($canManageModules)
+        @if ($isUniversityAdmin)
             <a href="{{ route('tenant.sports.index') }}" class="block rounded-lg px-3 py-2 {{ request()->routeIs('tenant.sports.*') ? 'bg-cyan-500/20 text-cyan-100 border border-cyan-300/30' : 'isms-sidebar-link hover:bg-white/5 border border-transparent' }}">Sports</a>
-
-            <a href="{{ route('tenant.venues.index') }}" class="block rounded-lg px-3 py-2 {{ request()->routeIs('tenant.venues.*') ? 'bg-cyan-500/20 text-cyan-100 border border-cyan-300/30' : 'isms-sidebar-link hover:bg-white/5 border border-transparent' }}">Venues</a>
 
             <a href="{{ route('tenant.teams.index') }}" class="block rounded-lg px-3 py-2 {{ request()->routeIs('tenant.teams.*') ? 'bg-cyan-500/20 text-cyan-100 border border-cyan-300/30' : 'isms-sidebar-link hover:bg-white/5 border border-transparent' }}">Teams</a>
 
             <a href="{{ route('tenant.players.index') }}" class="block rounded-lg px-3 py-2 {{ request()->routeIs('tenant.players.*') ? 'bg-cyan-500/20 text-cyan-100 border border-cyan-300/30' : 'isms-sidebar-link hover:bg-white/5 border border-transparent' }}">Players</a>
-
-            <a href="{{ route('tenant.games.index') }}" class="block rounded-lg px-3 py-2 {{ request()->routeIs('tenant.games.*') ? 'bg-cyan-500/20 text-cyan-100 border border-cyan-300/30' : 'isms-sidebar-link hover:bg-white/5 border border-transparent' }}">Schedules</a>
-
-            <a href="{{ route('tenant.audits.game-results.index') }}" class="block rounded-lg px-3 py-2 {{ request()->routeIs('tenant.audits.game-results.*') ? 'bg-cyan-500/20 text-cyan-100 border border-cyan-300/30' : 'isms-sidebar-link hover:bg-white/5 border border-transparent' }}">Result Audits</a>
 
             @if (! $tenantHasAnalytics)
                 <div class="flex items-center justify-between rounded-lg border border-transparent px-3 py-2 isms-sidebar-link hover:bg-white/5">
@@ -62,6 +57,23 @@
                     <span>Bracket</span>
                 </a>
             @endif
+        @endif
+
+        @if ($isUniversityAdmin || $isFacilitator)
+            <a href="{{ route('tenant.venues.index') }}" class="block rounded-lg px-3 py-2 {{ request()->routeIs('tenant.venues.*') ? 'bg-cyan-500/20 text-cyan-100 border border-cyan-300/30' : 'isms-sidebar-link hover:bg-white/5 border border-transparent' }}">Venues</a>
+
+            <a href="{{ route('tenant.games.index') }}" class="block rounded-lg px-3 py-2 {{ request()->routeIs('tenant.games.*') ? 'bg-cyan-500/20 text-cyan-100 border border-cyan-300/30' : 'isms-sidebar-link hover:bg-white/5 border border-transparent' }}">Schedules</a>
+
+            <a href="{{ route('tenant.audits.game-results.index') }}" class="block rounded-lg px-3 py-2 {{ request()->routeIs('tenant.audits.game-results.*') ? 'bg-cyan-500/20 text-cyan-100 border border-cyan-300/30' : 'isms-sidebar-link hover:bg-white/5 border border-transparent' }}">Result Audits</a>
+        @endif
+
+        @if ($isCoach)
+            <a href="{{ route('tenant.coach.schedules') }}" class="block rounded-lg px-3 py-2 {{ request()->routeIs('tenant.coach.schedules') ? 'bg-cyan-500/20 text-cyan-100 border border-cyan-300/30' : 'isms-sidebar-link hover:bg-white/5 border border-transparent' }}">Schedules</a>
+            <a href="{{ route('tenant.coach.my-team') }}" class="block rounded-lg px-3 py-2 {{ request()->routeIs('tenant.coach.my-team') ? 'bg-cyan-500/20 text-cyan-100 border border-cyan-300/30' : 'isms-sidebar-link hover:bg-white/5 border border-transparent' }}">My Team</a>
+        @endif
+
+        @if ($isPlayer)
+            <a href="{{ route('tenant.player.my-schedule') }}" class="block rounded-lg px-3 py-2 {{ request()->routeIs('tenant.player.my-schedule') ? 'bg-cyan-500/20 text-cyan-100 border border-cyan-300/30' : 'isms-sidebar-link hover:bg-white/5 border border-transparent' }}">My Schedule</a>
         @endif
     </nav>
 

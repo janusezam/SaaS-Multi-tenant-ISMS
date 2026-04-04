@@ -11,12 +11,22 @@ class DashboardController extends Controller
     {
         $user = auth()->user();
 
-        return match ($user?->role) {
-            'university_admin' => view('tenant.dashboards.university-admin'),
-            'sports_facilitator' => view('tenant.dashboards.sports-facilitator'),
-            'team_coach' => view('tenant.dashboards.team-coach'),
-            'student_player' => view('tenant.dashboards.student-player'),
-            default => abort(403, 'Unknown tenant role.'),
-        };
+        if ($user?->hasTenantRole('university_admin')) {
+            return view('tenant.dashboards.university-admin');
+        }
+
+        if ($user?->hasTenantRole('sports_facilitator')) {
+            return view('tenant.dashboards.sports-facilitator');
+        }
+
+        if ($user?->hasTenantRole('team_coach')) {
+            return view('tenant.dashboards.team-coach');
+        }
+
+        if ($user?->hasTenantRole('student_player')) {
+            return view('tenant.dashboards.student-player');
+        }
+
+        abort(403, 'Unknown tenant role.');
     }
 }

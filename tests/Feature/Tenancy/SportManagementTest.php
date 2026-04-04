@@ -27,9 +27,9 @@ beforeEach(function () {
     ]);
 });
 
-test('sports facilitator can create and update a sport', function () {
+test('university admin can create and update a sport', function () {
     $user = User::factory()->create([
-        'role' => 'sports_facilitator',
+        'role' => 'university_admin',
     ]);
 
     $response = $this->actingAs($user)->post(route('tenant.sports.store'), [

@@ -1,0 +1,79 @@
+<?php
+
+use App\Http\Middleware\EnsureTenantSubscriptionIsActive;
+use App\Models\User;
+use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
+use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
+
+beforeEach(function () {
+    $this->withoutMiddleware([
+        InitializeTenancyByDomain::class,
+        PreventAccessFromCentralDomains::class,
+        EnsureTenantSubscriptionIsActive::class,
+    ]);
+});
+
+test('sports facilitator can open dashboard but cannot access admin only modules', function () {
+    $user = User::factory()->facilitator()->create();
+
+    $dashboardResponse = $this->actingAs($user)->get(route('tenant.dashboard'));
+    $dashboardResponse->assertOk();
+    $dashboardResponse->assertSee('Manage and report games assigned to your sports.');
+
+    $adminOnlyResponse = $this->actingAs($user)->get(route('tenant.users.index'));
+    $adminOnlyResponse->assertForbidden();
+});
+
+test('team coach can access coach pages and not facilitator audits page', function () {
+    $user = User::factory()->coach()->create();
+
+    $dashboardResponse = $this->actingAs($user)->get(route('tenant.dashboard'));
+    $dashboardResponse->assertOk();
+    $dashboardResponse->assertSeeText("View your team's schedule, standing, and recent performance at a glance.", false);
+
+    $coachSchedulesResponse = $this->actingAs($user)->get(route('tenant.coach.schedules'));
+    $coachSchedulesResponse->assertOk();
+    $coachSchedulesResponse->assertSee('Read-only fixture timeline for your team.');
+
+    $forbiddenResponse = $this->actingAs($user)->get(route('tenant.audits.game-results.index'));
+    $forbiddenResponse->assertForbidden();
+
+    $legacySchedulesResponse = $this->actingAs($user)->get('/app/coach/shedules');
+    $legacySchedulesResponse->assertRedirect('/app/coach/schedules');
+
+    $legacyTeamResponse = $this->actingAs($user)->get('/app/coach/my-teams');
+    $legacyTeamResponse->assertRedirect('/app/coach/my-team');
+
+});
+
+test('student player can access my schedule and not coach pages', function () {
+    $user = User::factory()->player()->create();
+
+    $dashboardResponse = $this->actingAs($user)->get(route('tenant.dashboard'));
+    $dashboardResponse->assertOk();
+    $dashboardResponse->assertSee('View your upcoming games, latest team results, and current standing.');
+
+    $scheduleResponse = $this->actingAs($user)->get(route('tenant.player.my-schedule'));
+    $scheduleResponse->assertOk();
+    $scheduleResponse->assertSee('Read-only schedule and results for your team.');
+
+    $forbiddenResponse = $this->actingAs($user)->get(route('tenant.coach.schedules'));
+    $forbiddenResponse->assertForbidden();
+
+    $legacyScheduleResponse = $this->actingAs($user)->get('/app/player/my-schedules');
+    $legacyScheduleResponse->assertRedirect('/app/player/my-schedule');
+
+    $legacyScheduleTypoResponse = $this->actingAs($user)->get('/app/player/my-shedule');
+    $legacyScheduleTypoResponse->assertRedirect('/app/player/my-schedule');
+
+});
+
+test('university admin cannot access coach and player scoped routes', function () {
+    $user = User::factory()->create(['role' => 'university_admin']);
+
+    $coachRouteResponse = $this->actingAs($user)->get(route('tenant.coach.schedules'));
+    $coachRouteResponse->assertForbidden();
+
+    $playerRouteResponse = $this->actingAs($user)->get(route('tenant.player.my-schedule'));
+    $playerRouteResponse->assertForbidden();
+});
