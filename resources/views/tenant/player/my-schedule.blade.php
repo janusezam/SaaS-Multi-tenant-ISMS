@@ -4,6 +4,11 @@
         $hasGamesTable = \Illuminate\Support\Facades\Schema::hasTable('games');
         $hasAssignmentsTable = \Illuminate\Support\Facades\Schema::hasTable('game_player_assignments');
         $hasAnnouncementsTable = \Illuminate\Support\Facades\Schema::hasTable('team_announcements');
+        $permissionMatrix = app(\App\Support\TenantPermissionMatrix::class);
+        $canRespondAttendance = $permissionMatrix->allows(auth()->user(), 'player.attendance.respond');
+        $canViewRoster = $permissionMatrix->allows(auth()->user(), 'player.roster.view');
+        $canViewAnnouncements = $permissionMatrix->allows(auth()->user(), 'player.announcements.view');
+        $canViewHistory = $permissionMatrix->allows(auth()->user(), 'player.history.view');
 
         $playerUser = auth()->user();
         $playerProfile = null;
@@ -259,21 +264,25 @@
                                 Assigned by: {{ $assignment->assignedBy?->name ?? 'Team Coach' }}
                             </p>
 
-                            <div class="mt-3 flex gap-2">
-                                <form method="POST" action="{{ route('tenant.player.assignments.attendance.update', $assignment) }}">
-                                    @csrf
-                                    @method('PATCH')
-                                    <input type="hidden" name="attendance_status" value="accepted">
-                                    <button type="submit" class="rounded-lg border border-emerald-300/35 bg-emerald-500/20 px-3 py-1.5 text-xs font-semibold text-emerald-100 hover:bg-emerald-500/30">Accept</button>
-                                </form>
+                            @if ($canRespondAttendance)
+                                <div class="mt-3 flex gap-2">
+                                    <form method="POST" action="{{ route('tenant.player.assignments.attendance.update', $assignment) }}">
+                                        @csrf
+                                        @method('PATCH')
+                                        <input type="hidden" name="attendance_status" value="accepted">
+                                        <button type="submit" class="rounded-lg border border-emerald-300/35 bg-emerald-500/20 px-3 py-1.5 text-xs font-semibold text-emerald-100 hover:bg-emerald-500/30">Accept</button>
+                                    </form>
 
-                                <form method="POST" action="{{ route('tenant.player.assignments.attendance.update', $assignment) }}">
-                                    @csrf
-                                    @method('PATCH')
-                                    <input type="hidden" name="attendance_status" value="declined">
-                                    <button type="submit" class="rounded-lg border border-rose-300/35 bg-rose-500/20 px-3 py-1.5 text-xs font-semibold text-rose-100 hover:bg-rose-500/30">Decline</button>
-                                </form>
-                            </div>
+                                    <form method="POST" action="{{ route('tenant.player.assignments.attendance.update', $assignment) }}">
+                                        @csrf
+                                        @method('PATCH')
+                                        <input type="hidden" name="attendance_status" value="declined">
+                                        <button type="submit" class="rounded-lg border border-rose-300/35 bg-rose-500/20 px-3 py-1.5 text-xs font-semibold text-rose-100 hover:bg-rose-500/30">Decline</button>
+                                    </form>
+                                </div>
+                            @else
+                                <p class="mt-3 text-xs text-slate-400">RBAC: attendance response is currently disabled for Student Player.</p>
+                            @endif
                         @else
                             <p class="mt-3 text-xs text-slate-400">Coach has not assigned your lineup slot for this match yet.</p>
                         @endif
@@ -287,48 +296,60 @@
         </section>
 
         <section x-show="activeTab === 'team'" class="space-y-3" role="tabpanel" x-cloak>
-            <h3 class="text-lg font-semibold text-slate-100">Team Roster</h3>
-            <p class="text-sm text-slate-400">View your current teammates and active/inactive status.</p>
-            <div class="overflow-x-auto rounded-2xl border border-white/10 bg-slate-900/85">
-                <table class="min-w-full divide-y divide-white/10 text-sm text-slate-200">
-                    <thead class="bg-white/5 text-xs uppercase tracking-[0.12em] text-slate-400">
-                        <tr>
-                            <th class="px-4 py-3 text-left font-medium">Player</th>
-                            <th class="px-4 py-3 text-left font-medium">Position</th>
-                            <th class="px-4 py-3 text-left font-medium">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-white/10">
-                        @forelse ($teamRoster as $teamPlayer)
+            @if ($canViewRoster)
+                <h3 class="text-lg font-semibold text-slate-100">Team Roster</h3>
+                <p class="text-sm text-slate-400">View your current teammates and active/inactive status.</p>
+                <div class="overflow-x-auto rounded-2xl border border-white/10 bg-slate-900/85">
+                    <table class="min-w-full divide-y divide-white/10 text-sm text-slate-200">
+                        <thead class="bg-white/5 text-xs uppercase tracking-[0.12em] text-slate-400">
                             <tr>
-                                <td class="px-4 py-3">{{ $teamPlayer->last_name }}, {{ $teamPlayer->first_name }}</td>
-                                <td class="px-4 py-3 text-slate-300">{{ $teamPlayer->position ?: 'N/A' }}</td>
-                                <td class="px-4 py-3 text-slate-300">{{ $teamPlayer->is_active ? 'ACTIVE' : 'INACTIVE' }}</td>
+                                <th class="px-4 py-3 text-left font-medium">Player</th>
+                                <th class="px-4 py-3 text-left font-medium">Position</th>
+                                <th class="px-4 py-3 text-left font-medium">Status</th>
                             </tr>
-                        @empty
-                            <tr>
-                                <td colspan="3" class="px-4 py-6 text-center text-sm text-slate-400">No roster data available.</td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
+                        </thead>
+                        <tbody class="divide-y divide-white/10">
+                            @forelse ($teamRoster as $teamPlayer)
+                                <tr>
+                                    <td class="px-4 py-3">{{ $teamPlayer->last_name }}, {{ $teamPlayer->first_name }}</td>
+                                    <td class="px-4 py-3 text-slate-300">{{ $teamPlayer->position ?: 'N/A' }}</td>
+                                    <td class="px-4 py-3 text-slate-300">{{ $teamPlayer->is_active ? 'ACTIVE' : 'INACTIVE' }}</td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="3" class="px-4 py-6 text-center text-sm text-slate-400">No roster data available.</td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            @else
+                <div class="rounded-2xl border border-amber-300/40 bg-amber-500/20 p-4 text-sm text-amber-100">
+                    RBAC: team roster visibility is currently disabled for Student Player.
+                </div>
+            @endif
 
-            <h3 class="text-lg font-semibold text-slate-100">Team Announcements</h3>
-            <p class="text-sm text-slate-400">Important team messages from your coach appear here, newest first.</p>
-            <div class="space-y-3">
-                @forelse ($announcements as $announcement)
-                    <article class="rounded-2xl border border-white/10 bg-slate-900/85 p-4">
-                        <p class="text-sm font-semibold text-slate-100">{{ $announcement->title }}</p>
-                        <p class="mt-2 text-sm text-slate-300">{{ $announcement->body }}</p>
-                        <p class="mt-2 text-xs text-slate-500">{{ $announcement->published_at?->format('M d, Y h:i A') ?? 'Draft' }}</p>
-                    </article>
-                @empty
-                    <div class="rounded-2xl border border-white/10 bg-slate-900/85 p-6 text-center text-sm text-slate-400">
-                        No announcements yet.
-                    </div>
-                @endforelse
-            </div>
+            @if ($canViewAnnouncements)
+                <h3 class="text-lg font-semibold text-slate-100">Team Announcements</h3>
+                <p class="text-sm text-slate-400">Important team messages from your coach appear here, newest first.</p>
+                <div class="space-y-3">
+                    @forelse ($announcements as $announcement)
+                        <article class="rounded-2xl border border-white/10 bg-slate-900/85 p-4">
+                            <p class="text-sm font-semibold text-slate-100">{{ $announcement->title }}</p>
+                            <p class="mt-2 text-sm text-slate-300">{{ $announcement->body }}</p>
+                            <p class="mt-2 text-xs text-slate-500">{{ $announcement->published_at?->format('M d, Y h:i A') ?? 'Draft' }}</p>
+                        </article>
+                    @empty
+                        <div class="rounded-2xl border border-white/10 bg-slate-900/85 p-6 text-center text-sm text-slate-400">
+                            No announcements yet.
+                        </div>
+                    @endforelse
+                </div>
+            @else
+                <div class="rounded-2xl border border-amber-300/40 bg-amber-500/20 p-4 text-sm text-amber-100">
+                    RBAC: announcements visibility is currently disabled for Student Player.
+                </div>
+            @endif
         </section>
 
         <section x-show="activeTab === 'history'" class="space-y-3" role="tabpanel" x-cloak>
@@ -365,27 +386,33 @@
                 </table>
             </div>
 
-            <h3 class="text-lg font-semibold text-slate-100">My Match History</h3>
-            <p class="text-sm text-slate-400">Your completed assignments and attendance outcomes.</p>
-            <div class="space-y-3">
-                @forelse ($myCompletedMatches as $assignment)
-                    @php
-                        $game = $assignment->game;
-                    @endphp
-                    <article class="rounded-2xl border border-white/10 bg-slate-900/85 p-4">
-                        <p class="text-sm font-semibold text-slate-100">
-                            {{ $game?->homeTeam?->name ?? 'TBD Team' }}
-                            <span class="px-1 text-slate-400">vs</span>
-                            {{ $game?->awayTeam?->name ?? 'TBD Team' }}
-                        </p>
-                        <p class="mt-1 text-xs text-slate-400">{{ $game?->scheduled_at?->format('M d, Y') }} · Attendance: {{ strtoupper($assignment->attendance_status) }}</p>
-                    </article>
-                @empty
-                    <div class="rounded-2xl border border-white/10 bg-slate-900/85 p-6 text-center text-sm text-slate-400">
-                        No personal match history yet.
-                    </div>
-                @endforelse
-            </div>
+            @if ($canViewHistory)
+                <h3 class="text-lg font-semibold text-slate-100">My Match History</h3>
+                <p class="text-sm text-slate-400">Your completed assignments and attendance outcomes.</p>
+                <div class="space-y-3">
+                    @forelse ($myCompletedMatches as $assignment)
+                        @php
+                            $game = $assignment->game;
+                        @endphp
+                        <article class="rounded-2xl border border-white/10 bg-slate-900/85 p-4">
+                            <p class="text-sm font-semibold text-slate-100">
+                                {{ $game?->homeTeam?->name ?? 'TBD Team' }}
+                                <span class="px-1 text-slate-400">vs</span>
+                                {{ $game?->awayTeam?->name ?? 'TBD Team' }}
+                            </p>
+                            <p class="mt-1 text-xs text-slate-400">{{ $game?->scheduled_at?->format('M d, Y') }} · Attendance: {{ strtoupper($assignment->attendance_status) }}</p>
+                        </article>
+                    @empty
+                        <div class="rounded-2xl border border-white/10 bg-slate-900/85 p-6 text-center text-sm text-slate-400">
+                            No personal match history yet.
+                        </div>
+                    @endforelse
+                </div>
+            @else
+                <div class="rounded-2xl border border-amber-300/40 bg-amber-500/20 p-4 text-sm text-amber-100">
+                    RBAC: match history visibility is currently disabled for Student Player.
+                </div>
+            @endif
         </section>
     </div>
 </x-app-layout>

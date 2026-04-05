@@ -4,12 +4,13 @@ namespace App\Policies;
 
 use App\Models\GameResultAudit;
 use App\Models\User;
+use App\Support\TenantPermissionMatrix;
 
 class GameResultAuditPolicy
 {
     public function viewAny(User $user): bool
     {
-        return in_array($user->role, ['university_admin', 'sports_facilitator'], true);
+        return app(TenantPermissionMatrix::class)->allows($user, 'facilitator.results.audit');
     }
 
     public function view(User $user, GameResultAudit $gameResultAudit): bool

@@ -16,6 +16,13 @@
         $isFacilitator = tenant() !== null && ($authenticatedUser?->hasTenantRole('sports_facilitator') === true);
         $isCoach = tenant() !== null && ($authenticatedUser?->hasTenantRole('team_coach') === true);
         $isPlayer = tenant() !== null && ($authenticatedUser?->hasTenantRole('student_player') === true);
+        $permissionMatrix = app(\App\Support\TenantPermissionMatrix::class);
+        $canFacilitatorManageVenues = tenant() !== null && $permissionMatrix->allows($authenticatedUser, 'facilitator.venues.manage');
+        $canFacilitatorManageGames = tenant() !== null && $permissionMatrix->allows($authenticatedUser, 'facilitator.games.manage');
+        $canFacilitatorAuditResults = tenant() !== null && $permissionMatrix->allows($authenticatedUser, 'facilitator.results.audit');
+        $canCoachViewSchedules = tenant() !== null && $permissionMatrix->allows($authenticatedUser, 'coach.schedules.view');
+        $canCoachViewTeam = tenant() !== null && $permissionMatrix->allows($authenticatedUser, 'coach.team.view');
+        $canPlayerViewSchedule = tenant() !== null && $permissionMatrix->allows($authenticatedUser, 'player.schedule.view');
     @endphp
 
     <!-- Primary Navigation Menu -->
@@ -38,17 +45,19 @@
                     @endif
 
                     @if (tenant() !== null)
-                        @if ($isUniversityAdmin || $isFacilitator)
+                        @if (($isUniversityAdmin || $isFacilitator) && $canFacilitatorManageVenues)
                             <x-nav-link :href="route('tenant.venues.index')" :active="request()->routeIs('tenant.venues.*')">
                                 <span class="isms-text">Venues</span>
                             </x-nav-link>
                         @endif
 
-                        @if ($isUniversityAdmin || $isFacilitator)
+                        @if (($isUniversityAdmin || $isFacilitator) && $canFacilitatorManageGames)
                             <x-nav-link :href="route('tenant.games.index')" :active="request()->routeIs('tenant.games.*')">
                                 <span class="isms-text">Schedules</span>
                             </x-nav-link>
+                        @endif
 
+                        @if (($isUniversityAdmin || $isFacilitator) && $canFacilitatorAuditResults)
                             <x-nav-link :href="route('tenant.audits.game-results.index')" :active="request()->routeIs('tenant.audits.game-results.*')">
                                 <span class="isms-text">Result Audits</span>
                             </x-nav-link>
@@ -68,17 +77,19 @@
                             </x-nav-link>
                         @endif
 
-                        @if ($isCoach)
+                        @if ($isCoach && $canCoachViewSchedules)
                             <x-nav-link :href="route('tenant.coach.schedules')" :active="request()->routeIs('tenant.coach.schedules')">
                                 <span class="isms-text">Schedules</span>
                             </x-nav-link>
+                        @endif
 
+                        @if ($isCoach && $canCoachViewTeam)
                             <x-nav-link :href="route('tenant.coach.my-team')" :active="request()->routeIs('tenant.coach.my-team')">
                                 <span class="isms-text">My Team</span>
                             </x-nav-link>
                         @endif
 
-                        @if ($isPlayer)
+                        @if ($isPlayer && $canPlayerViewSchedule)
                             <x-nav-link :href="route('tenant.player.my-schedule')" :active="request()->routeIs('tenant.player.my-schedule')">
                                 <span class="isms-text">My Schedule</span>
                             </x-nav-link>
@@ -95,6 +106,10 @@
                         @if ($canManageTenantUsers)
                             <x-nav-link :href="route('tenant.users.index')" :active="request()->routeIs('tenant.users.*')">
                                 <span class="isms-text">Users</span>
+                            </x-nav-link>
+
+                            <x-nav-link :href="route('tenant.rbac.index')" :active="request()->routeIs('tenant.rbac.*')">
+                                <span class="isms-text">RBAC</span>
                             </x-nav-link>
                         @endif
 
@@ -189,17 +204,19 @@
             @endif
 
             @if (tenant() !== null)
-                @if ($isUniversityAdmin || $isFacilitator)
+                @if (($isUniversityAdmin || $isFacilitator) && $canFacilitatorManageVenues)
                     <x-responsive-nav-link :href="route('tenant.venues.index')" :active="request()->routeIs('tenant.venues.*')">
                         Venues
                     </x-responsive-nav-link>
                 @endif
 
-                @if ($isUniversityAdmin || $isFacilitator)
+                @if (($isUniversityAdmin || $isFacilitator) && $canFacilitatorManageGames)
                     <x-responsive-nav-link :href="route('tenant.games.index')" :active="request()->routeIs('tenant.games.*')">
                         Schedules
                     </x-responsive-nav-link>
+                @endif
 
+                @if (($isUniversityAdmin || $isFacilitator) && $canFacilitatorAuditResults)
                     <x-responsive-nav-link :href="route('tenant.audits.game-results.index')" :active="request()->routeIs('tenant.audits.game-results.*')">
                         Result Audits
                     </x-responsive-nav-link>
@@ -219,17 +236,19 @@
                     </x-responsive-nav-link>
                 @endif
 
-                @if ($isCoach)
+                @if ($isCoach && $canCoachViewSchedules)
                     <x-responsive-nav-link :href="route('tenant.coach.schedules')" :active="request()->routeIs('tenant.coach.schedules')">
                         Schedules
                     </x-responsive-nav-link>
+                @endif
 
+                @if ($isCoach && $canCoachViewTeam)
                     <x-responsive-nav-link :href="route('tenant.coach.my-team')" :active="request()->routeIs('tenant.coach.my-team')">
                         My Team
                     </x-responsive-nav-link>
                 @endif
 
-                @if ($isPlayer)
+                @if ($isPlayer && $canPlayerViewSchedule)
                     <x-responsive-nav-link :href="route('tenant.player.my-schedule')" :active="request()->routeIs('tenant.player.my-schedule')">
                         My Schedule
                     </x-responsive-nav-link>
@@ -246,6 +265,10 @@
                 @if ($canManageTenantUsers)
                     <x-responsive-nav-link :href="route('tenant.users.index')" :active="request()->routeIs('tenant.users.*')">
                         Users
+                    </x-responsive-nav-link>
+
+                    <x-responsive-nav-link :href="route('tenant.rbac.index')" :active="request()->routeIs('tenant.rbac.*')">
+                        RBAC
                     </x-responsive-nav-link>
                 @endif
 

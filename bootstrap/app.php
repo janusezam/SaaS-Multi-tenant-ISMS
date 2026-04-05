@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\AuthenticateSuperAdmin;
 use App\Http\Middleware\CheckFeature;
+use App\Http\Middleware\CheckPermission;
 use App\Http\Middleware\CheckPlan;
 use App\Http\Middleware\CheckRole;
 use App\Http\Middleware\EnsureTenantPasswordIsUpdated;
@@ -23,6 +24,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'check.role' => CheckRole::class,
+            'check.permission' => CheckPermission::class,
             'check.plan' => CheckPlan::class,
             'check.feature' => CheckFeature::class,
             'auth.super_admin' => AuthenticateSuperAdmin::class,

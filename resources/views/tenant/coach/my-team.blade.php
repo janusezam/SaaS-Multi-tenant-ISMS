@@ -6,6 +6,9 @@
         $hasParticipationTables = \Illuminate\Support\Facades\Schema::hasTable('game_team_participations')
             && \Illuminate\Support\Facades\Schema::hasTable('game_player_assignments');
         $hasAnnouncementsTable = \Illuminate\Support\Facades\Schema::hasTable('team_announcements');
+        $permissionMatrix = app(\App\Support\TenantPermissionMatrix::class);
+        $canManageLineup = $permissionMatrix->allows(auth()->user(), 'coach.lineup.manage');
+        $canManageAnnouncements = $permissionMatrix->allows(auth()->user(), 'coach.announcements.manage');
 
         $coachUser = auth()->user();
         $myTeam = null;
@@ -213,6 +216,11 @@
         <section x-show="activeTab === 'lineup'" class="space-y-4" role="tabpanel" x-cloak>
             <h3 class="text-lg font-semibold text-slate-100">Manage Team Lineup And Match Participation</h3>
             <p class="text-sm text-slate-400">Select players for each upcoming match, mark starters, and confirm team participation.</p>
+            @if (! $canManageLineup)
+                <div class="rounded-2xl border border-amber-300/40 bg-amber-500/20 p-4 text-sm text-amber-100">
+                    RBAC: lineup management is currently disabled for Team Coach.
+                </div>
+            @endif
             @if (! $hasParticipationTables)
                 <div class="rounded-2xl border border-amber-300/40 bg-amber-500/20 p-4 text-sm text-amber-100">
                     Lineup actions are unavailable until engagement tables are migrated for this tenant.
@@ -238,47 +246,51 @@
                         </span>
                     </div>
 
-                    <form method="POST" action="{{ route('tenant.coach.games.lineup.update', $game) }}" class="mt-4 space-y-4">
-                        @csrf
+                    @if ($canManageLineup)
+                        <form method="POST" action="{{ route('tenant.coach.games.lineup.update', $game) }}" class="mt-4 space-y-4">
+                            @csrf
 
-                        <p class="text-xs text-slate-400">Tip: players checked in the left box are assigned; "Starter" sets your starting lineup.</p>
+                            <p class="text-xs text-slate-400">Tip: players checked in the left box are assigned; "Starter" sets your starting lineup.</p>
 
-                        <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                            @forelse ($roster as $player)
-                                <label class="rounded-xl border border-white/10 bg-white/5 p-3 text-sm">
-                                    <div class="flex items-center justify-between gap-2">
-                                        <span class="font-medium text-slate-100">{{ $player->last_name }}, {{ $player->first_name }}</span>
-                                        <input type="checkbox" name="player_ids[]" value="{{ $player->id }}" class="rounded border-slate-500 bg-slate-800 text-cyan-400" @checked(in_array((int) $player->id, $selectedIds, true))>
-                                    </div>
-                                    <div class="mt-2 flex items-center justify-between gap-2 text-xs text-slate-300">
-                                        <span>{{ $player->position ?: 'No position' }}</span>
-                                        <label class="inline-flex items-center gap-2">
-                                            <input type="checkbox" name="starter_player_ids[]" value="{{ $player->id }}" class="rounded border-slate-500 bg-slate-800 text-emerald-400" @checked(in_array((int) $player->id, $starterIds, true))>
-                                            Starter
-                                        </label>
-                                    </div>
-                                </label>
-                            @empty
-                                <p class="text-sm text-slate-400">No players found for lineup assignment.</p>
-                            @endforelse
-                        </div>
+                            <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                                @forelse ($roster as $player)
+                                    <label class="rounded-xl border border-white/10 bg-white/5 p-3 text-sm">
+                                        <div class="flex items-center justify-between gap-2">
+                                            <span class="font-medium text-slate-100">{{ $player->last_name }}, {{ $player->first_name }}</span>
+                                            <input type="checkbox" name="player_ids[]" value="{{ $player->id }}" class="rounded border-slate-500 bg-slate-800 text-cyan-400" @checked(in_array((int) $player->id, $selectedIds, true))>
+                                        </div>
+                                        <div class="mt-2 flex items-center justify-between gap-2 text-xs text-slate-300">
+                                            <span>{{ $player->position ?: 'No position' }}</span>
+                                            <label class="inline-flex items-center gap-2">
+                                                <input type="checkbox" name="starter_player_ids[]" value="{{ $player->id }}" class="rounded border-slate-500 bg-slate-800 text-emerald-400" @checked(in_array((int) $player->id, $starterIds, true))>
+                                                Starter
+                                            </label>
+                                        </div>
+                                    </label>
+                                @empty
+                                    <p class="text-sm text-slate-400">No players found for lineup assignment.</p>
+                                @endforelse
+                            </div>
 
-                        <div>
-                            <label for="coach_note_{{ $game->id }}" class="text-xs uppercase tracking-[0.12em] text-slate-400">Coach Note</label>
-                            <input id="coach_note_{{ $game->id }}" name="coach_note" type="text" maxlength="255" value="{{ $participation?->coach_note }}" class="mt-1 w-full rounded-xl border border-white/10 bg-slate-950/60 px-3 py-2 text-sm text-slate-100 focus:border-cyan-300/45 focus:outline-none focus:ring-2 focus:ring-cyan-400/30">
-                        </div>
+                            <div>
+                                <label for="coach_note_{{ $game->id }}" class="text-xs uppercase tracking-[0.12em] text-slate-400">Coach Note</label>
+                                <input id="coach_note_{{ $game->id }}" name="coach_note" type="text" maxlength="255" value="{{ $participation?->coach_note }}" class="mt-1 w-full rounded-xl border border-white/10 bg-slate-950/60 px-3 py-2 text-sm text-slate-100 focus:border-cyan-300/45 focus:outline-none focus:ring-2 focus:ring-cyan-400/30">
+                            </div>
 
-                        <label class="inline-flex items-center gap-2 text-sm text-slate-200">
-                            <input type="checkbox" name="confirm_team" value="1" class="rounded border-slate-500 bg-slate-800 text-emerald-400" @checked($participation?->coach_confirmed_at !== null)>
-                            Confirm Team Participation For This Match
-                        </label>
+                            <label class="inline-flex items-center gap-2 text-sm text-slate-200">
+                                <input type="checkbox" name="confirm_team" value="1" class="rounded border-slate-500 bg-slate-800 text-emerald-400" @checked($participation?->coach_confirmed_at !== null)>
+                                Confirm Team Participation For This Match
+                            </label>
 
-                        <div>
-                            <button type="submit" class="rounded-xl border border-cyan-300/35 bg-cyan-500/20 px-4 py-2 text-sm font-semibold text-cyan-100 hover:bg-cyan-500/30">
-                                Save Lineup
-                            </button>
-                        </div>
-                    </form>
+                            <div>
+                                <button type="submit" class="rounded-xl border border-cyan-300/35 bg-cyan-500/20 px-4 py-2 text-sm font-semibold text-cyan-100 hover:bg-cyan-500/30">
+                                    Save Lineup
+                                </button>
+                            </div>
+                        </form>
+                    @else
+                        <p class="mt-4 text-sm text-slate-400">You can view this match context, but lineup editing is disabled by tenant RBAC.</p>
+                    @endif
                 </article>
             @empty
                 <div class="rounded-2xl border border-white/10 bg-slate-900/85 p-6 text-center text-sm text-slate-400">
@@ -325,7 +337,11 @@
         <section x-show="activeTab === 'announcements'" class="space-y-3" role="tabpanel" x-cloak>
             <h3 class="text-lg font-semibold text-slate-100">Post Team Announcement</h3>
             <p class="text-sm text-slate-400">Share reminders, updates, and instructions with your players.</p>
-            @if ($hasAnnouncementsTable)
+            @if (! $canManageAnnouncements)
+                <div class="rounded-2xl border border-amber-300/40 bg-amber-500/20 p-4 text-sm text-amber-100">
+                    RBAC: announcement publishing is currently disabled for Team Coach.
+                </div>
+            @elseif ($hasAnnouncementsTable)
                 <form method="POST" action="{{ route('tenant.coach.announcements.store') }}" class="rounded-2xl border border-white/10 bg-slate-900/85 p-5 space-y-4">
                     @csrf
                     <div>

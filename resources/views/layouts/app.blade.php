@@ -63,14 +63,31 @@
                         @isset($header)
                             <header class="isms-header relative z-10 border-b shadow-lg shadow-slate-950/20">
                                 <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-                                    <div class="flex flex-wrap items-start justify-between gap-3">
-                                        <div class="min-w-0 flex-1">
+                                    @php
+                                        $tenantUser = Auth::user();
+                                        $tenantUserInitial = strtoupper(substr((string) ($tenantUser?->name ?? 'A'), 0, 1));
+                                    @endphp
+
+                                    <div class="grid grid-cols-1 items-start gap-3 sm:grid-cols-3">
+                                        <div class="min-w-0 sm:self-start">
                                             {{ $header }}
                                         </div>
 
-                                        <a href="{{ route('tenant.subscription.show') }}" class="inline-flex items-center rounded-lg border px-3 py-2 text-sm transition {{ request()->routeIs('tenant.subscription.*') ? 'border-cyan-300/40 bg-cyan-500/20 text-cyan-100' : 'border-white/10 bg-white/5 text-slate-200 hover:bg-white/10' }}">
-                                            Subscription
-                                        </a>
+                                        <div class="flex justify-start sm:justify-center sm:self-center">
+                                            <a href="{{ route('tenant.subscription.show') }}" class="inline-flex items-center rounded-lg border px-3 py-2 text-sm transition {{ request()->routeIs('tenant.subscription.*') ? 'border-cyan-300/40 bg-cyan-500/20 text-cyan-100' : 'border-white/10 bg-white/5 text-slate-200 hover:bg-white/10' }}">
+                                                Subscription
+                                            </a>
+                                        </div>
+
+                                        <div class="flex items-center justify-start gap-2 sm:justify-end sm:self-start">
+                                            <a href="{{ route('profile.edit') }}" class="inline-flex items-center rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-slate-200 transition hover:bg-white/10">
+                                                Settings
+                                            </a>
+
+                                            <a href="{{ route('profile.edit') }}" class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-cyan-300/35 bg-cyan-500/20 text-sm font-semibold text-cyan-100 transition hover:bg-cyan-500/30" title="Profile">
+                                                {{ $tenantUserInitial }}
+                                            </a>
+                                        </div>
                                     </div>
                                 </div>
                             </header>

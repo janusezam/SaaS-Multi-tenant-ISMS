@@ -4,6 +4,13 @@
     $isFacilitator = $user?->hasTenantRole('sports_facilitator') === true;
     $isCoach = $user?->hasTenantRole('team_coach') === true;
     $isPlayer = $user?->hasTenantRole('student_player') === true;
+    $permissionMatrix = app(\App\Support\TenantPermissionMatrix::class);
+    $canFacilitatorManageVenues = $permissionMatrix->allows($user, 'facilitator.venues.manage');
+    $canFacilitatorManageGames = $permissionMatrix->allows($user, 'facilitator.games.manage');
+    $canFacilitatorAuditResults = $permissionMatrix->allows($user, 'facilitator.results.audit');
+    $canCoachViewSchedules = $permissionMatrix->allows($user, 'coach.schedules.view');
+    $canCoachViewTeam = $permissionMatrix->allows($user, 'coach.team.view');
+    $canPlayerViewSchedule = $permissionMatrix->allows($user, 'player.schedule.view');
     $tenantHasAnalytics = tenant() !== null && tenant()->hasFeature('analytics');
     $tenantHasBracket = tenant() !== null && tenant()->hasFeature('bracket');
 @endphp
@@ -59,20 +66,27 @@
             @endif
         @endif
 
-        @if ($isUniversityAdmin || $isFacilitator)
+        @if (($isUniversityAdmin || $isFacilitator) && $canFacilitatorManageVenues)
             <a href="{{ route('tenant.venues.index') }}" class="block rounded-lg px-3 py-2 {{ request()->routeIs('tenant.venues.*') ? 'bg-cyan-500/20 text-cyan-100 border border-cyan-300/30' : 'isms-sidebar-link hover:bg-white/5 border border-transparent' }}">Venues</a>
+        @endif
 
+        @if (($isUniversityAdmin || $isFacilitator) && $canFacilitatorManageGames)
             <a href="{{ route('tenant.games.index') }}" class="block rounded-lg px-3 py-2 {{ request()->routeIs('tenant.games.*') ? 'bg-cyan-500/20 text-cyan-100 border border-cyan-300/30' : 'isms-sidebar-link hover:bg-white/5 border border-transparent' }}">Schedules</a>
+        @endif
 
+        @if (($isUniversityAdmin || $isFacilitator) && $canFacilitatorAuditResults)
             <a href="{{ route('tenant.audits.game-results.index') }}" class="block rounded-lg px-3 py-2 {{ request()->routeIs('tenant.audits.game-results.*') ? 'bg-cyan-500/20 text-cyan-100 border border-cyan-300/30' : 'isms-sidebar-link hover:bg-white/5 border border-transparent' }}">Result Audits</a>
         @endif
 
-        @if ($isCoach)
+        @if ($isCoach && $canCoachViewSchedules)
             <a href="{{ route('tenant.coach.schedules') }}" class="block rounded-lg px-3 py-2 {{ request()->routeIs('tenant.coach.schedules') ? 'bg-cyan-500/20 text-cyan-100 border border-cyan-300/30' : 'isms-sidebar-link hover:bg-white/5 border border-transparent' }}">Schedules</a>
+        @endif
+
+        @if ($isCoach && $canCoachViewTeam)
             <a href="{{ route('tenant.coach.my-team') }}" class="block rounded-lg px-3 py-2 {{ request()->routeIs('tenant.coach.my-team') ? 'bg-cyan-500/20 text-cyan-100 border border-cyan-300/30' : 'isms-sidebar-link hover:bg-white/5 border border-transparent' }}">My Team</a>
         @endif
 
-        @if ($isPlayer)
+        @if ($isPlayer && $canPlayerViewSchedule)
             <a href="{{ route('tenant.player.my-schedule') }}" class="block rounded-lg px-3 py-2 {{ request()->routeIs('tenant.player.my-schedule') ? 'bg-cyan-500/20 text-cyan-100 border border-cyan-300/30' : 'isms-sidebar-link hover:bg-white/5 border border-transparent' }}">My Schedule</a>
         @endif
     </nav>
@@ -85,7 +99,9 @@
                 <span data-theme-label>Light mode</span>
             </button>
 
-            <a href="{{ route('profile.edit') }}" class="block rounded-lg border px-3 py-2 text-sm isms-text hover:bg-white/10" style="border-color: var(--isms-stroke); background: var(--isms-toggle-bg);">Profile</a>
+            @if ($isUniversityAdmin)
+                <a href="{{ route('tenant.rbac.index') }}" class="block rounded-lg border px-3 py-2 text-sm {{ request()->routeIs('tenant.rbac.*') ? 'border-cyan-300/30 bg-cyan-500/20 text-cyan-100' : 'isms-text hover:bg-white/10' }}" style="border-color: var(--isms-stroke); background: var(--isms-toggle-bg);">RBAC (Roles & Access)</a>
+            @endif
 
             <form method="POST" action="{{ route('tenant.logout') }}">
                 @csrf

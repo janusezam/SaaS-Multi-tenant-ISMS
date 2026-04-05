@@ -4,12 +4,13 @@ namespace App\Policies;
 
 use App\Models\User;
 use App\Models\Venue;
+use App\Support\TenantPermissionMatrix;
 
 class VenuePolicy
 {
     public function viewAny(User $user): bool
     {
-        return in_array($user->role, ['university_admin', 'sports_facilitator'], true);
+        return app(TenantPermissionMatrix::class)->allows($user, 'facilitator.venues.manage');
     }
 
     public function view(User $user, Venue $venue): bool

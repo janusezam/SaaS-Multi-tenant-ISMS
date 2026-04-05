@@ -15,6 +15,7 @@ use App\Http\Controllers\Tenant\StandingsController;
 use App\Http\Controllers\Tenant\SubscriptionController;
 use App\Http\Controllers\Tenant\TeamController;
 use App\Http\Controllers\Tenant\TenantAdminInviteController;
+use App\Http\Controllers\Tenant\TenantRbacController;
 use App\Http\Controllers\Tenant\TenantUserController;
 use App\Http\Controllers\Tenant\VenueController;
 use Illuminate\Support\Facades\Route;
@@ -72,6 +73,8 @@ Route::middleware([
 
         Route::middleware('check.role:university_admin')->prefix('/app')->name('tenant.')->group(function () {
             Route::resource('users', TenantUserController::class)->except(['show']);
+            Route::get('rbac', [TenantRbacController::class, 'index'])->name('rbac.index');
+            Route::put('rbac', [TenantRbacController::class, 'update'])->name('rbac.update');
             Route::resource('sports', SportController::class)->except(['show']);
             Route::resource('teams', TeamController::class)->except(['show']);
             Route::resource('players', PlayerController::class)->except(['show']);
@@ -93,11 +96,11 @@ Route::middleware([
         });
 
         Route::middleware('check.role:university_admin,sports_facilitator')->prefix('/app')->name('tenant.')->group(function () {
-            Route::resource('venues', VenueController::class)->except(['show']);
-            Route::resource('games', GameController::class)->except(['show']);
-            Route::get('audits/game-results', [GameController::class, 'auditsIndex'])->name('audits.game-results.index');
-            Route::patch('games/{game}/result', [GameController::class, 'submitResult'])->name('games.result');
-            Route::get('games/{game}/audits', [GameController::class, 'auditTrail'])->name('games.audits');
+            Route::resource('venues', VenueController::class)->except(['show'])->middleware('check.permission:facilitator.venues.manage');
+            Route::resource('games', GameController::class)->except(['show'])->middleware('check.permission:facilitator.games.manage');
+            Route::get('audits/game-results', [GameController::class, 'auditsIndex'])->name('audits.game-results.index')->middleware('check.permission:facilitator.results.audit');
+            Route::patch('games/{game}/result', [GameController::class, 'submitResult'])->name('games.result')->middleware('check.permission:facilitator.results.submit');
+            Route::get('games/{game}/audits', [GameController::class, 'auditTrail'])->name('games.audits')->middleware('check.permission:facilitator.results.audit');
         });
 
         Route::redirect('/app/coach/shedules', '/app/coach/schedules');
@@ -109,27 +112,27 @@ Route::middleware([
             abort_unless(auth()->user()?->hasTenantRole('team_coach') === true, Response::HTTP_FORBIDDEN);
 
             return view('tenant.coach.schedules');
-        })->name('tenant.coach.schedules');
+        })->middleware('check.permission:coach.schedules.view')->name('tenant.coach.schedules');
 
         Route::middleware('check.role:team_coach')->prefix('/app/coach')->name('tenant.coach.')->group(function () {
-            Route::post('/games/{game}/lineup', [CoachTeamController::class, 'updateLineup'])->name('games.lineup.update');
-            Route::post('/announcements', [CoachTeamController::class, 'storeAnnouncement'])->name('announcements.store');
+            Route::post('/games/{game}/lineup', [CoachTeamController::class, 'updateLineup'])->middleware('check.permission:coach.lineup.manage')->name('games.lineup.update');
+            Route::post('/announcements', [CoachTeamController::class, 'storeAnnouncement'])->middleware('check.permission:coach.announcements.manage')->name('announcements.store');
         });
 
         Route::get('/app/coach/my-team', function () {
             abort_unless(auth()->user()?->hasTenantRole('team_coach') === true, Response::HTTP_FORBIDDEN);
 
             return view('tenant.coach.my-team');
-        })->name('tenant.coach.my-team');
+        })->middleware('check.permission:coach.team.view')->name('tenant.coach.my-team');
 
         Route::get('/app/player/my-schedule', function () {
             abort_unless(auth()->user()?->hasTenantRole('student_player') === true, Response::HTTP_FORBIDDEN);
 
             return view('tenant.player.my-schedule');
-        })->name('tenant.player.my-schedule');
+        })->middleware('check.permission:player.schedule.view')->name('tenant.player.my-schedule');
 
         Route::middleware('check.role:student_player')->prefix('/app/player')->name('tenant.player.')->group(function () {
-            Route::patch('/assignments/{assignment}/attendance', [PlayerEngagementController::class, 'updateAttendance'])->name('assignments.attendance.update');
+            Route::patch('/assignments/{assignment}/attendance', [PlayerEngagementController::class, 'updateAttendance'])->middleware('check.permission:player.attendance.respond')->name('assignments.attendance.update');
         });
 
         Route::get('/app/facilitator', function () {
