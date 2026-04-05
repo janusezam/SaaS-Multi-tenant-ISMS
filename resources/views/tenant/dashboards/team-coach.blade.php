@@ -76,7 +76,7 @@
         <h2 class="text-2xl font-semibold text-slate-100">Team Coach Dashboard</h2>
     </x-slot>
 
-    <div class="mx-auto max-w-7xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
+    <div class="mx-auto max-w-7xl space-y-6 px-4 py-8 sm:px-6 lg:px-8" x-data="{ activeTab: 'overview' }">
         <div class="rounded-2xl border border-cyan-300/25 bg-slate-900/85 p-6 text-slate-200">
             <p class="text-sm text-cyan-200">View your team's schedule, standing, and recent performance at a glance.</p>
             <p class="mt-2 text-sm text-slate-300">
@@ -87,22 +87,63 @@
             </p>
         </div>
 
-        <section class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            <article class="rounded-2xl border border-white/10 bg-slate-900/85 p-5">
-                <p class="text-xs uppercase tracking-[0.16em] text-slate-400">Upcoming Matches</p>
-                <p class="mt-2 text-3xl font-semibold text-cyan-200">{{ number_format($upcomingMatches->count()) }}</p>
-            </article>
-            <article class="rounded-2xl border border-white/10 bg-slate-900/85 p-5">
-                <p class="text-xs uppercase tracking-[0.16em] text-slate-400">Team Standing Rank</p>
-                <p class="mt-2 text-3xl font-semibold text-emerald-200">{{ $standingRank !== null ? '#'.$standingRank : 'N/A' }}</p>
-            </article>
-            <article class="rounded-2xl border border-white/10 bg-slate-900/85 p-5">
-                <p class="text-xs uppercase tracking-[0.16em] text-slate-400">Team Win/Loss Record</p>
-                <p class="mt-2 text-3xl font-semibold text-amber-200">{{ $wins }} - {{ $losses }}</p>
-            </article>
+        <div class="rounded-2xl border border-white/10 bg-slate-900/85 p-2">
+            <nav class="flex flex-wrap gap-2" role="tablist" aria-label="Coach dashboard sections">
+                <button
+                    type="button"
+                    role="tab"
+                    @click="activeTab = 'overview'"
+                    :aria-selected="activeTab === 'overview'"
+                    :class="activeTab === 'overview' ? 'bg-cyan-500/20 text-cyan-100 border-cyan-300/40' : 'text-slate-300 border-white/10 hover:text-white'"
+                    class="rounded-xl border px-4 py-2 text-sm font-semibold transition"
+                >
+                    Overview
+                </button>
+                <button
+                    type="button"
+                    role="tab"
+                    @click="activeTab = 'upcoming'"
+                    :aria-selected="activeTab === 'upcoming'"
+                    :class="activeTab === 'upcoming' ? 'bg-cyan-500/20 text-cyan-100 border-cyan-300/40' : 'text-slate-300 border-white/10 hover:text-white'"
+                    class="rounded-xl border px-4 py-2 text-sm font-semibold transition"
+                >
+                    Upcoming
+                </button>
+                <button
+                    type="button"
+                    role="tab"
+                    @click="activeTab = 'results'"
+                    :aria-selected="activeTab === 'results'"
+                    :class="activeTab === 'results' ? 'bg-cyan-500/20 text-cyan-100 border-cyan-300/40' : 'text-slate-300 border-white/10 hover:text-white'"
+                    class="rounded-xl border px-4 py-2 text-sm font-semibold transition"
+                >
+                    Results
+                </button>
+            </nav>
+        </div>
+
+        <section x-show="activeTab === 'overview'" class="space-y-4" role="tabpanel">
+            <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                <article class="rounded-2xl border border-white/10 bg-slate-900/85 p-5">
+                    <p class="text-xs uppercase tracking-[0.16em] text-slate-400">Upcoming Matches</p>
+                    <p class="mt-2 text-3xl font-semibold text-cyan-200">{{ number_format($upcomingMatches->count()) }}</p>
+                </article>
+                <article class="rounded-2xl border border-white/10 bg-slate-900/85 p-5">
+                    <p class="text-xs uppercase tracking-[0.16em] text-slate-400">Team Standing Rank</p>
+                    <p class="mt-2 text-3xl font-semibold text-emerald-200">{{ $standingRank !== null ? '#'.$standingRank : 'N/A' }}</p>
+                </article>
+                <article class="rounded-2xl border border-white/10 bg-slate-900/85 p-5">
+                    <p class="text-xs uppercase tracking-[0.16em] text-slate-400">Team Win/Loss Record</p>
+                    <p class="mt-2 text-3xl font-semibold text-amber-200">{{ $wins }} - {{ $losses }}</p>
+                </article>
+            </div>
+
+            <div class="rounded-2xl border border-white/10 bg-slate-900/85 p-6 text-sm text-slate-300">
+                For a full read-only history, open <a href="{{ route('tenant.coach.schedules') }}" class="font-semibold text-cyan-200 hover:text-cyan-100">Schedules</a>.
+            </div>
         </section>
 
-        <section class="space-y-3">
+        <section x-show="activeTab === 'upcoming'" class="space-y-3" role="tabpanel" x-cloak>
             <h3 class="text-lg font-semibold text-slate-100">My Team Next Matches</h3>
             <div class="space-y-3">
                 @forelse ($upcomingMatches as $game)
@@ -126,7 +167,7 @@
             </div>
         </section>
 
-        <section class="space-y-3">
+        <section x-show="activeTab === 'results'" class="space-y-3" role="tabpanel" x-cloak>
             <h3 class="text-lg font-semibold text-slate-100">Recent Results (Read-Only)</h3>
             <div class="space-y-3">
                 @forelse ($recentResults as $game)
@@ -157,9 +198,5 @@
                 @endforelse
             </div>
         </section>
-
-        <div class="rounded-2xl border border-white/10 bg-slate-900/85 p-6 text-sm text-slate-300">
-            For a full read-only history, open <a href="{{ route('tenant.coach.schedules') }}" class="font-semibold text-cyan-200 hover:text-cyan-100">Schedules</a>.
-        </div>
     </div>
 </x-app-layout>

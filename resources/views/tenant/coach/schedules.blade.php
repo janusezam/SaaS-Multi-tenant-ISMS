@@ -7,6 +7,7 @@
         $myTeam = null;
         $upcomingMatches = collect();
         $completedMatches = collect();
+        $nextMatch = null;
 
         if ($hasTeamsTable && $coachUser !== null) {
             $myTeam = \App\Models\Team::query()
@@ -36,6 +37,8 @@
                 ->latest('scheduled_at')
                 ->limit(10)
                 ->get();
+
+            $nextMatch = $upcomingMatches->first();
         }
     @endphp
 
@@ -43,19 +46,80 @@
         <h2 class="text-2xl font-semibold text-slate-100">My Team Schedules</h2>
     </x-slot>
 
-    <div class="mx-auto max-w-7xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
+    <div class="mx-auto max-w-7xl space-y-6 px-4 py-8 sm:px-6 lg:px-8" x-data="{ activeTab: 'overview' }">
         <div class="rounded-2xl border border-cyan-300/25 bg-slate-900/85 p-6 text-slate-200">
-            <p class="text-sm text-cyan-200">Read-only fixture timeline for your team.</p>
+            <p class="text-sm text-cyan-200">Use this timeline to prepare lineups and confirm team participation.</p>
             <p class="mt-2 text-sm text-slate-300">
                 {{ $myTeam?->name ?? 'No team linked to your account yet.' }}
                 @if ($myTeam?->sport?->name)
                     · {{ $myTeam->sport->name }}
                 @endif
             </p>
+            <p class="mt-2 text-sm text-cyan-100">Manage player assignments in <a href="{{ route('tenant.coach.my-team') }}" class="font-semibold underline underline-offset-2">My Team</a>.</p>
         </div>
 
-        <section class="space-y-3">
+        <div class="rounded-2xl border border-white/10 bg-slate-900/85 p-2">
+            <nav class="flex flex-wrap gap-2" role="tablist" aria-label="Coach schedules sections">
+                <button
+                    type="button"
+                    role="tab"
+                    @click="activeTab = 'overview'"
+                    :aria-selected="activeTab === 'overview'"
+                    :class="activeTab === 'overview' ? 'bg-cyan-500/20 text-cyan-100 border-cyan-300/40' : 'text-slate-300 border-white/10 hover:text-white'"
+                    class="rounded-xl border px-4 py-2 text-sm font-semibold transition"
+                >
+                    Overview
+                </button>
+                <button
+                    type="button"
+                    role="tab"
+                    @click="activeTab = 'upcoming'"
+                    :aria-selected="activeTab === 'upcoming'"
+                    :class="activeTab === 'upcoming' ? 'bg-cyan-500/20 text-cyan-100 border-cyan-300/40' : 'text-slate-300 border-white/10 hover:text-white'"
+                    class="rounded-xl border px-4 py-2 text-sm font-semibold transition"
+                >
+                    Upcoming
+                </button>
+                <button
+                    type="button"
+                    role="tab"
+                    @click="activeTab = 'completed'"
+                    :aria-selected="activeTab === 'completed'"
+                    :class="activeTab === 'completed' ? 'bg-cyan-500/20 text-cyan-100 border-cyan-300/40' : 'text-slate-300 border-white/10 hover:text-white'"
+                    class="rounded-xl border px-4 py-2 text-sm font-semibold transition"
+                >
+                    Completed
+                </button>
+            </nav>
+        </div>
+
+        <section x-show="activeTab === 'overview'" class="space-y-4" role="tabpanel">
+            <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                <article class="rounded-2xl border border-white/10 bg-slate-900/85 p-5">
+                    <p class="text-xs uppercase tracking-[0.16em] text-slate-400">Upcoming Matches</p>
+                    <p class="mt-2 text-3xl font-semibold text-cyan-200">{{ $upcomingMatches->count() }}</p>
+                </article>
+                <article class="rounded-2xl border border-white/10 bg-slate-900/85 p-5">
+                    <p class="text-xs uppercase tracking-[0.16em] text-slate-400">Completed Matches</p>
+                    <p class="mt-2 text-3xl font-semibold text-emerald-200">{{ $completedMatches->count() }}</p>
+                </article>
+                <article class="rounded-2xl border border-white/10 bg-slate-900/85 p-5">
+                    <p class="text-xs uppercase tracking-[0.16em] text-slate-400">Next Match</p>
+                    <p class="mt-2 text-sm font-semibold text-amber-200">{{ $nextMatch?->scheduled_at?->format('M d, Y h:i A') ?? 'No upcoming match' }}</p>
+                </article>
+            </div>
+
+            <div class="rounded-2xl border border-white/10 bg-slate-900/85 p-4">
+                <p class="text-xs uppercase tracking-[0.12em] text-slate-400">Next Action</p>
+                <div class="mt-3 text-sm">
+                    <a href="{{ route('tenant.coach.my-team') }}" class="inline-flex rounded-lg border border-amber-300/35 bg-amber-500/20 px-3 py-1.5 font-semibold text-amber-100 hover:bg-amber-500/30">Go To My Team Actions</a>
+                </div>
+            </div>
+        </section>
+
+        <section x-show="activeTab === 'upcoming'" class="space-y-3" role="tabpanel" x-cloak>
             <h3 class="text-lg font-semibold text-slate-100">Upcoming Matches</h3>
+            <p class="text-sm text-slate-400">Review schedule timing and venue before you set lineup in My Team.</p>
             <div class="space-y-3">
                 @forelse ($upcomingMatches as $game)
                     @php
@@ -78,8 +142,9 @@
             </div>
         </section>
 
-        <section class="space-y-3">
-            <h3 class="text-lg font-semibold text-slate-100">Completed Matches (Read-Only)</h3>
+        <section x-show="activeTab === 'completed'" class="space-y-3" role="tabpanel" x-cloak>
+            <h3 class="text-lg font-semibold text-slate-100">Completed Matches</h3>
+            <p class="text-sm text-slate-400">Use this section as your historical reference for recent match outcomes.</p>
             <div class="overflow-x-auto rounded-2xl border border-white/10 bg-slate-900/85">
                 <table class="min-w-full divide-y divide-white/10 text-sm text-slate-200">
                     <thead class="bg-white/5 text-xs uppercase tracking-[0.12em] text-slate-400">

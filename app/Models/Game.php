@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Model;
 
 class Game extends Model
 {
@@ -51,5 +51,15 @@ class Game extends Model
     public function resultAudits(): HasMany
     {
         return $this->hasMany(GameResultAudit::class);
+    }
+
+    public function teamParticipations(): HasMany
+    {
+        return $this->hasMany(GameTeamParticipation::class);
+    }
+
+    public function playerAssignments(): HasMany
+    {
+        return $this->hasMany(GamePlayerAssignment::class);
     }
 }

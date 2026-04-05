@@ -4,24 +4,21 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class Player extends Model
+class TeamAnnouncement extends Model
 {
     protected $fillable = [
         'team_id',
-        'student_id',
-        'first_name',
-        'last_name',
-        'email',
-        'position',
-        'is_active',
+        'created_by_user_id',
+        'title',
+        'body',
+        'published_at',
     ];
 
     protected function casts(): array
     {
         return [
-            'is_active' => 'boolean',
+            'published_at' => 'datetime',
         ];
     }
 
@@ -30,8 +27,8 @@ class Player extends Model
         return $this->belongsTo(Team::class);
     }
 
-    public function gameAssignments(): HasMany
+    public function createdBy(): BelongsTo
     {
-        return $this->hasMany(GamePlayerAssignment::class);
+        return $this->belongsTo(User::class, 'created_by_user_id');
     }
 }

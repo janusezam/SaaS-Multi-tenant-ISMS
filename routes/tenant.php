@@ -3,10 +3,12 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\Tenant\CoachTeamController;
 use App\Http\Controllers\Tenant\DashboardController;
 use App\Http\Controllers\Tenant\ForcePasswordController;
 use App\Http\Controllers\Tenant\GameController;
 use App\Http\Controllers\Tenant\PlayerController;
+use App\Http\Controllers\Tenant\PlayerEngagementController;
 use App\Http\Controllers\Tenant\ProFeatureController;
 use App\Http\Controllers\Tenant\SportController;
 use App\Http\Controllers\Tenant\StandingsController;
@@ -109,6 +111,11 @@ Route::middleware([
             return view('tenant.coach.schedules');
         })->name('tenant.coach.schedules');
 
+        Route::middleware('check.role:team_coach')->prefix('/app/coach')->name('tenant.coach.')->group(function () {
+            Route::post('/games/{game}/lineup', [CoachTeamController::class, 'updateLineup'])->name('games.lineup.update');
+            Route::post('/announcements', [CoachTeamController::class, 'storeAnnouncement'])->name('announcements.store');
+        });
+
         Route::get('/app/coach/my-team', function () {
             abort_unless(auth()->user()?->hasTenantRole('team_coach') === true, Response::HTTP_FORBIDDEN);
 
@@ -120,6 +127,10 @@ Route::middleware([
 
             return view('tenant.player.my-schedule');
         })->name('tenant.player.my-schedule');
+
+        Route::middleware('check.role:student_player')->prefix('/app/player')->name('tenant.player.')->group(function () {
+            Route::patch('/assignments/{assignment}/attendance', [PlayerEngagementController::class, 'updateAttendance'])->name('assignments.attendance.update');
+        });
 
         Route::get('/app/facilitator', function () {
             return 'Sports facilitator dashboard';

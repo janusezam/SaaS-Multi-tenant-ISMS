@@ -30,10 +30,16 @@ test('team coach can access coach pages and not facilitator audits page', functi
     $dashboardResponse = $this->actingAs($user)->get(route('tenant.dashboard'));
     $dashboardResponse->assertOk();
     $dashboardResponse->assertSeeText("View your team's schedule, standing, and recent performance at a glance.", false);
+    $dashboardResponse->assertSee('Overview');
+    $dashboardResponse->assertSee('Upcoming');
+    $dashboardResponse->assertSee('Results');
 
     $coachSchedulesResponse = $this->actingAs($user)->get(route('tenant.coach.schedules'));
     $coachSchedulesResponse->assertOk();
-    $coachSchedulesResponse->assertSee('Read-only fixture timeline for your team.');
+    $coachSchedulesResponse->assertSee('Use this timeline to prepare lineups and confirm team participation.');
+    $coachSchedulesResponse->assertSee('Overview');
+    $coachSchedulesResponse->assertSee('Upcoming');
+    $coachSchedulesResponse->assertSee('Completed');
 
     $forbiddenResponse = $this->actingAs($user)->get(route('tenant.audits.game-results.index'));
     $forbiddenResponse->assertForbidden();
@@ -52,10 +58,16 @@ test('student player can access my schedule and not coach pages', function () {
     $dashboardResponse = $this->actingAs($user)->get(route('tenant.dashboard'));
     $dashboardResponse->assertOk();
     $dashboardResponse->assertSee('View your upcoming games, latest team results, and current standing.');
+    $dashboardResponse->assertSee('Overview');
+    $dashboardResponse->assertSee('Schedule');
+    $dashboardResponse->assertSee('Results');
 
     $scheduleResponse = $this->actingAs($user)->get(route('tenant.player.my-schedule'));
     $scheduleResponse->assertOk();
-    $scheduleResponse->assertSee('Read-only schedule and results for your team.');
+    $scheduleResponse->assertSee('Confirm your attendance, track your stats, and stay updated with team announcements.');
+    $scheduleResponse->assertSee('Overview');
+    $scheduleResponse->assertSee('Attendance');
+    $scheduleResponse->assertSee('History');
 
     $forbiddenResponse = $this->actingAs($user)->get(route('tenant.coach.schedules'));
     $forbiddenResponse->assertForbidden();
