@@ -1,12 +1,13 @@
 <x-app-layout>
     <x-slot name="header">
-        <div class="flex items-center justify-between gap-3">
-            <h2 class="text-2xl font-semibold text-slate-100">Bracket Result Audits</h2>
-            <a href="{{ route('tenant.pro.bracket', ['sport_id' => $selectedSportId]) }}" class="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-slate-100 hover:bg-white/10">Back to Bracket</a>
-        </div>
+        <h2 class="text-2xl font-semibold text-slate-100">Bracket Result Audits</h2>
     </x-slot>
 
     <div class="mx-auto max-w-7xl space-y-4 px-4 py-8 sm:px-6 lg:px-8">
+        <div class="mb-1">
+            <a href="{{ route('tenant.pro.bracket', ['sport_id' => $selectedSportId]) }}" class="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-slate-100 hover:bg-white/10">Back to Bracket</a>
+        </div>
+
         <form method="GET" action="{{ route('tenant.pro.bracket.audits') }}" class="grid gap-3 rounded-2xl border border-white/10 bg-slate-900/85 p-4 sm:grid-cols-3">
             <div>
                 <label for="sport_id" class="mb-1 block text-xs uppercase tracking-wide text-slate-400">Sport</label>

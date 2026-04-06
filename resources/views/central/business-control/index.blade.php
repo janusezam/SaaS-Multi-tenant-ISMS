@@ -7,7 +7,7 @@
     </x-slot>
 
     <div class="mx-auto max-w-7xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
-        <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-6">
+        <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-7">
             <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-slate-900/80">
                 <p class="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Active Plans</p>
                 <p class="mt-2 text-3xl font-semibold text-slate-900 dark:text-slate-100">{{ number_format((int) $metrics['activePlans']) }}</p>
@@ -15,6 +15,10 @@
             <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-slate-900/80">
                 <p class="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Active Coupons</p>
                 <p class="mt-2 text-3xl font-semibold text-slate-900 dark:text-slate-100">{{ number_format((int) $metrics['activeCoupons']) }}</p>
+            </div>
+            <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-slate-900/80">
+                <p class="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Live Campaigns</p>
+                <p class="mt-2 text-3xl font-semibold text-slate-900 dark:text-slate-100">{{ number_format((int) $metrics['activeCampaigns']) }}</p>
             </div>
             <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-slate-900/80">
                 <p class="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Pending Upgrades</p>
@@ -34,7 +38,7 @@
             </div>
         </div>
 
-        <div class="grid gap-4 md:grid-cols-3">
+        <div class="grid gap-4 md:grid-cols-4">
             <a href="{{ route('central.business-control.plans.index') }}" class="rounded-2xl border border-cyan-200 bg-cyan-50 p-5 transition hover:border-cyan-300 hover:bg-cyan-100 dark:border-cyan-300/20 dark:bg-cyan-500/10 dark:hover:border-cyan-300/40 dark:hover:bg-cyan-500/20">
                 <p class="text-sm font-semibold text-cyan-900 dark:text-cyan-100">Plan Management</p>
                 <p class="mt-1 text-xs text-cyan-700 dark:text-cyan-200/80">Create, activate, and tune monthly and yearly pricing.</p>
@@ -42,6 +46,10 @@
             <a href="{{ route('central.business-control.coupons.index') }}" class="rounded-2xl border border-emerald-200 bg-emerald-50 p-5 transition hover:border-emerald-300 hover:bg-emerald-100 dark:border-emerald-300/20 dark:bg-emerald-500/10 dark:hover:border-emerald-300/40 dark:hover:bg-emerald-500/20">
                 <p class="text-sm font-semibold text-emerald-900 dark:text-emerald-100">Coupon Management</p>
                 <p class="mt-1 text-xs text-emerald-700 dark:text-emerald-200/80">Control promotions, limits, and plan targeting.</p>
+            </a>
+            <a href="{{ route('central.business-control.campaigns.index') }}" class="rounded-2xl border border-fuchsia-200 bg-fuchsia-50 p-5 transition hover:border-fuchsia-300 hover:bg-fuchsia-100 dark:border-fuchsia-300/20 dark:bg-fuchsia-500/10 dark:hover:border-fuchsia-300/40 dark:hover:bg-fuchsia-500/20">
+                <p class="text-sm font-semibold text-fuchsia-900 dark:text-fuchsia-100">Campaign Management</p>
+                <p class="mt-1 text-xs text-fuchsia-700 dark:text-fuchsia-200/80">Run Black Friday style promotions with orchestration rules.</p>
             </a>
             <a href="{{ route('central.business-control.upgrade-requests.index') }}" class="rounded-2xl border border-amber-200 bg-amber-50 p-5 transition hover:border-amber-300 hover:bg-amber-100 dark:border-amber-300/20 dark:bg-amber-500/10 dark:hover:border-amber-300/40 dark:hover:bg-amber-500/20">
                 <p class="text-sm font-semibold text-amber-900 dark:text-amber-100">Upgrade Queue</p>

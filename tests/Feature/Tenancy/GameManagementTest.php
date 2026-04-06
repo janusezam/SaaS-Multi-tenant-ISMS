@@ -144,6 +144,28 @@ test('validation prevents same team as home and away', function () {
     $response->assertSessionHasErrors(['home_team_id', 'away_team_id']);
 });
 
+test('validation prevents selecting teams from different sport', function () {
+    $user = User::factory()->create(['role' => 'sports_facilitator']);
+
+    $basketball = Sport::query()->create(['name' => 'Basketball', 'code' => 'bball-mix', 'description' => null, 'is_active' => true]);
+    $volleyball = Sport::query()->create(['name' => 'Volleyball', 'code' => 'vball-mix', 'description' => null, 'is_active' => true]);
+
+    $homeTeam = Team::query()->create(['sport_id' => $basketball->id, 'name' => 'Mix Falcons', 'coach_name' => null, 'coach_email' => null, 'division' => null, 'is_active' => true]);
+    $awayTeamWrongSport = Team::query()->create(['sport_id' => $volleyball->id, 'name' => 'Mix Blockers', 'coach_name' => null, 'coach_email' => null, 'division' => null, 'is_active' => true]);
+    $venue = Venue::query()->create(['name' => 'Mix Court', 'location' => 'Main', 'capacity' => 700, 'surface_type' => 'Wood', 'is_active' => true]);
+
+    $response = $this->actingAs($user)->from(route('tenant.games.create'))->post(route('tenant.games.store'), [
+        'sport_id' => $basketball->id,
+        'home_team_id' => $homeTeam->id,
+        'away_team_id' => $awayTeamWrongSport->id,
+        'venue_id' => $venue->id,
+        'scheduled_at' => now()->addDay()->format('Y-m-d H:i:s'),
+        'status' => 'scheduled',
+    ]);
+
+    $response->assertSessionHasErrors(['away_team_id']);
+});
+
 test('student player is forbidden from game management routes', function () {
     $user = User::factory()->create(['role' => 'student_player']);
 
@@ -213,6 +235,33 @@ test('sports facilitator can view game audit trail page', function () {
     $response->assertSee('Game Audit Trail');
     $response->assertSee('SCHEDULED');
     $response->assertSee('COMPLETED');
+});
+
+test('completed games do not show submit result action but keep edit action', function () {
+    $user = User::factory()->create(['role' => 'sports_facilitator']);
+
+    $sport = Sport::query()->create(['name' => 'Basketball', 'code' => 'bball4', 'description' => null, 'is_active' => true]);
+    $homeTeam = Team::query()->create(['sport_id' => $sport->id, 'name' => 'Falcons C', 'coach_name' => null, 'coach_email' => null, 'division' => null, 'is_active' => true]);
+    $awayTeam = Team::query()->create(['sport_id' => $sport->id, 'name' => 'Wolves C', 'coach_name' => null, 'coach_email' => null, 'division' => null, 'is_active' => true]);
+    $venue = Venue::query()->create(['name' => 'Main Court C', 'location' => 'North Campus', 'capacity' => 1000, 'surface_type' => 'Hardwood', 'is_active' => true]);
+
+    Game::query()->create([
+        'sport_id' => $sport->id,
+        'home_team_id' => $homeTeam->id,
+        'away_team_id' => $awayTeam->id,
+        'venue_id' => $venue->id,
+        'scheduled_at' => now()->subDay(),
+        'status' => 'completed',
+        'home_score' => 78,
+        'away_score' => 70,
+    ]);
+
+    $response = $this->actingAs($user)->get(route('tenant.games.index'));
+
+    $response->assertOk();
+    $response->assertDontSee('Submit Result');
+    $response->assertSee('Edit');
+    $response->assertSee('Result already submitted. You can still use game actions below.');
 });
 
 test('sports facilitator can view result audits index and filter by sport', function () {

@@ -9,6 +9,7 @@ use App\Models\Subscription;
 use App\Models\University;
 use App\Services\BusinessControl\PricingEngine;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Collection;
 use Illuminate\View\View;
 
 class PublicSubscriptionController extends Controller
@@ -20,8 +21,23 @@ class PublicSubscriptionController extends Controller
 
     public function pricing(): View
     {
+        $plans = Plan::query()->active()->orderBy('sort_order')->get();
+
+        /** @var Collection<string, array<string, mixed>> $pricingByPlan */
+        $pricingByPlan = $plans->mapWithKeys(function (Plan $plan): array {
+            $pricingEngine = app(PricingEngine::class);
+
+            return [
+                (string) $plan->code => [
+                    'monthly' => $pricingEngine->quote((string) $plan->code, 'monthly'),
+                    'yearly' => $pricingEngine->quote((string) $plan->code, 'yearly'),
+                ],
+            ];
+        });
+
         return view('marketing.pricing', [
-            'plans' => Plan::query()->active()->orderBy('sort_order')->get(),
+            'plans' => $plans,
+            'pricingByPlan' => $pricingByPlan,
         ]);
     }
 

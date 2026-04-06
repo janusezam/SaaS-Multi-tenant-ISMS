@@ -4,6 +4,7 @@ namespace App\Http\Requests\Tenant;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StorePlayerRequest extends FormRequest
 {
@@ -24,9 +25,10 @@ class StorePlayerRequest extends FormRequest
     {
         return [
             'team_id' => ['required', 'integer', 'exists:teams,id'],
+            'player_user_id' => ['nullable', 'integer', Rule::exists('users', 'id')],
             'student_id' => ['required', 'string', 'max:40', 'unique:players,student_id'],
-            'first_name' => ['required', 'string', 'max:100'],
-            'last_name' => ['required', 'string', 'max:100'],
+            'first_name' => ['required_without:player_user_id', 'string', 'max:100'],
+            'last_name' => ['required_without:player_user_id', 'string', 'max:100'],
             'email' => ['nullable', 'email', 'max:255'],
             'position' => ['nullable', 'string', 'max:100'],
             'is_active' => ['nullable', 'boolean'],

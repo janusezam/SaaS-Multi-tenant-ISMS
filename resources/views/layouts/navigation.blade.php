@@ -198,6 +198,10 @@
                     Business Control
                 </x-responsive-nav-link>
 
+                <x-responsive-nav-link :href="route('central.tenant-monitoring.index')" :active="request()->routeIs('central.tenant-monitoring.*')">
+                    Tenant Monitoring
+                </x-responsive-nav-link>
+
                 <x-responsive-nav-link :href="route('central.business-control.upgrade-requests.index')" :active="request()->routeIs('central.business-control.upgrade-requests.*')">
                     Upgrade Requests
                 </x-responsive-nav-link>

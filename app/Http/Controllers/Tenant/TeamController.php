@@ -7,6 +7,7 @@ use App\Http\Requests\Tenant\StoreTeamRequest;
 use App\Http\Requests\Tenant\UpdateTeamRequest;
 use App\Models\Sport;
 use App\Models\Team;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
@@ -34,6 +35,7 @@ class TeamController extends Controller
     {
         return view('tenant.teams.create', [
             'sports' => Sport::query()->where('is_active', true)->orderBy('name')->get(),
+            'coaches' => User::query()->where('role', 'team_coach')->orderBy('name')->get(),
         ]);
     }
 
@@ -42,7 +44,24 @@ class TeamController extends Controller
      */
     public function store(StoreTeamRequest $request): RedirectResponse
     {
-        Team::query()->create($request->validated());
+        $validated = $request->validated();
+
+        $coachUserId = $validated['coach_user_id'] ?? null;
+        unset($validated['coach_user_id']);
+
+        if ($coachUserId !== null) {
+            $coach = User::query()
+                ->where('id', $coachUserId)
+                ->where('role', 'team_coach')
+                ->first();
+
+            if ($coach !== null) {
+                $validated['coach_name'] = $coach->name;
+                $validated['coach_email'] = $coach->email;
+            }
+        }
+
+        Team::query()->create($validated);
 
         return redirect()->route('tenant.teams.index')->with('status', 'Team created successfully.');
     }
@@ -52,9 +71,16 @@ class TeamController extends Controller
      */
     public function edit(Team $team): View
     {
+        $selectedCoachUserId = User::query()
+            ->where('role', 'team_coach')
+            ->where('email', $team->coach_email)
+            ->value('id');
+
         return view('tenant.teams.edit', [
             'team' => $team,
             'sports' => Sport::query()->where('is_active', true)->orderBy('name')->get(),
+            'coaches' => User::query()->where('role', 'team_coach')->orderBy('name')->get(),
+            'selectedCoachUserId' => $selectedCoachUserId,
         ]);
     }
 
@@ -63,7 +89,24 @@ class TeamController extends Controller
      */
     public function update(UpdateTeamRequest $request, Team $team): RedirectResponse
     {
-        $team->update($request->validated());
+        $validated = $request->validated();
+
+        $coachUserId = $validated['coach_user_id'] ?? null;
+        unset($validated['coach_user_id']);
+
+        if ($coachUserId !== null) {
+            $coach = User::query()
+                ->where('id', $coachUserId)
+                ->where('role', 'team_coach')
+                ->first();
+
+            if ($coach !== null) {
+                $validated['coach_name'] = $coach->name;
+                $validated['coach_email'] = $coach->email;
+            }
+        }
+
+        $team->update($validated);
 
         return redirect()->route('tenant.teams.index')->with('status', 'Team updated successfully.');
     }

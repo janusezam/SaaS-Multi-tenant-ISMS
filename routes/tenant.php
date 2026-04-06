@@ -40,6 +40,7 @@ Route::middleware([
     InitializeTenancyByDomain::class,
     PreventAccessFromCentralDomains::class,
     'tenant.subscription',
+    'tenant.runtime.metrics',
 ])->group(function () {
     Route::get('/app', function () {
         return redirect()->route('tenant.dashboard');

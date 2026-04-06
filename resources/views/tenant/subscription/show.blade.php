@@ -4,14 +4,16 @@
             <h2 class="text-2xl font-semibold text-slate-900 dark:text-slate-100">Subscription</h2>
             @if ($pendingUpgradeRequest)
                 <span class="rounded-full border border-amber-300 bg-amber-100 px-3 py-1 text-xs font-medium uppercase tracking-[0.14em] text-amber-800 dark:border-amber-300/40 dark:bg-amber-500/20 dark:text-amber-100">Upgrade Pending</span>
-            @elseif (tenant()?->currentPlan() !== 'pro')
+            @elseif ($recommendedPlan)
                 <button
                     type="button"
                     data-upgrade-trigger
                     data-page-upgrade-trigger
+                    data-plan-code="{{ $recommendedPlan->code }}"
+                    data-plan-name="{{ $recommendedPlan->name }}"
                     class="rounded-xl border border-amber-300 bg-amber-100 px-4 py-2 text-sm font-medium text-amber-800 hover:bg-amber-200 dark:border-amber-300/40 dark:bg-amber-500/20 dark:text-amber-100 dark:hover:bg-amber-500/30"
                 >
-                    Request upgrade to Pro
+                    Change plan
                 </button>
             @endif
         </div>
@@ -129,7 +131,7 @@
                         <span class="text-base font-medium text-slate-500 dark:text-slate-400">/month</span>
                     </p>
                     <p class="mt-1 text-xs text-slate-500 dark:text-slate-400" data-yearly-note="basic">Billed annually at ${{ number_format($basicYearlyPrice, 2) }}</p>
-                    <p class="mt-1 text-xs text-emerald-700 dark:text-emerald-200" data-yearly-save="basic">
+                    <p class="mt-1 text-xs text-emerald-700 dark:text-emerald-200" data-yearly-save="basic" data-plan-yearly-savings-percent="{{ number_format($basicYearlySavingsPercent, 2, '.', '') }}">
                         Save ${{ number_format($basicYearlySavingsAmount, 2) }} ({{ number_format($basicYearlySavingsPercent, 2) }}%) yearly
                     </p>
                 </div>
@@ -174,7 +176,7 @@
                         ${{ number_format($proMonthlyPrice, 2) }}/month
                     </p>
                     <p class="mt-1 text-xs text-slate-500 dark:text-slate-400" data-yearly-note="pro">Billed annually at ${{ number_format($proYearlyPrice, 2) }}</p>
-                    <p class="mt-1 text-xs text-emerald-700 dark:text-emerald-200" data-yearly-save="pro">
+                    <p class="mt-1 text-xs text-emerald-700 dark:text-emerald-200" data-yearly-save="pro" data-plan-yearly-savings-percent="{{ number_format($proYearlySavingsPercent, 2, '.', '') }}">
                         Save ${{ number_format($proYearlySavingsAmount, 2) }} ({{ number_format($proYearlySavingsPercent, 2) }}%) annually
                     </p>
                 </div>
@@ -193,6 +195,8 @@
                         data-upgrade-trigger
                         data-page-upgrade-trigger
                         data-pro-upgrade-btn
+                        data-plan-code="pro"
+                        data-plan-name="Pro"
                         class="mt-5 inline-flex w-full items-center justify-center rounded-xl border border-cyan-300 bg-cyan-100 px-4 py-2.5 text-sm font-medium text-cyan-800 hover:bg-cyan-200 disabled:cursor-not-allowed disabled:opacity-60 dark:border-cyan-300/40 dark:bg-cyan-500/20 dark:text-cyan-100 dark:hover:bg-cyan-500/30"
                         @disabled($pendingUpgradeRequest || ! $canSubmitUpgradeRequest)
                     >
@@ -217,6 +221,91 @@
                 </ul>
             </article>
         </div>
+
+        @if ($additionalPlans->isNotEmpty())
+            <div class="grid gap-5 lg:grid-cols-2">
+                @foreach ($additionalPlans as $plan)
+                    @php
+                        $planMonthlyPrice = (float) $plan->monthly_price;
+                        $planYearlyPrice = (float) $plan->yearly_price;
+                        $planYearlyMonthlyEquivalent = $planYearlyPrice > 0 ? ($planYearlyPrice / 12) : 0;
+                        $planYearlySavingsAmount = max(0, ($planMonthlyPrice * 12) - $planYearlyPrice);
+                        $planYearlySavingsPercent = ($planMonthlyPrice * 12) > 0
+                            ? ($planYearlySavingsAmount / ($planMonthlyPrice * 12)) * 100
+                            : (float) $plan->yearly_discount_percent;
+                        $marketingPoints = collect(preg_split('/\r\n|\r|\n/', (string) ($plan->marketing_points ?? '')))
+                            ->map(fn ($point) => trim((string) $point))
+                            ->filter()
+                            ->values();
+                        $isCurrentPlan = $currentPlanCode === (string) $plan->code;
+                    @endphp
+
+                    <article class="relative rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-slate-900/85">
+                        @if ($plan->badge_label)
+                            <span class="absolute -top-3 right-5 rounded-full border border-cyan-300 bg-cyan-100 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-cyan-800 dark:border-cyan-300/40 dark:bg-cyan-500/20 dark:text-cyan-100">{{ $plan->badge_label }}</span>
+                        @endif
+
+                        <p class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">{{ strtoupper($plan->code) }}</p>
+                        <h3 class="mt-2 text-2xl font-semibold text-slate-900 dark:text-slate-100">{{ $plan->name }}</h3>
+                        @if ($plan->marketing_tagline)
+                            <p class="mt-2 text-sm text-slate-600 dark:text-slate-300">{{ $plan->marketing_tagline }}</p>
+                        @endif
+
+                        <div class="mt-5">
+                            <p class="text-4xl font-semibold text-slate-900 dark:text-slate-100" data-price-plan="{{ $plan->code }}" data-price-cycle="monthly">
+                                ${{ number_format($planMonthlyPrice, 2) }}
+                                <span class="text-base font-medium text-slate-500 dark:text-slate-400">/month</span>
+                            </p>
+                            <p class="hidden text-4xl font-semibold text-slate-900 dark:text-slate-100" data-price-plan="{{ $plan->code }}" data-price-cycle="yearly">
+                                ${{ number_format($planYearlyMonthlyEquivalent, 2) }}
+                                <span class="text-base font-medium text-slate-500 dark:text-slate-400">/month</span>
+                            </p>
+                            <p class="mt-1 text-xs text-slate-500 dark:text-slate-400" data-yearly-note="{{ $plan->code }}">Billed annually at ${{ number_format($planYearlyPrice, 2) }}</p>
+                            <p class="mt-1 text-xs text-emerald-700 dark:text-emerald-200" data-yearly-save="{{ $plan->code }}" data-plan-yearly-savings-percent="{{ number_format($planYearlySavingsPercent, 2, '.', '') }}">
+                                Save ${{ number_format($planYearlySavingsAmount, 2) }} ({{ number_format($planYearlySavingsPercent, 2) }}%) annually
+                            </p>
+                        </div>
+
+                        @if ($isCurrentPlan)
+                            <button
+                                type="button"
+                                class="mt-5 inline-flex w-full items-center justify-center rounded-xl border border-slate-300 bg-slate-100 px-4 py-2.5 text-sm font-medium text-slate-600 dark:border-white/20 dark:bg-slate-800 dark:text-slate-300"
+                                disabled
+                            >
+                                Your current plan
+                            </button>
+                        @else
+                            <button
+                                type="button"
+                                data-upgrade-trigger
+                                data-page-upgrade-trigger
+                                data-plan-code="{{ $plan->code }}"
+                                data-plan-name="{{ $plan->name }}"
+                                class="mt-5 inline-flex w-full items-center justify-center rounded-xl border border-cyan-300 bg-cyan-100 px-4 py-2.5 text-sm font-medium text-cyan-800 hover:bg-cyan-200 disabled:cursor-not-allowed disabled:opacity-60 dark:border-cyan-300/40 dark:bg-cyan-500/20 dark:text-cyan-100 dark:hover:bg-cyan-500/30"
+                                @disabled($pendingUpgradeRequest || ! $canSubmitUpgradeRequest)
+                            >
+                                @if ($pendingUpgradeRequest)
+                                    Upgrade request pending
+                                @elseif (! $canSubmitUpgradeRequest)
+                                    University admin only
+                                @else
+                                    {{ $plan->cta_label ?: 'Request plan change' }}
+                                @endif
+                            </button>
+                        @endif
+
+                        @if ($marketingPoints->isNotEmpty())
+                            <hr class="my-6 border-slate-200 dark:border-white/10">
+                            <ul class="space-y-2 text-sm">
+                                @foreach ($marketingPoints as $point)
+                                    <li class="flex items-start gap-2 text-slate-700 dark:text-slate-200"><span class="mt-[2px] text-emerald-600 dark:text-emerald-300">✓</span><span>{{ $point }}</span></li>
+                                @endforeach
+                            </ul>
+                        @endif
+                    </article>
+                @endforeach
+            </div>
+        @endif
 
         <div
             data-subscription-pending-notice
@@ -248,6 +337,14 @@
                     <p class="text-xs uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">Last Effective Price</p>
                     <p class="mt-1 text-sm text-slate-800 dark:text-slate-100">${{ number_format($effectivePrice, 2) }}</p>
                 </div>
+            </div>
+            <div class="mt-4 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-xs text-slate-600 dark:border-white/10 dark:bg-slate-950/40 dark:text-slate-300">
+                @if ($subscription?->nextRenewalCampaign)
+                    Next renewal campaign: <span class="font-semibold text-slate-900 dark:text-slate-100">{{ $subscription->nextRenewalCampaign->name }}</span>
+                    (managed by central business control).
+                @else
+                    No renewal campaign assigned yet. Your next renewal uses current plan pricing policy.
+                @endif
             </div>
         </div>
     </div>
@@ -282,10 +379,15 @@
             }
 
             function maxSavingsPercent() {
-                return Math.max(
-                    numberFromData('data-basic-yearly-savings-percent'),
-                    numberFromData('data-pro-yearly-savings-percent')
-                );
+                var percentages = Array.from(root.querySelectorAll('[data-plan-yearly-savings-percent]')).map(function (node) {
+                    return Number(node.getAttribute('data-plan-yearly-savings-percent') || 0);
+                });
+
+                if (percentages.length === 0) {
+                    return 0;
+                }
+
+                return Math.max.apply(Math, percentages);
             }
 
             function setButtonStates() {

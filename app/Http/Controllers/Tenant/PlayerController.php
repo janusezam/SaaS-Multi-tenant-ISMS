@@ -7,6 +7,7 @@ use App\Http\Requests\Tenant\StorePlayerRequest;
 use App\Http\Requests\Tenant\UpdatePlayerRequest;
 use App\Models\Player;
 use App\Models\Team;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
@@ -34,6 +35,7 @@ class PlayerController extends Controller
     {
         return view('tenant.players.create', [
             'teams' => Team::query()->where('is_active', true)->orderBy('name')->get(),
+            'playerUsers' => User::query()->where('role', 'student_player')->orderBy('name')->get(),
         ]);
     }
 
@@ -42,7 +44,27 @@ class PlayerController extends Controller
      */
     public function store(StorePlayerRequest $request): RedirectResponse
     {
-        Player::query()->create($request->validated());
+        $validated = $request->validated();
+
+        $playerUserId = $validated['player_user_id'] ?? null;
+        unset($validated['player_user_id']);
+
+        if ($playerUserId !== null) {
+            $playerUser = User::query()
+                ->where('id', $playerUserId)
+                ->where('role', 'student_player')
+                ->first();
+
+            if ($playerUser !== null) {
+                [$firstName, $lastName] = $this->splitName($playerUser->name);
+
+                $validated['first_name'] = $firstName;
+                $validated['last_name'] = $lastName;
+                $validated['email'] = $playerUser->email;
+            }
+        }
+
+        Player::query()->create($validated);
 
         return redirect()->route('tenant.players.index')->with('status', 'Player created successfully.');
     }
@@ -52,9 +74,16 @@ class PlayerController extends Controller
      */
     public function edit(Player $player): View
     {
+        $selectedPlayerUserId = User::query()
+            ->where('role', 'student_player')
+            ->where('email', $player->email)
+            ->value('id');
+
         return view('tenant.players.edit', [
             'player' => $player,
             'teams' => Team::query()->where('is_active', true)->orderBy('name')->get(),
+            'playerUsers' => User::query()->where('role', 'student_player')->orderBy('name')->get(),
+            'selectedPlayerUserId' => $selectedPlayerUserId,
         ]);
     }
 
@@ -63,9 +92,56 @@ class PlayerController extends Controller
      */
     public function update(UpdatePlayerRequest $request, Player $player): RedirectResponse
     {
-        $player->update($request->validated());
+        $validated = $request->validated();
+
+        $playerUserId = $validated['player_user_id'] ?? null;
+        unset($validated['player_user_id']);
+
+        if ($playerUserId !== null) {
+            $playerUser = User::query()
+                ->where('id', $playerUserId)
+                ->where('role', 'student_player')
+                ->first();
+
+            if ($playerUser !== null) {
+                [$firstName, $lastName] = $this->splitName($playerUser->name);
+
+                $validated['first_name'] = $firstName;
+                $validated['last_name'] = $lastName;
+                $validated['email'] = $playerUser->email;
+            }
+        }
+
+        $player->update($validated);
 
         return redirect()->route('tenant.players.index')->with('status', 'Player updated successfully.');
+    }
+
+    /**
+     * @return array{0: string, 1: string}
+     */
+    protected function splitName(string $fullName): array
+    {
+        $name = trim($fullName);
+
+        if ($name === '') {
+            return ['Student', 'Player'];
+        }
+
+        $parts = preg_split('/\s+/', $name);
+
+        if ($parts === false || count($parts) === 0) {
+            return [$name, 'Player'];
+        }
+
+        $firstName = (string) array_shift($parts);
+        $lastName = trim(implode(' ', $parts));
+
+        if ($lastName === '') {
+            $lastName = 'Player';
+        }
+
+        return [$firstName, $lastName];
     }
 
     /**

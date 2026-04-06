@@ -27,6 +27,7 @@ class UpdatePlanRequest extends FormRequest
 
         $this->merge([
             'is_active' => $this->boolean('is_active', true),
+            'is_featured' => $this->boolean('is_featured', false),
             'feature_flags' => [
                 'analytics' => filter_var($featureFlags['analytics'] ?? false, FILTER_VALIDATE_BOOLEAN),
                 'bracket' => filter_var($featureFlags['bracket'] ?? false, FILTER_VALIDATE_BOOLEAN),
@@ -47,12 +48,17 @@ class UpdatePlanRequest extends FormRequest
         return [
             'code' => ['required', 'string', 'max:30', 'alpha_dash', Rule::unique('plans', 'code')->ignore($plan?->id)],
             'name' => ['required', 'string', 'max:80'],
+            'marketing_tagline' => ['nullable', 'string', 'max:160'],
+            'badge_label' => ['nullable', 'string', 'max:40'],
+            'cta_label' => ['nullable', 'string', 'max:40'],
+            'marketing_points' => ['nullable', 'string', 'max:1200'],
             'monthly_price' => ['required', 'numeric', 'min:0'],
             'yearly_price' => ['required', 'numeric', 'min:0'],
             'feature_flags' => ['nullable', 'array'],
             'feature_flags.analytics' => ['nullable', 'boolean'],
             'feature_flags.bracket' => ['nullable', 'boolean'],
             'is_active' => ['required', 'boolean'],
+            'is_featured' => ['required', 'boolean'],
             'sort_order' => ['nullable', 'integer', 'min:1', 'max:9999'],
         ];
     }

@@ -31,25 +31,63 @@
                 <div class="mt-6 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
                     @forelse ($plans as $plan)
                         @php
+                            $planPricing = $pricingByPlan[$plan->code] ?? [];
+                            $monthlyQuote = data_get($planPricing, 'monthly');
+                            $yearlyQuote = data_get($planPricing, 'yearly');
+                            $displayMonthlyPrice = (float) data_get($monthlyQuote, 'final_price', $plan->monthly_price);
+                            $displayYearlyPrice = (float) data_get($yearlyQuote, 'final_price', $plan->yearly_price);
+                            $monthlyBasePrice = (float) data_get($monthlyQuote, 'base_price', $plan->monthly_price);
+                            $yearlyBasePrice = (float) data_get($yearlyQuote, 'base_price', $plan->yearly_price);
+                            $campaignName = (string) data_get($monthlyQuote, 'campaign.name', data_get($yearlyQuote, 'campaign.name', ''));
+                            $hasCampaignPrice = $campaignName !== '' && ($displayMonthlyPrice < $monthlyBasePrice || $displayYearlyPrice < $yearlyBasePrice);
                             $isPro = strtolower((string) $plan->code) === 'pro';
-                            $featureList = $isPro
-                                ? ['Analytics dashboard', 'Bracket automation', 'CSV and PDF exports']
-                                : ['Sports and team operations', 'Schedules and results', 'Standings and audit trails'];
+                            $rawMarketingPoints = preg_split('/\r\n|\r|\n/', (string) ($plan->marketing_points ?? ''));
+                            $marketingPoints = collect($rawMarketingPoints)
+                                ->map(fn ($point) => trim((string) $point))
+                                ->filter()
+                                ->values()
+                                ->all();
+                            $featureList = count($marketingPoints) > 0
+                                ? $marketingPoints
+                                : ($isPro
+                                    ? ['Analytics dashboard', 'Bracket automation', 'CSV and PDF exports']
+                                    : ['Sports and team operations', 'Schedules and results', 'Standings and audit trails']);
+                            $isFeaturedCard = (bool) ($plan->is_featured || $isPro);
+                            $badgeLabel = trim((string) ($plan->badge_label ?? ''));
+                            if ($badgeLabel === '' && $isFeaturedCard) {
+                                $badgeLabel = 'Popular';
+                            }
+                            $ctaLabel = trim((string) ($plan->cta_label ?? ''));
+                            if ($ctaLabel === '') {
+                                $ctaLabel = $isPro ? 'Upgrade Now' : 'Start Plan';
+                            }
                         @endphp
 
-                        <article class="relative rounded-[1.75rem] border p-6 {{ $isPro ? 'border-blue-400/70 bg-[radial-gradient(circle_at_50%_0%,rgba(59,130,246,0.45),rgba(30,41,59,0.9)_40%,rgba(2,6,23,0.98)_100%)] shadow-[0_0_30px_rgba(37,99,235,0.65)]' : 'border-blue-400/35 bg-[radial-gradient(circle_at_30%_20%,rgba(59,130,246,0.28),rgba(15,23,42,0.88)_45%,rgba(2,6,23,0.95)_100%)] shadow-[0_0_20px_rgba(37,99,235,0.35)]' }}">
-                            @if ($isPro)
-                                <span class="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 rounded-full border border-blue-200/50 bg-gradient-to-r from-blue-500 to-indigo-500 px-3 py-1 text-xs font-semibold text-white shadow-[0_0_16px_rgba(59,130,246,0.7)]">Popular</span>
+                        <article class="relative rounded-[1.75rem] border p-6 {{ $isFeaturedCard ? 'border-blue-400/70 bg-[radial-gradient(circle_at_50%_0%,rgba(59,130,246,0.45),rgba(30,41,59,0.9)_40%,rgba(2,6,23,0.98)_100%)] shadow-[0_0_30px_rgba(37,99,235,0.65)]' : 'border-blue-400/35 bg-[radial-gradient(circle_at_30%_20%,rgba(59,130,246,0.28),rgba(15,23,42,0.88)_45%,rgba(2,6,23,0.95)_100%)] shadow-[0_0_20px_rgba(37,99,235,0.35)]' }}">
+                            @if ($badgeLabel !== '')
+                                <span class="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 rounded-full border border-blue-200/50 bg-gradient-to-r from-blue-500 to-indigo-500 px-3 py-1 text-xs font-semibold text-white shadow-[0_0_16px_rgba(59,130,246,0.7)]">{{ $badgeLabel }}</span>
                             @endif
 
                             <p class="text-2xl font-semibold text-white">{{ $plan->name }}</p>
+                            @if (! empty($plan->marketing_tagline))
+                                <p class="mt-1 text-xs uppercase tracking-[0.12em] text-cyan-200">{{ $plan->marketing_tagline }}</p>
+                            @endif
+                            @if ($hasCampaignPrice)
+                                <p class="mt-1 text-xs font-medium text-emerald-300">Campaign active: {{ $campaignName }}</p>
+                            @endif
                             <div class="mt-2 flex items-end gap-1">
-                                <p class="text-5xl font-extrabold text-white leading-none">${{ number_format((float) $plan->monthly_price, 0) }}</p>
+                                <p class="text-5xl font-extrabold text-white leading-none">${{ number_format($displayMonthlyPrice, 0) }}</p>
                                 <p class="mb-1 text-xl text-slate-300">/month</p>
                             </div>
+                            @if ($hasCampaignPrice)
+                                <p class="mt-1 text-xs text-slate-400 line-through">Regular: ${{ number_format($monthlyBasePrice, 2) }}/month</p>
+                            @endif
 
                             <p class="mt-2 text-sm text-slate-200">
-                                ${{ number_format((float) $plan->yearly_price, 2) }} /year
+                                ${{ number_format($displayYearlyPrice, 2) }} /year
+                                @if ($hasCampaignPrice)
+                                    <span class="text-slate-400 line-through">${{ number_format($yearlyBasePrice, 2) }}</span>
+                                @endif
                                 @if ((float) $plan->yearly_discount_percent > 0)
                                     <span class="text-emerald-300">(save {{ number_format((float) $plan->yearly_discount_percent, 2) }}%)</span>
                                 @endif
@@ -64,8 +102,8 @@
                                 @endforeach
                             </ul>
 
-                            <a href="#subscribe" class="mt-6 inline-flex w-full items-center justify-center rounded-full border px-4 py-2.5 text-sm font-semibold transition {{ $isPro ? 'border-blue-300/40 bg-gradient-to-r from-blue-500 via-indigo-500 to-blue-600 text-white shadow-[0_0_20px_rgba(59,130,246,0.75)] hover:brightness-110' : 'border-white/20 bg-gradient-to-b from-slate-600/70 to-slate-900/90 text-white hover:from-slate-500/80 hover:to-slate-800' }}">
-                                {{ $isPro ? 'Upgrade Now' : 'Start Plan' }}
+                            <a href="#subscribe" class="mt-6 inline-flex w-full items-center justify-center rounded-full border px-4 py-2.5 text-sm font-semibold transition {{ $isFeaturedCard ? 'border-blue-300/40 bg-gradient-to-r from-blue-500 via-indigo-500 to-blue-600 text-white shadow-[0_0_20px_rgba(59,130,246,0.75)] hover:brightness-110' : 'border-white/20 bg-gradient-to-b from-slate-600/70 to-slate-900/90 text-white hover:from-slate-500/80 hover:to-slate-800' }}">
+                                {{ $ctaLabel }}
                             </a>
                         </article>
                     @empty

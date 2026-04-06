@@ -13,11 +13,16 @@ class Plan extends Model
     protected $fillable = [
         'code',
         'name',
+        'marketing_tagline',
+        'badge_label',
+        'cta_label',
+        'marketing_points',
         'monthly_price',
         'yearly_price',
         'yearly_discount_percent',
         'feature_flags',
         'is_active',
+        'is_featured',
         'sort_order',
     ];
 
@@ -29,6 +34,7 @@ class Plan extends Model
             'yearly_discount_percent' => 'decimal:2',
             'feature_flags' => 'array',
             'is_active' => 'bool',
+            'is_featured' => 'bool',
         ];
     }
 

@@ -1,15 +1,16 @@
 <x-app-layout>
     <x-slot name="header">
-        <div class="flex items-center justify-between gap-3">
-            <h2 class="text-2xl font-semibold text-slate-100">Tenant Users</h2>
-            <a href="{{ route('tenant.users.create') }}" class="rounded-xl border border-cyan-300/40 bg-cyan-500/20 px-4 py-2 text-sm font-medium text-cyan-100 hover:bg-cyan-500/30">Add User</a>
-        </div>
+        <h2 class="text-2xl font-semibold text-slate-100">Tenant Users</h2>
     </x-slot>
 
     <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         @if (session('status'))
             <div class="mb-4 rounded-xl border border-emerald-300/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-100">{{ session('status') }}</div>
         @endif
+
+        <div class="mb-4">
+            <a href="{{ route('tenant.users.create') }}" class="rounded-xl border border-cyan-300/40 bg-cyan-500/20 px-4 py-2 text-sm font-medium text-cyan-100 hover:bg-cyan-500/30">Add User</a>
+        </div>
 
         <div class="overflow-hidden rounded-2xl border border-white/10 bg-slate-900/85">
             <table class="min-w-full divide-y divide-white/10 text-sm">

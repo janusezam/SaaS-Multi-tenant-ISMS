@@ -27,19 +27,18 @@
     @endphp
 
     <x-slot name="header">
-        <div class="flex items-center justify-between gap-3">
-            <h2 class="text-2xl font-semibold text-slate-100">Result Audit History</h2>
-            <div class="flex items-center gap-2">
-                @if (tenant()?->currentPlan() === 'pro')
-                    <a href="{{ route('tenant.pro.exports.result-audits.csv', request()->query()) }}" class="rounded-xl border border-cyan-300/30 bg-cyan-500/20 px-4 py-2 text-sm font-medium text-cyan-100 hover:bg-cyan-500/30">Export CSV</a>
-                    <a href="{{ route('tenant.pro.exports.result-audits.pdf', request()->query()) }}" class="rounded-xl border border-emerald-300/30 bg-emerald-500/20 px-4 py-2 text-sm font-medium text-emerald-100 hover:bg-emerald-500/30">Export PDF</a>
-                @endif
-                <a href="{{ route('tenant.games.index') }}" class="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-slate-100 hover:bg-white/10">Back to Schedules</a>
-            </div>
-        </div>
+        <h2 class="text-2xl font-semibold text-slate-100">Result Audit History</h2>
     </x-slot>
 
     <div class="mx-auto max-w-7xl space-y-4 px-4 py-8 sm:px-6 lg:px-8">
+        <div class="flex flex-wrap items-center gap-2">
+            @if (tenant()?->currentPlan() === 'pro')
+                <a href="{{ route('tenant.pro.exports.result-audits.csv', request()->query()) }}" class="rounded-xl border border-cyan-300/30 bg-cyan-500/20 px-4 py-2 text-sm font-medium text-cyan-100 hover:bg-cyan-500/30">Export CSV</a>
+                <a href="{{ route('tenant.pro.exports.result-audits.pdf', request()->query()) }}" class="rounded-xl border border-emerald-300/30 bg-emerald-500/20 px-4 py-2 text-sm font-medium text-emerald-100 hover:bg-emerald-500/30">Export PDF</a>
+            @endif
+            <a href="{{ route('tenant.games.index') }}" class="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-slate-100 hover:bg-white/10">Back to Schedules</a>
+        </div>
+
         <div class="rounded-2xl border border-white/10 bg-slate-900/85 p-4">
             <p class="mb-3 text-sm font-semibold text-slate-100">Filter Records</p>
             <form method="GET" action="{{ route('tenant.audits.game-results.index') }}" class="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">

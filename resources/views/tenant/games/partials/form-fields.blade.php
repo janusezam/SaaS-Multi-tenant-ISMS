@@ -15,7 +15,7 @@
         <select id="home_team_id" name="home_team_id" class="w-full rounded-xl border border-white/10 bg-slate-950/60 text-slate-100" required>
             <option value="">Select home team</option>
             @foreach ($teams as $team)
-                <option value="{{ $team->id }}" @selected(old('home_team_id', $game->home_team_id ?? null) == $team->id)>{{ $team->name }}</option>
+                <option value="{{ $team->id }}" data-sport-id="{{ $team->sport_id }}" @selected(old('home_team_id', $game->home_team_id ?? null) == $team->id)>{{ $team->name }}</option>
             @endforeach
         </select>
         @error('home_team_id')<p class="mt-1 text-xs text-rose-300">{{ $message }}</p>@enderror
@@ -26,12 +26,53 @@
         <select id="away_team_id" name="away_team_id" class="w-full rounded-xl border border-white/10 bg-slate-950/60 text-slate-100" required>
             <option value="">Select away team</option>
             @foreach ($teams as $team)
-                <option value="{{ $team->id }}" @selected(old('away_team_id', $game->away_team_id ?? null) == $team->id)>{{ $team->name }}</option>
+                <option value="{{ $team->id }}" data-sport-id="{{ $team->sport_id }}" @selected(old('away_team_id', $game->away_team_id ?? null) == $team->id)>{{ $team->name }}</option>
             @endforeach
         </select>
         @error('away_team_id')<p class="mt-1 text-xs text-rose-300">{{ $message }}</p>@enderror
     </div>
 </div>
+
+<script>
+    (() => {
+        const sportSelect = document.getElementById('sport_id');
+        const homeTeamSelect = document.getElementById('home_team_id');
+        const awayTeamSelect = document.getElementById('away_team_id');
+
+        if (!sportSelect || !homeTeamSelect || !awayTeamSelect) {
+            return;
+        }
+
+        const filterBySport = () => {
+            const selectedSportId = String(sportSelect.value || '');
+
+            [homeTeamSelect, awayTeamSelect].forEach((selectElement) => {
+                Array.from(selectElement.options).forEach((option, index) => {
+                    if (index === 0) {
+                        option.hidden = false;
+                        option.disabled = false;
+                        return;
+                    }
+
+                    const optionSportId = String(option.getAttribute('data-sport-id') || '');
+                    const match = selectedSportId !== '' && optionSportId === selectedSportId;
+
+                    option.hidden = !match;
+                    option.disabled = !match;
+                });
+
+                const current = selectElement.options[selectElement.selectedIndex];
+
+                if (current && current.disabled) {
+                    selectElement.value = '';
+                }
+            });
+        };
+
+        sportSelect.addEventListener('change', filterBySport);
+        filterBySport();
+    })();
+</script>
 
 <div class="grid gap-4 sm:grid-cols-2">
     <div>

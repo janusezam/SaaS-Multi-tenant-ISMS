@@ -4,9 +4,11 @@ use App\Http\Controllers\Central\Auth\AuthenticatedSessionController as CentralA
 use App\Http\Controllers\Central\BusinessControl\CouponController;
 use App\Http\Controllers\Central\BusinessControl\DashboardController;
 use App\Http\Controllers\Central\BusinessControl\PlanController;
+use App\Http\Controllers\Central\BusinessControl\PromotionCampaignController;
 use App\Http\Controllers\Central\BusinessControl\UpgradeRequestController;
 use App\Http\Controllers\Central\PublicSubscriptionController;
 use App\Http\Controllers\Central\SubscriptionNotificationLogController;
+use App\Http\Controllers\Central\TenantMonitoringController;
 use App\Http\Controllers\Central\UniversityController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Http\Request;
@@ -54,6 +56,11 @@ Route::prefix('central')->name('central.')->group(function () {
         Route::get('subscription-notification-logs', [SubscriptionNotificationLogController::class, 'index'])
             ->name('subscription-notification-logs.index');
 
+        Route::get('tenant-monitoring', [TenantMonitoringController::class, 'index'])
+            ->name('tenant-monitoring.index');
+        Route::get('tenant-monitoring/data', [TenantMonitoringController::class, 'data'])
+            ->name('tenant-monitoring.data');
+
         Route::resource('universities', UniversityController::class)->except(['show']);
 
         Route::prefix('business-control')->name('business-control.')->group(function () {
@@ -62,11 +69,17 @@ Route::prefix('central')->name('central.')->group(function () {
             Route::get('plans', [PlanController::class, 'index'])->name('plans.index');
             Route::post('plans', [PlanController::class, 'store'])->name('plans.store');
             Route::patch('plans/{plan}', [PlanController::class, 'update'])->name('plans.update');
+            Route::delete('plans/{plan}', [PlanController::class, 'destroy'])->name('plans.destroy');
 
             Route::get('coupons', [CouponController::class, 'index'])->name('coupons.index');
             Route::post('coupons', [CouponController::class, 'store'])->name('coupons.store');
             Route::patch('coupons/{coupon}', [CouponController::class, 'update'])->name('coupons.update');
             Route::get('coupons/{coupon}/redemptions', [CouponController::class, 'redemptions'])->name('coupons.redemptions');
+
+            Route::get('campaigns', [PromotionCampaignController::class, 'index'])->name('campaigns.index');
+            Route::post('campaigns', [PromotionCampaignController::class, 'store'])->name('campaigns.store');
+            Route::patch('campaigns/{campaign}', [PromotionCampaignController::class, 'update'])->name('campaigns.update');
+            Route::post('campaigns/{campaign}/apply-renewals', [PromotionCampaignController::class, 'applyToRenewals'])->name('campaigns.apply-renewals');
 
             Route::get('upgrade-requests', [UpgradeRequestController::class, 'index'])->name('upgrade-requests.index');
             Route::patch('upgrade-requests/{upgradeRequest}/approve', [UpgradeRequestController::class, 'approve'])->name('upgrade-requests.approve');

@@ -4,6 +4,10 @@
     </x-slot>
 
     <div class="business-control-page mx-auto max-w-7xl space-y-5 px-4 py-8 sm:px-6 lg:px-8">
+        <div>
+            <a href="{{ route('central.business-control.index') }}" class="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 dark:border-white/10 dark:bg-slate-900/80 dark:text-slate-100 dark:hover:bg-slate-800/80">Back to Business Control</a>
+        </div>
+
         @if (session('status'))
             <div class="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-300/30 dark:bg-emerald-500/10 dark:text-emerald-100">
                 {{ session('status') }}
@@ -17,11 +21,19 @@
                 <input type="text" name="code" placeholder="code" class="w-full rounded-xl border border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 dark:border-white/10 dark:bg-slate-950/60 dark:text-slate-100" required>
                 <input type="text" name="name" placeholder="name" class="w-full rounded-xl border border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 dark:border-white/10 dark:bg-slate-950/60 dark:text-slate-100" required>
                 <input type="number" step="0.01" min="0" name="sort_order" placeholder="sort order" class="w-full rounded-xl border border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 dark:border-white/10 dark:bg-slate-950/60 dark:text-slate-100">
+                <input type="text" name="marketing_tagline" placeholder="tagline (e.g. Built for premium intramurals)" class="w-full rounded-xl border border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 dark:border-white/10 dark:bg-slate-950/60 dark:text-slate-100 md:col-span-2">
+                <input type="text" name="badge_label" placeholder="badge label (e.g. Popular, New)" class="w-full rounded-xl border border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 dark:border-white/10 dark:bg-slate-950/60 dark:text-slate-100">
+                <input type="text" name="cta_label" placeholder="button label (e.g. Start Plan)" class="w-full rounded-xl border border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 dark:border-white/10 dark:bg-slate-950/60 dark:text-slate-100 md:col-span-3">
+                <textarea name="marketing_points" rows="3" placeholder="Marketing points (one line per bullet)" class="w-full rounded-xl border border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 dark:border-white/10 dark:bg-slate-950/60 dark:text-slate-100 md:col-span-3"></textarea>
                 <input type="number" step="0.01" min="0" name="monthly_price" placeholder="monthly price" class="w-full rounded-xl border border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 dark:border-white/10 dark:bg-slate-950/60 dark:text-slate-100" required>
                 <input type="number" step="0.01" min="0" name="yearly_price" placeholder="yearly price" class="w-full rounded-xl border border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 dark:border-white/10 dark:bg-slate-950/60 dark:text-slate-100" required>
                 <label class="inline-flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300 md:col-span-3">
                     <input type="checkbox" name="is_active" value="1" checked class="rounded border-slate-300 bg-white text-cyan-600 dark:border-white/20 dark:bg-slate-900 dark:text-cyan-500">
                     Active
+                </label>
+                <label class="inline-flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300 md:col-span-3">
+                    <input type="checkbox" name="is_featured" value="1" class="rounded border-slate-300 bg-white text-cyan-600 dark:border-white/20 dark:bg-slate-900 dark:text-cyan-500">
+                    Mark as featured on pricing page
                 </label>
                 <div class="rounded-xl border border-slate-200 bg-slate-50 p-3 md:col-span-3 dark:border-white/10 dark:bg-slate-950/40">
                     <p class="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400">Feature Flags</p>
@@ -47,6 +59,7 @@
                     <tr>
                         <th class="px-4 py-3 text-left">Code</th>
                         <th class="px-4 py-3 text-left">Name</th>
+                        <th class="px-4 py-3 text-left">Marketing</th>
                         <th class="px-4 py-3 text-left">Monthly</th>
                         <th class="px-4 py-3 text-left">Yearly</th>
                         <th class="px-4 py-3 text-left">Yearly Save %</th>
@@ -60,6 +73,11 @@
                         <tr>
                             <td class="px-4 py-3">{{ $plan->code }}</td>
                             <td class="px-4 py-3">{{ $plan->name }}</td>
+                            <td class="px-4 py-3 text-xs text-slate-600 dark:text-slate-300">
+                                <p>{{ $plan->marketing_tagline ?: 'No tagline' }}</p>
+                                <p class="mt-1">CTA: {{ $plan->cta_label ?: 'Start Plan' }}</p>
+                                <p class="mt-1">Badge: {{ $plan->badge_label ?: ($plan->is_featured ? 'Featured' : 'None') }}</p>
+                            </td>
                             <td class="px-4 py-3">${{ number_format((float) $plan->monthly_price, 2) }}</td>
                             <td class="px-4 py-3">${{ number_format((float) $plan->yearly_price, 2) }}</td>
                             <td class="px-4 py-3">{{ number_format((float) $plan->yearly_discount_percent, 2) }}%</td>
@@ -80,6 +98,9 @@
                                 ])>
                                     {{ $plan->is_active ? 'Active' : 'Inactive' }}
                                 </span>
+                                @if ($plan->is_featured)
+                                    <span class="mt-1 inline-flex rounded-full border border-cyan-300/40 bg-cyan-500/20 px-2.5 py-1 text-xs font-semibold text-cyan-100">Featured</span>
+                                @endif
                             </td>
                             <td class="px-4 py-3">
                                 <form method="POST" action="{{ route('central.business-control.plans.update', $plan) }}" class="grid gap-2 lg:grid-cols-4">
@@ -87,6 +108,10 @@
                                     @method('PATCH')
                                     <input type="text" name="code" value="{{ $plan->code }}" class="rounded border border-slate-300 bg-white text-slate-900 dark:border-white/10 dark:bg-slate-950/60 dark:text-slate-100">
                                     <input type="text" name="name" value="{{ $plan->name }}" class="rounded border border-slate-300 bg-white text-slate-900 dark:border-white/10 dark:bg-slate-950/60 dark:text-slate-100">
+                                    <input type="text" name="marketing_tagline" value="{{ $plan->marketing_tagline }}" placeholder="tagline" class="rounded border border-slate-300 bg-white text-slate-900 dark:border-white/10 dark:bg-slate-950/60 dark:text-slate-100">
+                                    <input type="text" name="badge_label" value="{{ $plan->badge_label }}" placeholder="badge" class="rounded border border-slate-300 bg-white text-slate-900 dark:border-white/10 dark:bg-slate-950/60 dark:text-slate-100">
+                                    <input type="text" name="cta_label" value="{{ $plan->cta_label }}" placeholder="cta" class="rounded border border-slate-300 bg-white text-slate-900 dark:border-white/10 dark:bg-slate-950/60 dark:text-slate-100">
+                                    <textarea name="marketing_points" rows="2" placeholder="one line per bullet" class="rounded border border-slate-300 bg-white text-slate-900 dark:border-white/10 dark:bg-slate-950/60 dark:text-slate-100 lg:col-span-4">{{ $plan->marketing_points }}</textarea>
                                     <input type="number" step="0.01" min="0" name="monthly_price" value="{{ $plan->monthly_price }}" class="rounded border border-slate-300 bg-white text-slate-900 dark:border-white/10 dark:bg-slate-950/60 dark:text-slate-100">
                                     <input type="number" step="0.01" min="0" name="yearly_price" value="{{ $plan->yearly_price }}" class="rounded border border-slate-300 bg-white text-slate-900 dark:border-white/10 dark:bg-slate-950/60 dark:text-slate-100">
                                     <input type="text" value="{{ number_format((float) $plan->yearly_discount_percent, 2) }}% (auto)" class="rounded border border-slate-300 bg-slate-100 text-slate-600 dark:border-white/10 dark:bg-slate-900/60 dark:text-slate-300" readonly>
@@ -94,6 +119,10 @@
                                     <select name="is_active" class="rounded border border-slate-300 bg-white text-slate-900 dark:border-white/10 dark:bg-slate-950/60 dark:text-slate-100">
                                         <option value="1" @selected($plan->is_active)>Active</option>
                                         <option value="0" @selected(! $plan->is_active)>Inactive</option>
+                                    </select>
+                                    <select name="is_featured" class="rounded border border-slate-300 bg-white text-slate-900 dark:border-white/10 dark:bg-slate-950/60 dark:text-slate-100">
+                                        <option value="1" @selected($plan->is_featured)>Featured</option>
+                                        <option value="0" @selected(! $plan->is_featured)>Standard</option>
                                     </select>
                                     <label class="inline-flex items-center gap-2 text-xs text-slate-700 dark:text-slate-300">
                                         <input type="hidden" name="feature_flags[analytics]" value="0">
@@ -107,12 +136,23 @@
                                     </label>
                                     <button type="submit" class="rounded border border-cyan-300 bg-cyan-100 px-3 py-1 text-cyan-800 dark:border-cyan-300/30 dark:bg-cyan-500/20 dark:text-cyan-100">Update</button>
                                 </form>
+                                <div class="mt-2">
+                                    @if (in_array(strtolower((string) $plan->code), ['basic', 'pro'], true))
+                                        <span class="inline-flex rounded border border-slate-300 bg-slate-100 px-2 py-1 text-xs text-slate-700 dark:border-white/15 dark:bg-slate-950/70 dark:text-slate-300">Protected</span>
+                                    @else
+                                        <form method="POST" action="{{ route('central.business-control.plans.destroy', $plan) }}" onsubmit="return confirm('Delete this plan? This cannot be undone.');">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="rounded border border-rose-300 bg-rose-100 px-3 py-1 text-xs text-rose-800 dark:border-rose-300/30 dark:bg-rose-500/20 dark:text-rose-100">Delete</button>
+                                        </form>
+                                    @endif
+                                </div>
                             </td>
                         </tr>
                     @endforeach
                     @if ($plans->isEmpty())
                         <tr>
-                            <td colspan="7" class="px-4 py-6 text-center text-sm text-slate-500 dark:text-slate-400">No plans found yet.</td>
+                            <td colspan="9" class="px-4 py-6 text-center text-sm text-slate-500 dark:text-slate-400">No plans found yet.</td>
                         </tr>
                     @endif
                 </tbody>

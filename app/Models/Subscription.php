@@ -18,6 +18,7 @@ class Subscription extends Model
         'discount_amount',
         'final_price',
         'coupon_id',
+        'next_renewal_campaign_id',
         'coupon_code',
         'pricing_snapshot',
         'start_date',
@@ -47,5 +48,10 @@ class Subscription extends Model
     public function coupon(): BelongsTo
     {
         return $this->belongsTo(Coupon::class);
+    }
+
+    public function nextRenewalCampaign(): BelongsTo
+    {
+        return $this->belongsTo(PromotionCampaign::class, 'next_renewal_campaign_id');
     }
 }

@@ -23,10 +23,22 @@ class StoreGameRequest extends FormRequest
      */
     public function rules(): array
     {
+        $sportId = $this->input('sport_id');
+
         return [
             'sport_id' => ['required', 'integer', 'exists:sports,id'],
-            'home_team_id' => ['required', 'integer', 'exists:teams,id', 'different:away_team_id'],
-            'away_team_id' => ['required', 'integer', 'exists:teams,id', 'different:home_team_id'],
+            'home_team_id' => [
+                'required',
+                'integer',
+                Rule::exists('teams', 'id')->where(fn ($query) => $query->where('sport_id', $sportId)),
+                'different:away_team_id',
+            ],
+            'away_team_id' => [
+                'required',
+                'integer',
+                Rule::exists('teams', 'id')->where(fn ($query) => $query->where('sport_id', $sportId)),
+                'different:home_team_id',
+            ],
             'venue_id' => ['required', 'integer', 'exists:venues,id'],
             'scheduled_at' => ['required', 'date'],
             'status' => ['required', Rule::in(['scheduled', 'completed', 'cancelled'])],

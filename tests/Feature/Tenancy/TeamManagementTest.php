@@ -110,3 +110,36 @@ test('university admin can delete team', function () {
     $response->assertRedirect(route('tenant.teams.index'));
     $this->assertDatabaseMissing('teams', ['id' => $team->id]);
 });
+
+test('university admin can assign coach from existing coach user dropdown', function () {
+    $user = User::factory()->create(['role' => 'university_admin']);
+
+    $coachUser = User::factory()->create([
+        'name' => 'Coach Dropdown',
+        'email' => 'coach-dropdown@example.test',
+        'role' => 'team_coach',
+    ]);
+
+    $sport = Sport::query()->create([
+        'name' => 'Futsal',
+        'code' => 'futsal',
+        'description' => null,
+        'is_active' => true,
+    ]);
+
+    $response = $this->actingAs($user)->post(route('tenant.teams.store'), [
+        'sport_id' => $sport->id,
+        'name' => 'Dropdown Team',
+        'coach_user_id' => $coachUser->id,
+        'division' => 'B',
+        'is_active' => true,
+    ]);
+
+    $response->assertRedirect(route('tenant.teams.index'));
+
+    $this->assertDatabaseHas('teams', [
+        'name' => 'Dropdown Team',
+        'coach_name' => 'Coach Dropdown',
+        'coach_email' => 'coach-dropdown@example.test',
+    ]);
+});

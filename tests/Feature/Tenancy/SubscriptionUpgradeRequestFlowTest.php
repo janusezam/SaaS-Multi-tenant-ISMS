@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\EnsureTenantSubscriptionIsActive;
 use App\Models\Plan;
+use App\Models\PromotionCampaign;
 use App\Models\Subscription;
 use App\Models\SubscriptionUpgradeRequest;
 use App\Models\University;
@@ -157,4 +158,55 @@ test('duplicate pending upgrade request is blocked', function () {
 
     $response->assertStatus(422);
     $response->assertJsonValidationErrors(['request']);
+});
+
+test('active non stackable campaign applies and blocks coupon stacking in preview', function () {
+    Plan::query()->updateOrCreate([
+        'code' => 'pro',
+    ], [
+        'name' => 'Pro',
+        'monthly_price' => 49,
+        'yearly_price' => 490,
+        'yearly_discount_percent' => 16.67,
+        'is_active' => true,
+        'sort_order' => 20,
+    ]);
+
+    $tenant = University::withoutEvents(fn () => University::query()->create([
+        'id' => 'upgrade-flow-campaign-tenant',
+        'name' => 'Upgrade Flow Campaign University',
+        'plan' => 'basic',
+        'status' => 'active',
+        'expires_at' => now()->addDays(30),
+    ]));
+
+    $user = User::factory()->create([
+        'role' => 'university_admin',
+    ]);
+
+    PromotionCampaign::query()->create([
+        'name' => 'Promo Blast',
+        'status' => 'active',
+        'discount_type' => 'percent',
+        'discount_value' => 10,
+        'target_plan_codes' => ['pro'],
+        'is_stackable_with_coupon' => false,
+        'priority' => 5,
+        'lifecycle_policy' => 'next_renewal',
+        'starts_at' => now()->subHour(),
+        'ends_at' => now()->addHour(),
+    ]);
+
+    initializeUpgradeTenant($tenant);
+
+    $previewResponse = $this->actingAs($user)->getJson(route('tenant.subscription.preview', [
+        'plan' => 'pro',
+        'billing_cycle' => 'monthly',
+        'coupon_code' => 'SAVE20',
+    ]));
+
+    $previewResponse->assertOk();
+    $previewResponse->assertJsonPath('quote.campaign.name', 'Promo Blast');
+    $previewResponse->assertJsonPath('quote.coupon', null);
+    $previewResponse->assertJsonPath('quote.coupon_blocked_by_campaign', true);
 });

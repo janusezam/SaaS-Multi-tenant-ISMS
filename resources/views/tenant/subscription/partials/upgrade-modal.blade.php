@@ -7,13 +7,13 @@
     <div class="relative mx-auto mt-14 w-full max-w-2xl rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl dark:border-white/10 dark:bg-slate-900">
         <div class="flex items-start justify-between gap-3">
             <div>
-                <p class="text-xs uppercase tracking-[0.18em] text-amber-700 dark:text-amber-200">Upgrade Request</p>
-                <h3 class="mt-1 text-xl font-semibold text-slate-900 dark:text-slate-100">Pro Subscription</h3>
+                <p class="text-xs uppercase tracking-[0.18em] text-amber-700 dark:text-amber-200">Subscription Request</p>
+                <h3 class="mt-1 text-xl font-semibold text-slate-900 dark:text-slate-100">Plan Change</h3>
             </div>
             <button type="button" data-upgrade-close class="rounded-lg border border-slate-300 px-2 py-1 text-xs text-slate-700 hover:bg-slate-100 dark:border-white/15 dark:text-slate-300 dark:hover:bg-white/10">Close</button>
         </div>
 
-        <p class="mt-3 text-sm text-slate-600 dark:text-slate-300">Request central approval for Pro. No payment is collected here. Pricing and coupon checks are validated from central business control.</p>
+        <p class="mt-3 text-sm text-slate-600 dark:text-slate-300">Request central approval for your selected plan. No payment is collected here. Pricing and coupon checks are validated from central business control.</p>
 
         <div class="mt-4 grid grid-cols-3 gap-3 rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm dark:border-white/10 dark:bg-slate-950/40">
             <div>
@@ -51,13 +51,22 @@
                 <span data-price-base>$0.00</span>
             </div>
             <div class="mt-2 flex items-center justify-between text-slate-700 dark:text-slate-300">
-                <span>Discount</span>
+                <span>Campaign discount</span>
+                <span data-price-campaign-discount>$0.00</span>
+            </div>
+            <div class="mt-2 flex items-center justify-between text-slate-700 dark:text-slate-300">
+                <span>Coupon discount</span>
+                <span data-price-coupon-discount>$0.00</span>
+            </div>
+            <div class="mt-2 flex items-center justify-between text-slate-700 dark:text-slate-300">
+                <span>Total discount</span>
                 <span data-price-discount>$0.00</span>
             </div>
             <div class="mt-3 flex items-center justify-between border-t border-slate-200 pt-3 text-slate-900 dark:border-white/10 dark:text-slate-100">
                 <span class="font-medium">Final price</span>
                 <span class="text-lg font-semibold" data-price-final>$0.00</span>
             </div>
+            <p class="mt-2 text-xs text-emerald-700 dark:text-emerald-200" data-campaign-note></p>
             <p class="mt-2 text-xs text-slate-500 dark:text-slate-400" data-yearly-savings></p>
             <p class="mt-2 text-xs text-amber-700 dark:text-amber-200" data-upgrade-pending></p>
         </div>
@@ -88,6 +97,7 @@
 
         var state = {
             plan: 'pro',
+            planName: 'PRO',
             billingCycle: window.__ismsSubscriptionBillingCycle === 'yearly' ? 'yearly' : 'monthly',
             couponCode: '',
             pending: false,
@@ -97,10 +107,14 @@
         var successNode = modal.querySelector('[data-upgrade-coupon-success]');
         var pendingNode = modal.querySelector('[data-upgrade-pending]');
         var baseNode = modal.querySelector('[data-price-base]');
+        var campaignDiscountNode = modal.querySelector('[data-price-campaign-discount]');
+        var couponDiscountNode = modal.querySelector('[data-price-coupon-discount]');
         var discountNode = modal.querySelector('[data-price-discount]');
         var finalNode = modal.querySelector('[data-price-final]');
         var savingsNode = modal.querySelector('[data-yearly-savings]');
+        var campaignNoteNode = modal.querySelector('[data-campaign-note]');
         var summaryCycleNode = modal.querySelector('[data-upgrade-summary-cycle]');
+        var summaryPlanNode = modal.querySelector('[data-upgrade-summary-plan]');
         var summaryPriceNode = modal.querySelector('[data-upgrade-summary-price]');
         var submitButton = modal.querySelector('[data-submit-upgrade]');
         var couponInput = modal.querySelector('#upgrade-coupon');
@@ -147,8 +161,15 @@
             }
         }
 
-        function openModal() {
+        function openModal(triggerButton) {
+            state.plan = triggerButton?.getAttribute('data-plan-code') || 'pro';
+            state.planName = String(triggerButton?.getAttribute('data-plan-name') || state.plan).toUpperCase();
             state.billingCycle = window.__ismsSubscriptionBillingCycle === 'yearly' ? 'yearly' : 'monthly';
+
+            if (summaryPlanNode) {
+                summaryPlanNode.textContent = state.planName;
+            }
+
             modal.classList.remove('hidden');
             modal.setAttribute('aria-hidden', 'false');
             syncCycleButtons();
@@ -205,10 +226,18 @@
                 setError('');
 
                 baseNode.textContent = formatCurrency(quote.base_price);
+                campaignDiscountNode.textContent = formatCurrency(quote.campaign_discount_amount);
+                couponDiscountNode.textContent = formatCurrency(quote.coupon_discount_amount);
                 discountNode.textContent = formatCurrency(quote.discount_amount);
                 finalNode.textContent = formatCurrency(quote.final_price);
                 if (summaryPriceNode) {
                     summaryPriceNode.textContent = formatCurrency(quote.final_price);
+                }
+
+                if (quote.campaign && campaignNoteNode) {
+                    campaignNoteNode.textContent = 'Campaign applied: ' + quote.campaign.name;
+                } else if (campaignNoteNode) {
+                    campaignNoteNode.textContent = '';
                 }
 
                 if (state.couponCode !== '' && quote.coupon) {
@@ -218,6 +247,8 @@
                         ? discountValue.toFixed(2) + '% off'
                         : formatCurrency(discountValue) + ' off';
                     setCouponSuccess('Promo code applied: ' + quote.coupon.code + ' (' + discountDescription + ')');
+                } else if (state.couponCode !== '' && quote.coupon_blocked_by_campaign) {
+                    setCouponSuccess('Coupon not applied: active campaign is configured as non-stackable.');
                 } else if (state.couponCode === '') {
                     setCouponSuccess('');
                 }
@@ -234,15 +265,9 @@
             });
         }
 
-        modal.querySelectorAll('[data-upgrade-trigger]').forEach(function (button) {
-            button.addEventListener('click', function () {
-                openModal();
-            });
-        });
-
         document.querySelectorAll('[data-upgrade-trigger]').forEach(function (button) {
             button.addEventListener('click', function () {
-                openModal();
+                openModal(button);
             });
         });
 

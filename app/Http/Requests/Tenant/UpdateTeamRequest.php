@@ -4,6 +4,7 @@ namespace App\Http\Requests\Tenant;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateTeamRequest extends FormRequest
 {
@@ -25,6 +26,7 @@ class UpdateTeamRequest extends FormRequest
         return [
             'sport_id' => ['required', 'integer', 'exists:sports,id'],
             'name' => ['required', 'string', 'max:120'],
+            'coach_user_id' => ['nullable', 'integer', Rule::exists('users', 'id')],
             'coach_name' => ['nullable', 'string', 'max:120'],
             'coach_email' => ['nullable', 'email', 'max:255'],
             'division' => ['nullable', 'string', 'max:60'],

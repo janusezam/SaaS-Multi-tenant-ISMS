@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\AuthenticateSuperAdmin;
+use App\Http\Middleware\CaptureTenantRuntimeMetrics;
 use App\Http\Middleware\CheckFeature;
 use App\Http\Middleware\CheckPermission;
 use App\Http\Middleware\CheckPlan;
@@ -27,6 +28,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'check.permission' => CheckPermission::class,
             'check.plan' => CheckPlan::class,
             'check.feature' => CheckFeature::class,
+            'tenant.runtime.metrics' => CaptureTenantRuntimeMetrics::class,
             'auth.super_admin' => AuthenticateSuperAdmin::class,
             'tenant.subscription' => EnsureTenantSubscriptionIsActive::class,
             'tenant.password.updated' => EnsureTenantPasswordIsUpdated::class,

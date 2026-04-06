@@ -1,15 +1,16 @@
 <x-app-layout>
     <x-slot name="header">
-        <div class="flex items-center justify-between gap-3">
-            <h2 class="text-2xl font-semibold text-slate-100">Players</h2>
-            <a href="{{ route('tenant.players.create') }}" class="rounded-xl border border-cyan-300/40 bg-cyan-500/20 px-4 py-2 text-sm font-medium text-cyan-100 hover:bg-cyan-500/30">Add Player</a>
-        </div>
+        <h2 class="text-2xl font-semibold text-slate-100">Players</h2>
     </x-slot>
 
     <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         @if (session('status'))
             <div class="mb-4 rounded-xl border border-emerald-300/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-100">{{ session('status') }}</div>
         @endif
+
+        <div class="mb-4">
+            <a href="{{ route('tenant.players.create') }}" class="rounded-xl border border-cyan-300/40 bg-cyan-500/20 px-4 py-2 text-sm font-medium text-cyan-100 hover:bg-cyan-500/30">Add Player</a>
+        </div>
 
         <div class="mb-4 rounded-2xl border border-white/10 bg-slate-900/85 p-4">
             <label for="players-search" class="mb-2 block text-xs uppercase tracking-[0.14em] text-slate-400">Search Players</label>

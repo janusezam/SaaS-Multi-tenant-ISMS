@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Central\BusinessControl;
 use App\Http\Controllers\Controller;
 use App\Models\Coupon;
 use App\Models\Plan;
+use App\Models\PromotionCampaign;
 use App\Models\Subscription;
 use App\Models\SubscriptionUpgradeRequest;
 use App\Models\University;
@@ -24,6 +25,7 @@ class DashboardController extends Controller
             'metrics' => [
                 'activePlans' => Plan::query()->active()->count(),
                 'activeCoupons' => Coupon::query()->active()->count(),
+                'activeCampaigns' => PromotionCampaign::query()->active()->withinWindow()->count(),
                 'pendingUpgradeRequests' => SubscriptionUpgradeRequest::query()->where('status', 'pending')->count(),
                 'activeUniversities' => $activeUniversities->count(),
                 'basicSchools' => $activeUniversities->filter(fn (University $university): bool => $university->currentPlan() === 'basic')->count(),
@@ -45,6 +47,12 @@ class DashboardController extends Controller
             'activeCoupons' => Coupon::query()
                 ->active()
                 ->latest()
+                ->limit(6)
+                ->get(),
+            'activeCampaigns' => PromotionCampaign::query()
+                ->active()
+                ->withinWindow()
+                ->orderBy('priority')
                 ->limit(6)
                 ->get(),
         ]);

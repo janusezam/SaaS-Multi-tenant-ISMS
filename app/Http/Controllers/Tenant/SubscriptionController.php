@@ -30,21 +30,28 @@ class SubscriptionController extends Controller
 
         $plans = Plan::query()
             ->active()
-            ->whereIn('code', ['basic', 'pro'])
             ->orderBy('sort_order')
             ->get()
             ->keyBy('code');
+
+        $additionalPlans = $plans
+            ->filter(fn (Plan $plan): bool => ! in_array((string) $plan->code, ['basic', 'pro'], true))
+            ->values();
 
         $currentPlanCode = (string) ($subscription?->plan ?? $tenant?->currentPlan() ?? 'basic');
         $currentBillingCycle = (string) ($subscription?->billing_cycle ?? 'monthly');
         $effectivePrice = (float) ($subscription?->final_price ?? 0);
         $expiryDate = $subscription?->due_date ?? $tenant?->currentDueDate();
+        $recommendedPlan = $plans
+            ->first(fn (Plan $plan): bool => (string) $plan->code !== $currentPlanCode);
 
         return view('tenant.subscription.show', [
             'subscription' => $subscription,
             'pendingUpgradeRequest' => $pendingUpgradeRequest,
             'basicPlan' => $plans->get('basic'),
             'proPlan' => $plans->get('pro'),
+            'additionalPlans' => $additionalPlans,
+            'recommendedPlan' => $recommendedPlan,
             'tenantName' => (string) ($tenant?->name ?? 'Tenant School'),
             'currentPlanCode' => $currentPlanCode,
             'currentBillingCycle' => $currentBillingCycle,
@@ -85,9 +92,9 @@ class SubscriptionController extends Controller
             abort(404);
         }
 
-        if ($tenant->currentPlan() === 'pro') {
+        if ((string) ($validated['requested_plan'] ?? '') === $tenant->currentPlan()) {
             throw ValidationException::withMessages([
-                'requested_plan' => 'Your school is already on Pro.',
+                'requested_plan' => 'Selected plan is already your current plan.',
             ]);
         }
 

@@ -22,6 +22,17 @@
                     <input id="name" name="name" value="{{ old('name') }}" class="w-full rounded-xl border border-white/10 bg-slate-950/60 text-slate-100" required />
                     @error('name')<p class="mt-1 text-xs text-rose-300">{{ $message }}</p>@enderror
                 </div>
+                <div>
+                    <label class="mb-2 block text-sm text-slate-300" for="coach_user_id">Coach (Existing Tenant Coach)</label>
+                    <select id="coach_user_id" name="coach_user_id" class="w-full rounded-xl border border-white/10 bg-slate-950/60 text-slate-100">
+                        <option value="">Select coach</option>
+                        @foreach ($coaches as $coach)
+                            <option value="{{ $coach->id }}" data-coach-name="{{ $coach->name }}" data-coach-email="{{ $coach->email }}" @selected(old('coach_user_id') == $coach->id)>{{ $coach->name }} ({{ $coach->email }})</option>
+                        @endforeach
+                    </select>
+                    @error('coach_user_id')<p class="mt-1 text-xs text-rose-300">{{ $message }}</p>@enderror
+                    <p class="mt-1 text-xs text-slate-400">Choosing a coach auto-fills name and email from the selected user.</p>
+                </div>
                 <div class="grid gap-4 sm:grid-cols-2">
                     <div>
                         <label class="mb-2 block text-sm text-slate-300" for="coach_name">Coach Name</label>
@@ -50,4 +61,30 @@
             </form>
         </div>
     </div>
+
+    <script>
+        (() => {
+            const coachSelect = document.getElementById('coach_user_id');
+            const coachName = document.getElementById('coach_name');
+            const coachEmail = document.getElementById('coach_email');
+
+            if (!coachSelect || !coachName || !coachEmail) {
+                return;
+            }
+
+            const syncCoachFields = () => {
+                const option = coachSelect.options[coachSelect.selectedIndex];
+
+                if (!option || option.value === '') {
+                    return;
+                }
+
+                coachName.value = option.getAttribute('data-coach-name') || coachName.value;
+                coachEmail.value = option.getAttribute('data-coach-email') || coachEmail.value;
+            };
+
+            coachSelect.addEventListener('change', syncCoachFields);
+            syncCoachFields();
+        })();
+    </script>
 </x-app-layout>
