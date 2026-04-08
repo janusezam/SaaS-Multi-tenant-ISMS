@@ -1,5 +1,23 @@
 <x-app-layout>
     @php
+        $mediaUrl = static function (?string $path): ?string {
+            if ($path === null || trim($path) === '') {
+                return null;
+            }
+
+            $normalized = str_replace('\\', '/', trim($path));
+
+            if (str_starts_with($normalized, 'http://') || str_starts_with($normalized, 'https://')) {
+                return $normalized;
+            }
+
+            $normalized = ltrim($normalized, '/');
+            $normalized = preg_replace('#^(public/)+#', '', $normalized) ?? $normalized;
+            $normalized = preg_replace('#^(storage/)+#', '', $normalized) ?? $normalized;
+
+            return tenant_asset($normalized);
+        };
+
         $hasTeamsTable = \Illuminate\Support\Facades\Schema::hasTable('teams');
         $hasGamesTable = \Illuminate\Support\Facades\Schema::hasTable('games');
 
@@ -73,12 +91,18 @@
     @endphp
 
     <x-slot name="header">
-        <h2 class="text-2xl font-semibold text-slate-100">Team Coach Dashboard</h2>
+        <div>
+            <h2 class="text-2xl font-semibold text-slate-100">Team Coach Dashboard</h2>
+            <p class="mt-1 text-sm text-slate-300">Classroom-inspired stream for your team story this season.</p>
+        </div>
     </x-slot>
 
     <div class="mx-auto max-w-7xl space-y-6 px-4 py-8 sm:px-6 lg:px-8" x-data="{ activeTab: 'overview' }">
-        <div class="rounded-2xl border border-cyan-300/25 bg-slate-900/85 p-6 text-slate-200">
-            <p class="text-sm text-cyan-200">View your team's schedule, standing, and recent performance at a glance.</p>
+        <div class="overflow-hidden rounded-2xl border border-cyan-300/25 bg-slate-900/85 text-slate-200">
+            <div class="bg-gradient-to-r from-cyan-700/35 via-sky-700/25 to-indigo-700/35 px-6 py-5">
+                <p class="text-xs uppercase tracking-[0.16em] text-cyan-200/90">Stream</p>
+                <p class="mt-1 text-sm text-cyan-100">View your team's schedule, standing, and recent performance at a glance.</p>
+            </div>
             <p class="mt-2 text-sm text-slate-300">
                 {{ $myTeam?->name ?? 'No team linked to your account yet.' }}
                 @if ($myTeam?->sport?->name)
@@ -150,9 +174,17 @@
                     @php
                         $isHome = (int) $game->home_team_id === (int) $myTeam?->id;
                         $opponent = $isHome ? $game->awayTeam?->name : $game->homeTeam?->name;
+                        $opponentLogo = $isHome
+                            ? $mediaUrl($game->awayTeam?->logo_path)
+                            : $mediaUrl($game->homeTeam?->logo_path);
                     @endphp
                     <article class="rounded-2xl border border-white/10 bg-slate-900/85 p-4">
-                        <p class="text-sm font-semibold text-slate-100">vs {{ $opponent ?? 'TBD Team' }}</p>
+                        <div class="flex items-center gap-2 text-sm font-semibold text-slate-100">
+                            @if ($opponentLogo !== null)
+                                <img src="{{ $opponentLogo }}" alt="{{ $opponent ?? 'TBD Team' }}" class="h-10 w-10 rounded-full border border-white/15 object-cover" />
+                            @endif
+                            <span>vs {{ $opponent ?? 'TBD Team' }}</span>
+                        </div>
                         <p class="mt-1 text-xs text-slate-400">
                             {{ $game->scheduled_at?->format('M d, Y h:i A') }}
                             · {{ $game->venue?->name ?? 'No venue assigned' }}
@@ -179,11 +211,23 @@
                     @endphp
                     <article class="rounded-2xl border border-white/10 bg-slate-900/85 p-4">
                         <div class="flex items-center justify-between gap-3">
-                            <p class="text-sm font-semibold text-slate-100">
-                                {{ $game->homeTeam?->name ?? 'TBD Team' }}
+                            @php
+                                $resultHome = $game->homeTeam?->name ?? 'TBD Team';
+                                $resultAway = $game->awayTeam?->name ?? 'TBD Team';
+                                $resultHomeLogo = $mediaUrl($game->homeTeam?->logo_path);
+                                $resultAwayLogo = $mediaUrl($game->awayTeam?->logo_path);
+                            @endphp
+                            <div class="flex items-center gap-2 text-sm font-semibold text-slate-100">
+                                @if ($resultHomeLogo !== null)
+                                    <img src="{{ $resultHomeLogo }}" alt="{{ $resultHome }}" class="h-9 w-9 rounded-full border border-white/15 object-cover" />
+                                @endif
+                                <span>{{ $resultHome }}</span>
                                 <span class="px-1 text-slate-400">vs</span>
-                                {{ $game->awayTeam?->name ?? 'TBD Team' }}
-                            </p>
+                                @if ($resultAwayLogo !== null)
+                                    <img src="{{ $resultAwayLogo }}" alt="{{ $resultAway }}" class="h-9 w-9 rounded-full border border-white/15 object-cover" />
+                                @endif
+                                <span>{{ $resultAway }}</span>
+                            </div>
                             <span class="inline-flex rounded-full border border-emerald-300/35 bg-emerald-500/20 px-2.5 py-1 text-xs font-semibold text-emerald-100">
                                 {{ $resultLabel }}
                             </span>

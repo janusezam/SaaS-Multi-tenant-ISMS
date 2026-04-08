@@ -1,11 +1,31 @@
 <x-app-layout>
+    @php
+        $mediaUrl = static function (?string $path): ?string {
+            if ($path === null || trim($path) === '') {
+                return null;
+            }
+
+            $normalized = str_replace('\\', '/', trim($path));
+
+            if (str_starts_with($normalized, 'http://') || str_starts_with($normalized, 'https://')) {
+                return $normalized;
+            }
+
+            $normalized = ltrim($normalized, '/');
+            $normalized = preg_replace('#^(public/)+#', '', $normalized) ?? $normalized;
+            $normalized = preg_replace('#^(storage/)+#', '', $normalized) ?? $normalized;
+
+            return tenant_asset($normalized);
+        };
+    @endphp
+
     <x-slot name="header">
         <h2 class="text-2xl font-semibold text-slate-100">Edit Team</h2>
     </x-slot>
 
     <div class="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
         <div class="rounded-2xl border border-white/10 bg-slate-900/85 p-6">
-            <form method="POST" action="{{ route('tenant.teams.update', $team) }}" class="space-y-5">
+            <form method="POST" action="{{ route('tenant.teams.update', $team) }}" enctype="multipart/form-data" class="space-y-5">
                 @csrf
                 @method('PUT')
                 <div>
@@ -21,6 +41,23 @@
                     <label class="mb-2 block text-sm text-slate-300" for="name">Team Name</label>
                     <input id="name" name="name" value="{{ old('name', $team->name) }}" class="w-full rounded-xl border border-white/10 bg-slate-950/60 text-slate-100" required />
                     @error('name')<p class="mt-1 text-xs text-rose-300">{{ $message }}</p>@enderror
+                </div>
+                <div class="space-y-3">
+                    <label class="mb-2 block text-sm text-slate-300" for="logo">Team Logo</label>
+                    @php
+                        $teamLogoUrl = $mediaUrl($team->logo_path);
+                    @endphp
+                    @if ($teamLogoUrl !== null)
+                        <img src="{{ $teamLogoUrl }}" alt="{{ $team->name }}" class="h-28 w-28 rounded-xl border border-white/10 object-cover" />
+                    @endif
+                    <input id="logo" type="file" name="logo" accept="image/*" class="w-full rounded-xl border border-white/10 bg-slate-950/60 text-slate-200 file:mr-3 file:rounded-lg file:border file:border-white/15 file:bg-white/10 file:px-3 file:py-2 file:text-xs file:text-slate-100" />
+                    @error('logo')<p class="mt-1 text-xs text-rose-300">{{ $message }}</p>@enderror
+                    @if (! empty($team->logo_path))
+                        <label class="inline-flex items-center gap-2 text-sm text-slate-300">
+                            <input type="checkbox" name="remove_logo" value="1" class="rounded border-white/10 bg-slate-950/60" />
+                            Remove current logo
+                        </label>
+                    @endif
                 </div>
                 <div>
                     <label class="mb-2 block text-sm text-slate-300" for="coach_user_id">Coach (Existing Tenant Coach)</label>

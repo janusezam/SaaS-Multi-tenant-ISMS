@@ -1,5 +1,23 @@
 <x-app-layout>
     @php
+        $teamLogoUrl = static function (?string $path): ?string {
+            if ($path === null || trim($path) === '') {
+                return null;
+            }
+
+            $normalizedPath = str_replace('\\', '/', trim($path));
+
+            if (str_starts_with($normalizedPath, 'http://') || str_starts_with($normalizedPath, 'https://')) {
+                return $normalizedPath;
+            }
+
+            $normalizedPath = ltrim($normalizedPath, '/');
+            $normalizedPath = preg_replace('#^(public/)+#', '', $normalizedPath) ?? $normalizedPath;
+            $normalizedPath = preg_replace('#^(storage/)+#', '', $normalizedPath) ?? $normalizedPath;
+
+            return tenant_asset($normalizedPath);
+        };
+
         $selectedSport = (string) request('sport', 'all');
 
         $sportTabs = [
@@ -117,7 +135,18 @@
                                 <p class="mt-3 text-xs text-slate-400">{{ $game->scheduled_at?->format('M d, Y h:i A') }} · {{ $game->venue?->name ?? 'No venue' }}</p>
 
                                 <div class="mt-3 grid grid-cols-[1fr_auto_1fr] items-center gap-3">
-                                    <p class="text-sm font-medium text-slate-100">{{ $game->homeTeam?->name ?? 'TBD Team' }}</p>
+                                    <div class="flex items-center gap-2">
+                                        @php
+                                            $homeName = $game->homeTeam?->name ?? 'TBD Team';
+                                            $homeLogo = $teamLogoUrl($game->homeTeam?->logo_path);
+                                        @endphp
+                                        @if ($homeLogo !== null)
+                                            <img src="{{ $homeLogo }}" alt="{{ $homeName }}" class="h-10 w-10 rounded-full border border-white/15 object-cover" />
+                                        @else
+                                            <span class="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 bg-white/5 text-xs font-semibold text-slate-300">{{ strtoupper(substr((string) $homeName, 0, 1)) }}</span>
+                                        @endif
+                                        <p class="text-sm font-medium text-slate-100">{{ $homeName }}</p>
+                                    </div>
 
                                     @if ($game->status === 'completed')
                                         <p class="rounded-lg border border-emerald-300/35 bg-emerald-500/20 px-3 py-1 text-sm font-semibold text-emerald-100">
@@ -127,7 +156,18 @@
                                         <p class="text-xs uppercase tracking-[0.16em] text-slate-400">VS</p>
                                     @endif
 
-                                    <p class="text-right text-sm font-medium text-slate-100">{{ $game->awayTeam?->name ?? 'TBD Team' }}</p>
+                                    <div class="flex items-center justify-end gap-2">
+                                        @php
+                                            $awayName = $game->awayTeam?->name ?? 'TBD Team';
+                                            $awayLogo = $teamLogoUrl($game->awayTeam?->logo_path);
+                                        @endphp
+                                        <p class="text-right text-sm font-medium text-slate-100">{{ $awayName }}</p>
+                                        @if ($awayLogo !== null)
+                                            <img src="{{ $awayLogo }}" alt="{{ $awayName }}" class="h-10 w-10 rounded-full border border-white/15 object-cover" />
+                                        @else
+                                            <span class="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 bg-white/5 text-xs font-semibold text-slate-300">{{ strtoupper(substr((string) $awayName, 0, 1)) }}</span>
+                                        @endif
+                                    </div>
                                 </div>
 
                                 <div class="mt-4 space-y-2">

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Tenant\StoreTenantUserRequest;
 use App\Http\Requests\Tenant\UpdateTenantUserRequest;
 use App\Models\User;
+use App\Support\TenantPlanLimitService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
@@ -30,6 +31,14 @@ class TenantUserController extends Controller
 
     public function store(StoreTenantUserRequest $request): RedirectResponse
     {
+        $limitService = TenantPlanLimitService::fromCurrentTenant();
+
+        if (! $limitService->hasCapacity('users', User::query()->count())) {
+            return redirect()
+                ->route('tenant.users.index')
+                ->with('status', $limitService->limitReachedMessage('users'));
+        }
+
         User::query()->create($request->validated());
 
         return redirect()

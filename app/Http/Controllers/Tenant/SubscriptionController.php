@@ -6,11 +6,15 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Tenant\PreviewPricingRequest;
 use App\Http\Requests\Tenant\StoreUpgradeRequest;
 use App\Models\Plan;
+use App\Models\Sport;
 use App\Models\Subscription;
 use App\Models\SubscriptionUpgradeRequest;
+use App\Models\Team;
+use App\Models\User;
 use App\Services\BusinessControl\PricingEngine;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
@@ -44,6 +48,19 @@ class SubscriptionController extends Controller
         $expiryDate = $subscription?->due_date ?? $tenant?->currentDueDate();
         $recommendedPlan = $plans
             ->first(fn (Plan $plan): bool => (string) $plan->code !== $currentPlanCode);
+        $currentPlan = $plans->get($currentPlanCode);
+
+        $resourceUsage = [
+            'users' => Schema::hasTable('users') ? User::query()->count() : null,
+            'teams' => Schema::hasTable('teams') ? Team::query()->count() : null,
+            'sports' => Schema::hasTable('sports') ? Sport::query()->count() : null,
+        ];
+
+        $resourceLimits = [
+            'users' => $currentPlan?->max_users,
+            'teams' => $currentPlan?->max_teams,
+            'sports' => $currentPlan?->max_sports,
+        ];
 
         return view('tenant.subscription.show', [
             'subscription' => $subscription,
@@ -54,11 +71,14 @@ class SubscriptionController extends Controller
             'recommendedPlan' => $recommendedPlan,
             'tenantName' => (string) ($tenant?->name ?? 'Tenant School'),
             'currentPlanCode' => $currentPlanCode,
+            'currentPlan' => $currentPlan,
             'currentBillingCycle' => $currentBillingCycle,
             'effectivePrice' => $effectivePrice,
             'expiryDate' => $expiryDate,
             'canSubmitUpgradeRequest' => auth()->user()?->role === 'university_admin',
             'openUpgradeModal' => request()->boolean('openUpgrade'),
+            'resourceUsage' => $resourceUsage,
+            'resourceLimits' => $resourceLimits,
         ]);
     }
 
@@ -92,6 +112,8 @@ class SubscriptionController extends Controller
             abort(404);
         }
 
+        $validated = $request->validated();
+
         if ((string) ($validated['requested_plan'] ?? '') === $tenant->currentPlan()) {
             throw ValidationException::withMessages([
                 'requested_plan' => 'Selected plan is already your current plan.',
@@ -103,8 +125,6 @@ class SubscriptionController extends Controller
                 'request' => 'An upgrade request is already pending.',
             ]);
         }
-
-        $validated = $request->validated();
 
         $quote = $pricingEngine->quote(
             (string) $validated['requested_plan'],

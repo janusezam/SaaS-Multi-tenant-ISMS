@@ -8,7 +8,9 @@ use App\Http\Requests\Tenant\UpdateTeamRequest;
 use App\Models\Sport;
 use App\Models\Team;
 use App\Models\User;
+use App\Support\TenantPlanLimitService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
 class TeamController extends Controller
@@ -44,7 +46,24 @@ class TeamController extends Controller
      */
     public function store(StoreTeamRequest $request): RedirectResponse
     {
+        $limitService = TenantPlanLimitService::fromCurrentTenant();
+
+        if (! $limitService->hasCapacity('teams', Team::query()->count())) {
+            return redirect()
+                ->route('tenant.teams.index')
+                ->with('status', $limitService->limitReachedMessage('teams'));
+        }
+
         $validated = $request->validated();
+
+        if ($request->hasFile('logo')) {
+            $validated['logo_path'] = $request->file('logo')->store(
+                'tenants/'.tenant('id').'/teams/logos',
+                'public'
+            );
+        }
+
+        unset($validated['logo']);
 
         $coachUserId = $validated['coach_user_id'] ?? null;
         unset($validated['coach_user_id']);
@@ -91,6 +110,26 @@ class TeamController extends Controller
     {
         $validated = $request->validated();
 
+        if (($validated['remove_logo'] ?? false) && $team->logo_path !== null) {
+            Storage::disk('public')->delete($team->logo_path);
+            $validated['logo_path'] = null;
+        }
+
+        unset($validated['remove_logo']);
+
+        if ($request->hasFile('logo')) {
+            if ($team->logo_path !== null) {
+                Storage::disk('public')->delete($team->logo_path);
+            }
+
+            $validated['logo_path'] = $request->file('logo')->store(
+                'tenants/'.tenant('id').'/teams/logos',
+                'public'
+            );
+        }
+
+        unset($validated['logo']);
+
         $coachUserId = $validated['coach_user_id'] ?? null;
         unset($validated['coach_user_id']);
 
@@ -116,6 +155,10 @@ class TeamController extends Controller
      */
     public function destroy(Team $team): RedirectResponse
     {
+        if ($team->logo_path !== null) {
+            Storage::disk('public')->delete($team->logo_path);
+        }
+
         $team->delete();
 
         return redirect()->route('tenant.teams.index')->with('status', 'Team deleted successfully.');

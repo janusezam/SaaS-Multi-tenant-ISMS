@@ -1,5 +1,23 @@
 <x-app-layout>
     @php
+        $teamLogoUrl = static function (?string $path): ?string {
+            if ($path === null || trim($path) === '') {
+                return null;
+            }
+
+            $normalizedPath = str_replace('\\', '/', trim($path));
+
+            if (str_starts_with($normalizedPath, 'http://') || str_starts_with($normalizedPath, 'https://')) {
+                return $normalizedPath;
+            }
+
+            $normalizedPath = ltrim($normalizedPath, '/');
+            $normalizedPath = preg_replace('#^(public/)+#', '', $normalizedPath) ?? $normalizedPath;
+            $normalizedPath = preg_replace('#^(storage/)+#', '', $normalizedPath) ?? $normalizedPath;
+
+            return tenant_asset($normalizedPath);
+        };
+
         $hasTeamsTable = \Illuminate\Support\Facades\Schema::hasTable('teams');
         $hasGamesTable = \Illuminate\Support\Facades\Schema::hasTable('games');
 
@@ -127,7 +145,16 @@
                         $opponent = $isHome ? $game->awayTeam?->name : $game->homeTeam?->name;
                     @endphp
                     <article class="rounded-2xl border border-white/10 bg-slate-900/85 p-4">
-                        <p class="text-sm font-semibold text-slate-100">vs {{ $opponent ?? 'TBD Team' }}</p>
+                        <div class="flex items-center gap-2 text-sm font-semibold text-slate-100">
+                            @php
+                                $opponentTeam = $isHome ? $game->awayTeam : $game->homeTeam;
+                                $opponentLogo = $teamLogoUrl($opponentTeam?->logo_path);
+                            @endphp
+                            @if ($opponentLogo !== null)
+                                <img src="{{ $opponentLogo }}" alt="{{ $opponent ?? 'TBD Team' }}" class="h-10 w-10 rounded-full border border-white/15 object-cover" />
+                            @endif
+                            <span>vs {{ $opponent ?? 'TBD Team' }}</span>
+                        </div>
                         <p class="mt-1 text-xs text-slate-400">
                             {{ $game->scheduled_at?->format('M d, Y h:i A') }}
                             · {{ $game->venue?->name ?? 'No venue assigned' }}
@@ -159,9 +186,27 @@
                         @forelse ($completedMatches as $game)
                             <tr>
                                 <td class="px-4 py-3">
-                                    {{ $game->homeTeam?->name ?? 'TBD Team' }}
+                                    <div class="flex items-center gap-2">
+                                        @php
+                                            $homeName = $game->homeTeam?->name ?? 'TBD Team';
+                                            $homeLogo = $teamLogoUrl($game->homeTeam?->logo_path);
+                                        @endphp
+                                        @if ($homeLogo !== null)
+                                            <img src="{{ $homeLogo }}" alt="{{ $homeName }}" class="h-9 w-9 rounded-full border border-white/15 object-cover" />
+                                        @endif
+                                        <span>{{ $homeName }}</span>
+                                    </div>
                                     vs
-                                    {{ $game->awayTeam?->name ?? 'TBD Team' }}
+                                    <div class="mt-1 flex items-center gap-2">
+                                        @php
+                                            $awayName = $game->awayTeam?->name ?? 'TBD Team';
+                                            $awayLogo = $teamLogoUrl($game->awayTeam?->logo_path);
+                                        @endphp
+                                        @if ($awayLogo !== null)
+                                            <img src="{{ $awayLogo }}" alt="{{ $awayName }}" class="h-9 w-9 rounded-full border border-white/15 object-cover" />
+                                        @endif
+                                        <span>{{ $awayName }}</span>
+                                    </div>
                                 </td>
                                 <td class="px-4 py-3 text-cyan-200">{{ $game->home_score ?? 0 }} - {{ $game->away_score ?? 0 }}</td>
                                 <td class="px-4 py-3 text-slate-300">{{ $game->venue?->name ?? 'No venue assigned' }}</td>

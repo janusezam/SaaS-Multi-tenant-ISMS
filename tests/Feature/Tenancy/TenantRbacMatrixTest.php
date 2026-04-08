@@ -122,7 +122,7 @@ test('tenant admin can open and update rbac matrix', function () {
 
     $this->actingAs($admin)->get(route('tenant.rbac.index'))
         ->assertOk()
-        ->assertSeeText('RBAC Matrix (Roles');
+        ->assertSeeText('RBAC Matrix (Modular Access Control)');
 
     $response = $this->actingAs($admin)->put(route('tenant.rbac.update'), [
         'permissions' => [
@@ -221,6 +221,50 @@ test('disabled player attendance permission blocks attendance response', functio
     $this->actingAs($playerUser)
         ->patch(route('tenant.player.assignments.attendance.update', $assignment), [
             'attendance_status' => 'accepted',
+        ])
+        ->assertForbidden();
+});
+
+test('disabled settings workspace permission blocks settings page', function () {
+    User::factory()->create([
+        'role' => 'university_admin',
+        'id' => 997,
+    ]);
+
+    $coach = User::factory()->coach()->create();
+
+    TenantRolePermission::query()->create([
+        'role' => 'team_coach',
+        'permission_key' => 'common.settings.view',
+        'is_enabled' => false,
+        'updated_by_user_id' => 997,
+    ]);
+
+    $this->actingAs($coach)
+        ->get(route('tenant.settings.edit'))
+        ->assertForbidden();
+});
+
+test('disabled support settings permission blocks support report submission', function () {
+    User::factory()->create([
+        'role' => 'university_admin',
+        'id' => 996,
+    ]);
+
+    $coach = User::factory()->coach()->create();
+
+    TenantRolePermission::query()->create([
+        'role' => 'team_coach',
+        'permission_key' => 'common.settings.support.manage',
+        'is_enabled' => false,
+        'updated_by_user_id' => 996,
+    ]);
+
+    $this->actingAs($coach)
+        ->post(route('tenant.settings.support.store'), [
+            'category' => 'bug',
+            'subject' => 'Blocked by RBAC',
+            'message' => 'This request should be blocked by permission middleware.',
         ])
         ->assertForbidden();
 });

@@ -11,6 +11,7 @@ class Team extends Model
     protected $fillable = [
         'sport_id',
         'name',
+        'logo_path',
         'coach_name',
         'coach_email',
         'division',

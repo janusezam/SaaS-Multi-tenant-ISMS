@@ -52,6 +52,11 @@
                                 : ($isPro
                                     ? ['Analytics dashboard', 'Bracket automation', 'CSV and PDF exports']
                                     : ['Sports and team operations', 'Schedules and results', 'Standings and audit trails']);
+                            $featureList = array_merge($featureList, [
+                                'Users: '.($plan->max_users !== null ? number_format((int) $plan->max_users) : 'Unlimited'),
+                                'Teams: '.($plan->max_teams !== null ? number_format((int) $plan->max_teams) : 'Unlimited'),
+                                'Sports: '.($plan->max_sports !== null ? number_format((int) $plan->max_sports) : 'Unlimited'),
+                            ]);
                             $isFeaturedCard = (bool) ($plan->is_featured || $isPro);
                             $badgeLabel = trim((string) ($plan->badge_label ?? ''));
                             if ($badgeLabel === '' && $isFeaturedCard) {

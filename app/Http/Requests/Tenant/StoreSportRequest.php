@@ -26,6 +26,7 @@ class StoreSportRequest extends FormRequest
             'name' => ['required', 'string', 'max:100'],
             'code' => ['required', 'string', 'max:20', 'alpha_dash', 'unique:sports,code'],
             'description' => ['nullable', 'string', 'max:1000'],
+            'cover_photo' => ['nullable', 'image', 'max:5120'],
             'is_active' => ['nullable', 'boolean'],
         ];
     }

@@ -27,6 +27,9 @@
                 <textarea name="marketing_points" rows="3" placeholder="Marketing points (one line per bullet)" class="w-full rounded-xl border border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 dark:border-white/10 dark:bg-slate-950/60 dark:text-slate-100 md:col-span-3"></textarea>
                 <input type="number" step="0.01" min="0" name="monthly_price" placeholder="monthly price" class="w-full rounded-xl border border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 dark:border-white/10 dark:bg-slate-950/60 dark:text-slate-100" required>
                 <input type="number" step="0.01" min="0" name="yearly_price" placeholder="yearly price" class="w-full rounded-xl border border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 dark:border-white/10 dark:bg-slate-950/60 dark:text-slate-100" required>
+                <input type="number" min="1" name="max_users" placeholder="max users (blank = unlimited)" class="w-full rounded-xl border border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 dark:border-white/10 dark:bg-slate-950/60 dark:text-slate-100">
+                <input type="number" min="1" name="max_teams" placeholder="max teams (blank = unlimited)" class="w-full rounded-xl border border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 dark:border-white/10 dark:bg-slate-950/60 dark:text-slate-100">
+                <input type="number" min="1" name="max_sports" placeholder="max sports (blank = unlimited)" class="w-full rounded-xl border border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 dark:border-white/10 dark:bg-slate-950/60 dark:text-slate-100">
                 <label class="inline-flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300 md:col-span-3">
                     <input type="checkbox" name="is_active" value="1" checked class="rounded border-slate-300 bg-white text-cyan-600 dark:border-white/20 dark:bg-slate-900 dark:text-cyan-500">
                     Active
@@ -63,6 +66,7 @@
                         <th class="px-4 py-3 text-left">Monthly</th>
                         <th class="px-4 py-3 text-left">Yearly</th>
                         <th class="px-4 py-3 text-left">Yearly Save %</th>
+                        <th class="px-4 py-3 text-left">Limits</th>
                         <th class="px-4 py-3 text-left">Feature Flags</th>
                         <th class="px-4 py-3 text-left">Status</th>
                         <th class="px-4 py-3 text-left">Actions</th>
@@ -81,6 +85,11 @@
                             <td class="px-4 py-3">${{ number_format((float) $plan->monthly_price, 2) }}</td>
                             <td class="px-4 py-3">${{ number_format((float) $plan->yearly_price, 2) }}</td>
                             <td class="px-4 py-3">{{ number_format((float) $plan->yearly_discount_percent, 2) }}%</td>
+                            <td class="px-4 py-3 text-xs text-slate-600 dark:text-slate-300">
+                                <p>users: {{ $plan->max_users ?? 'unlimited' }}</p>
+                                <p class="mt-1">teams: {{ $plan->max_teams ?? 'unlimited' }}</p>
+                                <p class="mt-1">sports: {{ $plan->max_sports ?? 'unlimited' }}</p>
+                            </td>
                             <td class="px-4 py-3 text-xs">
                                 <div class="flex flex-wrap gap-1">
                                     @php
@@ -102,44 +111,68 @@
                                     <span class="mt-1 inline-flex rounded-full border border-cyan-300/40 bg-cyan-500/20 px-2.5 py-1 text-xs font-semibold text-cyan-100">Featured</span>
                                 @endif
                             </td>
-                            <td class="px-4 py-3">
-                                <form method="POST" action="{{ route('central.business-control.plans.update', $plan) }}" class="grid gap-2 lg:grid-cols-4">
+                            <td class="px-4 py-3 align-top">
+                                <form method="POST" action="{{ route('central.business-control.plans.update', $plan) }}" class="min-w-[560px] space-y-3 rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-white/10 dark:bg-slate-950/40">
                                     @csrf
                                     @method('PATCH')
-                                    <input type="text" name="code" value="{{ $plan->code }}" class="rounded border border-slate-300 bg-white text-slate-900 dark:border-white/10 dark:bg-slate-950/60 dark:text-slate-100">
-                                    <input type="text" name="name" value="{{ $plan->name }}" class="rounded border border-slate-300 bg-white text-slate-900 dark:border-white/10 dark:bg-slate-950/60 dark:text-slate-100">
-                                    <input type="text" name="marketing_tagline" value="{{ $plan->marketing_tagline }}" placeholder="tagline" class="rounded border border-slate-300 bg-white text-slate-900 dark:border-white/10 dark:bg-slate-950/60 dark:text-slate-100">
-                                    <input type="text" name="badge_label" value="{{ $plan->badge_label }}" placeholder="badge" class="rounded border border-slate-300 bg-white text-slate-900 dark:border-white/10 dark:bg-slate-950/60 dark:text-slate-100">
-                                    <input type="text" name="cta_label" value="{{ $plan->cta_label }}" placeholder="cta" class="rounded border border-slate-300 bg-white text-slate-900 dark:border-white/10 dark:bg-slate-950/60 dark:text-slate-100">
-                                    <textarea name="marketing_points" rows="2" placeholder="one line per bullet" class="rounded border border-slate-300 bg-white text-slate-900 dark:border-white/10 dark:bg-slate-950/60 dark:text-slate-100 lg:col-span-4">{{ $plan->marketing_points }}</textarea>
-                                    <input type="number" step="0.01" min="0" name="monthly_price" value="{{ $plan->monthly_price }}" class="rounded border border-slate-300 bg-white text-slate-900 dark:border-white/10 dark:bg-slate-950/60 dark:text-slate-100">
-                                    <input type="number" step="0.01" min="0" name="yearly_price" value="{{ $plan->yearly_price }}" class="rounded border border-slate-300 bg-white text-slate-900 dark:border-white/10 dark:bg-slate-950/60 dark:text-slate-100">
-                                    <input type="text" value="{{ number_format((float) $plan->yearly_discount_percent, 2) }}% (auto)" class="rounded border border-slate-300 bg-slate-100 text-slate-600 dark:border-white/10 dark:bg-slate-900/60 dark:text-slate-300" readonly>
-                                    <input type="number" min="1" max="9999" name="sort_order" value="{{ $plan->sort_order }}" class="rounded border border-slate-300 bg-white text-slate-900 dark:border-white/10 dark:bg-slate-950/60 dark:text-slate-100">
-                                    <select name="is_active" class="rounded border border-slate-300 bg-white text-slate-900 dark:border-white/10 dark:bg-slate-950/60 dark:text-slate-100">
-                                        <option value="1" @selected($plan->is_active)>Active</option>
-                                        <option value="0" @selected(! $plan->is_active)>Inactive</option>
-                                    </select>
-                                    <select name="is_featured" class="rounded border border-slate-300 bg-white text-slate-900 dark:border-white/10 dark:bg-slate-950/60 dark:text-slate-100">
-                                        <option value="1" @selected($plan->is_featured)>Featured</option>
-                                        <option value="0" @selected(! $plan->is_featured)>Standard</option>
-                                    </select>
-                                    <label class="inline-flex items-center gap-2 text-xs text-slate-700 dark:text-slate-300">
-                                        <input type="hidden" name="feature_flags[analytics]" value="0">
-                                        <input type="checkbox" name="feature_flags[analytics]" value="1" @checked(($flags['analytics'] ?? false)) class="rounded border-slate-300 bg-white text-cyan-600 dark:border-white/20 dark:bg-slate-900 dark:text-cyan-500">
-                                        Analytics Dashboard
-                                    </label>
-                                    <label class="inline-flex items-center gap-2 text-xs text-slate-700 dark:text-slate-300">
-                                        <input type="hidden" name="feature_flags[bracket]" value="0">
-                                        <input type="checkbox" name="feature_flags[bracket]" value="1" @checked(($flags['bracket'] ?? false)) class="rounded border-slate-300 bg-white text-cyan-600 dark:border-white/20 dark:bg-slate-900 dark:text-cyan-500">
-                                        Bracket Generator
-                                    </label>
-                                    <button type="submit" class="rounded border border-cyan-300 bg-cyan-100 px-3 py-1 text-cyan-800 dark:border-cyan-300/30 dark:bg-cyan-500/20 dark:text-cyan-100">Update</button>
+                                    <div class="grid gap-2 md:grid-cols-2">
+                                        <input type="text" name="code" value="{{ $plan->code }}" placeholder="code" class="rounded border border-slate-300 bg-white text-slate-900 dark:border-white/10 dark:bg-slate-950/60 dark:text-slate-100">
+                                        <input type="text" name="name" value="{{ $plan->name }}" placeholder="name" class="rounded border border-slate-300 bg-white text-slate-900 dark:border-white/10 dark:bg-slate-950/60 dark:text-slate-100">
+                                        <input type="number" min="1" max="9999" name="sort_order" value="{{ $plan->sort_order }}" placeholder="sort order" class="rounded border border-slate-300 bg-white text-slate-900 dark:border-white/10 dark:bg-slate-950/60 dark:text-slate-100">
+                                        <select name="is_active" class="rounded border border-slate-300 bg-white text-slate-900 dark:border-white/10 dark:bg-slate-950/60 dark:text-slate-100">
+                                            <option value="1" @selected($plan->is_active)>Active</option>
+                                            <option value="0" @selected(! $plan->is_active)>Inactive</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="grid gap-2 md:grid-cols-3">
+                                        <input type="number" step="0.01" min="0" name="monthly_price" value="{{ $plan->monthly_price }}" placeholder="monthly price" class="rounded border border-slate-300 bg-white text-slate-900 dark:border-white/10 dark:bg-slate-950/60 dark:text-slate-100">
+                                        <input type="number" step="0.01" min="0" name="yearly_price" value="{{ $plan->yearly_price }}" placeholder="yearly price" class="rounded border border-slate-300 bg-white text-slate-900 dark:border-white/10 dark:bg-slate-950/60 dark:text-slate-100">
+                                        <input type="text" value="{{ number_format((float) $plan->yearly_discount_percent, 2) }}% (auto)" class="rounded border border-slate-300 bg-slate-100 text-slate-600 dark:border-white/10 dark:bg-slate-900/60 dark:text-slate-300" readonly>
+                                    </div>
+
+                                    <div class="grid gap-2 md:grid-cols-3">
+                                        <input type="number" min="1" name="max_users" value="{{ $plan->max_users }}" placeholder="max users (blank = unlimited)" class="rounded border border-slate-300 bg-white text-slate-900 dark:border-white/10 dark:bg-slate-950/60 dark:text-slate-100">
+                                        <input type="number" min="1" name="max_teams" value="{{ $plan->max_teams }}" placeholder="max teams (blank = unlimited)" class="rounded border border-slate-300 bg-white text-slate-900 dark:border-white/10 dark:bg-slate-950/60 dark:text-slate-100">
+                                        <input type="number" min="1" name="max_sports" value="{{ $plan->max_sports }}" placeholder="max sports (blank = unlimited)" class="rounded border border-slate-300 bg-white text-slate-900 dark:border-white/10 dark:bg-slate-950/60 dark:text-slate-100">
+                                    </div>
+
+                                    <div class="grid gap-2 md:grid-cols-2">
+                                        <input type="text" name="marketing_tagline" value="{{ $plan->marketing_tagline }}" placeholder="tagline" class="rounded border border-slate-300 bg-white text-slate-900 dark:border-white/10 dark:bg-slate-950/60 dark:text-slate-100">
+                                        <input type="text" name="badge_label" value="{{ $plan->badge_label }}" placeholder="badge" class="rounded border border-slate-300 bg-white text-slate-900 dark:border-white/10 dark:bg-slate-950/60 dark:text-slate-100">
+                                    </div>
+
+                                    <input type="text" name="cta_label" value="{{ $plan->cta_label }}" placeholder="cta button label" class="w-full rounded border border-slate-300 bg-white text-slate-900 dark:border-white/10 dark:bg-slate-950/60 dark:text-slate-100">
+                                    <textarea name="marketing_points" rows="2" placeholder="one line per bullet" class="w-full rounded border border-slate-300 bg-white text-slate-900 dark:border-white/10 dark:bg-slate-950/60 dark:text-slate-100">{{ $plan->marketing_points }}</textarea>
+
+                                    <div class="grid gap-2 md:grid-cols-2">
+                                        <select name="is_featured" class="rounded border border-slate-300 bg-white text-slate-900 dark:border-white/10 dark:bg-slate-950/60 dark:text-slate-100">
+                                            <option value="1" @selected($plan->is_featured)>Featured</option>
+                                            <option value="0" @selected(! $plan->is_featured)>Standard</option>
+                                        </select>
+                                        <div class="flex flex-wrap items-center gap-3">
+                                            <label class="inline-flex items-center gap-2 text-xs text-slate-700 dark:text-slate-300">
+                                                <input type="hidden" name="feature_flags[analytics]" value="0">
+                                                <input type="checkbox" name="feature_flags[analytics]" value="1" @checked(($flags['analytics'] ?? false)) class="rounded border-slate-300 bg-white text-cyan-600 dark:border-white/20 dark:bg-slate-900 dark:text-cyan-500">
+                                                Analytics Dashboard
+                                            </label>
+                                            <label class="inline-flex items-center gap-2 text-xs text-slate-700 dark:text-slate-300">
+                                                <input type="hidden" name="feature_flags[bracket]" value="0">
+                                                <input type="checkbox" name="feature_flags[bracket]" value="1" @checked(($flags['bracket'] ?? false)) class="rounded border-slate-300 bg-white text-cyan-600 dark:border-white/20 dark:bg-slate-900 dark:text-cyan-500">
+                                                Bracket Generator
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex flex-wrap items-center gap-2">
+                                        <button type="submit" class="rounded border border-cyan-300 bg-cyan-100 px-3 py-1 text-cyan-800 dark:border-cyan-300/30 dark:bg-cyan-500/20 dark:text-cyan-100">Update</button>
+                                        @if (in_array(strtolower((string) $plan->code), ['basic', 'pro'], true))
+                                            <span class="inline-flex rounded border border-slate-300 bg-slate-100 px-2 py-1 text-xs text-slate-700 dark:border-white/15 dark:bg-slate-950/70 dark:text-slate-300">Protected</span>
+                                        @endif
+                                    </div>
                                 </form>
                                 <div class="mt-2">
-                                    @if (in_array(strtolower((string) $plan->code), ['basic', 'pro'], true))
-                                        <span class="inline-flex rounded border border-slate-300 bg-slate-100 px-2 py-1 text-xs text-slate-700 dark:border-white/15 dark:bg-slate-950/70 dark:text-slate-300">Protected</span>
-                                    @else
+                                    @if (! in_array(strtolower((string) $plan->code), ['basic', 'pro'], true))
                                         <form method="POST" action="{{ route('central.business-control.plans.destroy', $plan) }}" onsubmit="return confirm('Delete this plan? This cannot be undone.');">
                                             @csrf
                                             @method('DELETE')
@@ -152,7 +185,7 @@
                     @endforeach
                     @if ($plans->isEmpty())
                         <tr>
-                            <td colspan="9" class="px-4 py-6 text-center text-sm text-slate-500 dark:text-slate-400">No plans found yet.</td>
+                            <td colspan="10" class="px-4 py-6 text-center text-sm text-slate-500 dark:text-slate-400">No plans found yet.</td>
                         </tr>
                     @endif
                 </tbody>

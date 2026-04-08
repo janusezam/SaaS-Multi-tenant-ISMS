@@ -15,7 +15,9 @@ use App\Http\Controllers\Tenant\StandingsController;
 use App\Http\Controllers\Tenant\SubscriptionController;
 use App\Http\Controllers\Tenant\TeamController;
 use App\Http\Controllers\Tenant\TenantAdminInviteController;
+use App\Http\Controllers\Tenant\TenantProfileController;
 use App\Http\Controllers\Tenant\TenantRbacController;
+use App\Http\Controllers\Tenant\TenantSettingsController;
 use App\Http\Controllers\Tenant\TenantUserController;
 use App\Http\Controllers\Tenant\VenueController;
 use Illuminate\Support\Facades\Route;
@@ -62,11 +64,16 @@ Route::middleware([
     });
 
     Route::middleware(['auth', 'tenant.password.updated', 'verified'])->group(function () {
-        Route::get('/app/dashboard', [DashboardController::class, 'index'])->name('tenant.dashboard');
-        Route::get('/app/standings', [StandingsController::class, 'index'])->name('tenant.standings.index');
-        Route::get('/app/subscription', [SubscriptionController::class, 'show'])->name('tenant.subscription.show');
-        Route::get('/app/subscription/pricing-preview', [SubscriptionController::class, 'preview'])->name('tenant.subscription.preview');
-        Route::post('/app/subscription/upgrade-requests', [SubscriptionController::class, 'submit'])->name('tenant.subscription.upgrade-requests.store');
+        Route::get('/app/dashboard', [DashboardController::class, 'index'])->middleware('check.permission:common.dashboard.view')->name('tenant.dashboard');
+        Route::get('/app/settings', [TenantSettingsController::class, 'edit'])->middleware('check.permission:common.settings.view')->name('tenant.settings.edit');
+        Route::patch('/app/settings', [TenantSettingsController::class, 'update'])->middleware('check.permission:common.settings.customization.manage')->name('tenant.settings.update');
+        Route::post('/app/settings/support', [TenantSettingsController::class, 'storeSupport'])->middleware('check.permission:common.settings.support.manage')->name('tenant.settings.support.store');
+        Route::get('/app/profile', [TenantProfileController::class, 'edit'])->middleware('check.permission:common.profile.manage')->name('tenant.profile.edit');
+        Route::patch('/app/profile', [TenantProfileController::class, 'update'])->middleware('check.permission:common.profile.manage')->name('tenant.profile.update');
+        Route::get('/app/standings', [StandingsController::class, 'index'])->middleware('check.permission:common.standings.view')->name('tenant.standings.index');
+        Route::get('/app/subscription', [SubscriptionController::class, 'show'])->middleware('check.permission:common.subscription.view')->name('tenant.subscription.show');
+        Route::get('/app/subscription/pricing-preview', [SubscriptionController::class, 'preview'])->middleware('check.permission:common.subscription.view')->name('tenant.subscription.preview');
+        Route::post('/app/subscription/upgrade-requests', [SubscriptionController::class, 'submit'])->middleware('check.permission:common.subscription.view')->name('tenant.subscription.upgrade-requests.store');
 
         Route::redirect('/app/oach/schdules', '/app/coach/schedules');
         Route::redirect('/app/oach/my-team', '/app/coach/my-team');

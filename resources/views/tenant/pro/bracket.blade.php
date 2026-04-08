@@ -1,4 +1,24 @@
 <x-app-layout>
+    @php
+        $logoUrl = static function (?string $path): ?string {
+            if ($path === null || trim($path) === '') {
+                return null;
+            }
+
+            $normalizedPath = str_replace('\\', '/', trim($path));
+
+            if (str_starts_with($normalizedPath, 'http://') || str_starts_with($normalizedPath, 'https://')) {
+                return $normalizedPath;
+            }
+
+            $normalizedPath = ltrim($normalizedPath, '/');
+            $normalizedPath = preg_replace('#^(public/)+#', '', $normalizedPath) ?? $normalizedPath;
+            $normalizedPath = preg_replace('#^(storage/)+#', '', $normalizedPath) ?? $normalizedPath;
+
+            return tenant_asset($normalizedPath);
+        };
+    @endphp
+
     <x-slot name="header">
         <h2 class="text-2xl font-semibold text-slate-100">Bracket Generator</h2>
     </x-slot>
@@ -71,13 +91,41 @@
                                         {{ $isCompleted ? 'Completed' : 'Scheduled' }}
                                     </span>
                                 </div>
-                                <p class="mt-1 text-sm text-slate-100">{{ $match['home'] }}</p>
+                                <div class="mt-1 flex items-center gap-2 text-sm text-slate-100">
+                                    @php
+                                        $homeLogoUrl = $logoUrl($match['home_team_logo_path'] ?? null);
+                                    @endphp
+                                    @if ($homeLogoUrl !== null)
+                                        <img src="{{ $homeLogoUrl }}" alt="{{ $match['home'] }}" class="h-9 w-9 rounded-full border border-white/15 object-cover" />
+                                    @else
+                                        <span class="flex h-9 w-9 items-center justify-center rounded-full border border-white/15 bg-white/5 text-xs font-semibold text-slate-300">{{ strtoupper(substr((string) $match['home'], 0, 1)) }}</span>
+                                    @endif
+                                    <span>{{ $match['home'] }}</span>
+                                </div>
                                 <p class="text-xs text-slate-500">vs</p>
-                                <p class="text-sm text-slate-100">{{ $match['away'] }}</p>
+                                <div class="flex items-center gap-2 text-sm text-slate-100">
+                                    @php
+                                        $awayLogoUrl = $logoUrl($match['away_team_logo_path'] ?? null);
+                                    @endphp
+                                    @if ($awayLogoUrl !== null)
+                                        <img src="{{ $awayLogoUrl }}" alt="{{ $match['away'] }}" class="h-9 w-9 rounded-full border border-white/15 object-cover" />
+                                    @else
+                                        <span class="flex h-9 w-9 items-center justify-center rounded-full border border-white/15 bg-white/5 text-xs font-semibold text-slate-300">{{ strtoupper(substr((string) $match['away'], 0, 1)) }}</span>
+                                    @endif
+                                    <span>{{ $match['away'] }}</span>
+                                </div>
 
                                 @if (($hasStoredBracket ?? false) && isset($match['id']))
                                     @if (!empty($match['winner']))
-                                        <p class="mt-2 rounded-lg border border-emerald-300/35 bg-emerald-500/20 px-2 py-1 text-xs font-semibold text-emerald-100">Winner: {{ $match['winner'] }}</p>
+                                        @php
+                                            $winnerLogoUrl = $logoUrl($match['winner_team_logo_path'] ?? null);
+                                        @endphp
+                                        <p class="mt-2 flex items-center gap-2 rounded-lg border border-emerald-300/35 bg-emerald-500/20 px-2 py-1 text-xs font-semibold text-emerald-100">
+                                            @if ($winnerLogoUrl !== null)
+                                                <img src="{{ $winnerLogoUrl }}" alt="{{ $match['winner'] }}" class="h-7 w-7 rounded-full border border-emerald-200/40 object-cover" />
+                                            @endif
+                                            <span>Winner: {{ $match['winner'] }}</span>
+                                        </p>
                                     @elseif (!empty($match['home_team_id']) && !empty($match['away_team_id']))
                                         <form method="POST" action="{{ route('tenant.pro.bracket.matches.winner', $match['id']) }}" class="mt-2 flex items-center gap-2">
                                             @csrf

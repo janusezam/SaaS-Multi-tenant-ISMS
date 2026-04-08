@@ -2,6 +2,7 @@
 
 use App\Models\Plan;
 use App\Models\SuperAdmin;
+use App\Models\TenantSupportTicket;
 
 test('business control dashboard requires super admin authentication', function () {
     $this->get(route('central.business-control.index'))
@@ -47,6 +48,60 @@ test('authenticated super admin can view all business control pages', function (
         ->get(route('central.business-control.upgrade-requests.index'))
         ->assertOk()
         ->assertSee('Upgrade Requests');
+
+    $this->actingAs($superAdmin, 'super_admin')
+        ->get(route('central.business-control.support-updates.index'))
+        ->assertOk()
+        ->assertSee('Support & Updates');
+});
+
+test('super admin can post updates and resolve tenant reports', function () {
+    $superAdmin = SuperAdmin::query()->create([
+        'name' => 'Support Queue Admin',
+        'email' => 'support-queue-admin@example.test',
+        'password' => 'password',
+    ]);
+
+    $ticket = TenantSupportTicket::query()->create([
+        'tenant_id' => 'tenant-alpha',
+        'tenant_name' => 'Tenant Alpha',
+        'reported_by_user_id' => 1,
+        'reported_by_name' => 'Tenant User',
+        'reported_by_email' => 'tenant-user@example.test',
+        'reported_by_role' => 'university_admin',
+        'category' => 'bug',
+        'subject' => 'Scoreboard refresh issue',
+        'message' => 'Scoreboard does not refresh after result update.',
+        'status' => 'open',
+    ]);
+
+    $this->actingAs($superAdmin, 'super_admin')
+        ->post(route('central.business-control.support-updates.updates.store'), [
+            'title' => 'April Maintenance Rollup',
+            'summary' => 'Improved support tooling and tenant profile controls.',
+            'version' => 'v1.1.0',
+            'source' => 'manual',
+            'is_published' => 1,
+        ])
+        ->assertRedirect(route('central.business-control.support-updates.index'));
+
+    $this->assertDatabaseHas('system_updates', [
+        'title' => 'April Maintenance Rollup',
+        'version' => 'v1.1.0',
+    ]);
+
+    $this->actingAs($superAdmin, 'super_admin')
+        ->patch(route('central.business-control.support-updates.tickets.update', $ticket), [
+            'status' => 'resolved',
+            'central_note' => 'Patched and deployed.',
+        ])
+        ->assertRedirect(route('central.business-control.support-updates.index'));
+
+    $this->assertDatabaseHas('tenant_support_tickets', [
+        'id' => $ticket->id,
+        'status' => 'resolved',
+        'central_note' => 'Patched and deployed.',
+    ]);
 });
 
 test('plan can be created when sort order is omitted', function () {

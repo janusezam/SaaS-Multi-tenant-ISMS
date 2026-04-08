@@ -5,7 +5,7 @@
 
     <div class="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
         <div class="rounded-2xl border border-white/10 bg-slate-900/85 p-6">
-            <form method="POST" action="{{ route('tenant.teams.store') }}" class="space-y-5">
+            <form method="POST" action="{{ route('tenant.teams.store') }}" enctype="multipart/form-data" class="space-y-5">
                 @csrf
                 <div>
                     <label class="mb-2 block text-sm text-slate-300" for="sport_id">Sport</label>
@@ -21,6 +21,11 @@
                     <label class="mb-2 block text-sm text-slate-300" for="name">Team Name</label>
                     <input id="name" name="name" value="{{ old('name') }}" class="w-full rounded-xl border border-white/10 bg-slate-950/60 text-slate-100" required />
                     @error('name')<p class="mt-1 text-xs text-rose-300">{{ $message }}</p>@enderror
+                </div>
+                <div>
+                    <label class="mb-2 block text-sm text-slate-300" for="logo">Team Logo</label>
+                    <input id="logo" type="file" name="logo" accept="image/*" class="w-full rounded-xl border border-white/10 bg-slate-950/60 text-slate-200 file:mr-3 file:rounded-lg file:border file:border-white/15 file:bg-white/10 file:px-3 file:py-2 file:text-xs file:text-slate-100" />
+                    @error('logo')<p class="mt-1 text-xs text-rose-300">{{ $message }}</p>@enderror
                 </div>
                 <div>
                     <label class="mb-2 block text-sm text-slate-300" for="coach_user_id">Coach (Existing Tenant Coach)</label>

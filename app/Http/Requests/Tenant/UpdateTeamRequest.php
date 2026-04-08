@@ -26,6 +26,8 @@ class UpdateTeamRequest extends FormRequest
         return [
             'sport_id' => ['required', 'integer', 'exists:sports,id'],
             'name' => ['required', 'string', 'max:120'],
+            'logo' => ['nullable', 'image', 'max:4096'],
+            'remove_logo' => ['nullable', 'boolean'],
             'coach_user_id' => ['nullable', 'integer', Rule::exists('users', 'id')],
             'coach_name' => ['nullable', 'string', 'max:120'],
             'coach_email' => ['nullable', 'email', 'max:255'],

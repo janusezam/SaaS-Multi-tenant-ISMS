@@ -6,7 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Tenant\StoreSportRequest;
 use App\Http\Requests\Tenant\UpdateSportRequest;
 use App\Models\Sport;
+use App\Support\TenantPlanLimitService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
 class SportController extends Controller
@@ -39,7 +41,24 @@ class SportController extends Controller
      */
     public function store(StoreSportRequest $request): RedirectResponse
     {
-        Sport::query()->create($request->validated());
+        $limitService = TenantPlanLimitService::fromCurrentTenant();
+
+        if (! $limitService->hasCapacity('sports', Sport::query()->count())) {
+            return redirect()
+                ->route('tenant.sports.index')
+                ->with('status', $limitService->limitReachedMessage('sports'));
+        }
+
+        $validated = $request->validated();
+
+        if ($request->hasFile('cover_photo')) {
+            $validated['cover_photo_path'] = $request->file('cover_photo')->store(
+                'tenants/'.tenant('id').'/sports/covers',
+                'public'
+            );
+        }
+
+        Sport::query()->create($validated);
 
         return redirect()->route('tenant.sports.index')->with('status', 'Sport created successfully.');
     }
@@ -59,7 +78,27 @@ class SportController extends Controller
      */
     public function update(UpdateSportRequest $request, Sport $sport): RedirectResponse
     {
-        $sport->update($request->validated());
+        $validated = $request->validated();
+
+        if (($validated['remove_cover_photo'] ?? false) && $sport->cover_photo_path !== null) {
+            Storage::disk('public')->delete($sport->cover_photo_path);
+            $validated['cover_photo_path'] = null;
+        }
+
+        unset($validated['remove_cover_photo']);
+
+        if ($request->hasFile('cover_photo')) {
+            if ($sport->cover_photo_path !== null) {
+                Storage::disk('public')->delete($sport->cover_photo_path);
+            }
+
+            $validated['cover_photo_path'] = $request->file('cover_photo')->store(
+                'tenants/'.tenant('id').'/sports/covers',
+                'public'
+            );
+        }
+
+        $sport->update($validated);
 
         return redirect()->route('tenant.sports.index')->with('status', 'Sport updated successfully.');
     }
@@ -69,6 +108,10 @@ class SportController extends Controller
      */
     public function destroy(Sport $sport): RedirectResponse
     {
+        if ($sport->cover_photo_path !== null) {
+            Storage::disk('public')->delete($sport->cover_photo_path);
+        }
+
         $sport->delete();
 
         return redirect()->route('tenant.sports.index')->with('status', 'Sport deleted successfully.');

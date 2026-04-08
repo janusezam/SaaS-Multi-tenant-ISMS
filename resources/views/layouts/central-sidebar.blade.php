@@ -19,6 +19,8 @@
 
         <a href="{{ route('central.business-control.index') }}" class="block rounded-lg px-3 py-2 {{ request()->routeIs('central.business-control.*') ? 'bg-cyan-500/20 text-cyan-100 border border-cyan-300/30' : 'isms-sidebar-link hover:bg-white/5 border border-transparent' }}">Business Control</a>
 
+        <a href="{{ route('central.business-control.support-updates.index') }}" class="block rounded-lg px-3 py-2 {{ request()->routeIs('central.business-control.support-updates.*') ? 'bg-cyan-500/20 text-cyan-100 border border-cyan-300/30' : 'isms-sidebar-link hover:bg-white/5 border border-transparent' }}">Support &amp; Updates</a>
+
         <a href="{{ route('central.tenant-monitoring.index') }}" class="block rounded-lg px-3 py-2 {{ request()->routeIs('central.tenant-monitoring.*') ? 'bg-cyan-500/20 text-cyan-100 border border-cyan-300/30' : 'isms-sidebar-link hover:bg-white/5 border border-transparent' }}">Tenant Monitoring</a>
 
         <a href="{{ route('central.subscription-notification-logs.index') }}" class="block rounded-lg px-3 py-2 {{ request()->routeIs('central.subscription-notification-logs.*') ? 'bg-cyan-500/20 text-cyan-100 border border-cyan-300/30' : 'isms-sidebar-link hover:bg-white/5 border border-transparent' }}">Notification Logs</a>

@@ -42,6 +42,21 @@
         $defaultBillingCycle = $currentBillingCycle === 'yearly' ? 'yearly' : 'monthly';
         $isCurrentPlanBasic = $currentPlanCode === 'basic';
         $isCurrentPlanPro = $currentPlanCode === 'pro';
+        $limitText = static fn (?int $value): string => $value === null ? 'Unlimited' : number_format($value);
+
+        $basicLimits = [
+            'users' => $basicPlan?->max_users,
+            'teams' => $basicPlan?->max_teams,
+            'sports' => $basicPlan?->max_sports,
+        ];
+
+        $proLimits = [
+            'users' => $proPlan?->max_users,
+            'teams' => $proPlan?->max_teams,
+            'sports' => $proPlan?->max_sports,
+        ];
+
+        $usageKeys = ['users', 'teams', 'sports'];
     @endphp
 
     <div
@@ -88,6 +103,34 @@
                 <div class="px-4 py-3">
                     <p class="text-[11px] uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">Effective Price</p>
                     <p class="mt-1 font-semibold text-slate-900 dark:text-slate-100">${{ number_format($effectivePrice, 2) }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-slate-900/85">
+            <div class="px-4 py-3">
+                <h3 class="text-sm font-semibold uppercase tracking-[0.14em] text-slate-600 dark:text-slate-300">Plan Limits and Usage</h3>
+                <div class="mt-3 grid gap-3 sm:grid-cols-3">
+                    @foreach ($usageKeys as $key)
+                        @php
+                            $used = $resourceUsage[$key] ?? null;
+                            $limit = $resourceLimits[$key] ?? null;
+                            $remaining = $used !== null && $limit !== null ? max(0, $limit - $used) : null;
+                        @endphp
+                        <div class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 dark:border-white/10 dark:bg-slate-950/40">
+                            <p class="text-xs uppercase tracking-[0.12em] text-slate-500 dark:text-slate-400">{{ ucfirst($key) }}</p>
+                            <p class="mt-1 text-sm font-semibold text-slate-900 dark:text-slate-100">
+                                {{ $used !== null ? number_format($used) : 'N/A' }} / {{ $limitText($limit) }}
+                            </p>
+                            <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                                @if ($remaining !== null)
+                                    Remaining: {{ number_format($remaining) }}
+                                @else
+                                    No hard cap
+                                @endif
+                            </p>
+                        </div>
+                    @endforeach
                 </div>
             </div>
         </div>
@@ -149,6 +192,7 @@
 
                 <ul class="space-y-2 text-sm">
                     <li class="flex items-start gap-2 text-slate-700 dark:text-slate-200"><span class="mt-[2px] text-emerald-600 dark:text-emerald-300">✓</span><span>Sports, venues, teams, players, and schedules management</span></li>
+                    <li class="flex items-start gap-2 text-slate-700 dark:text-slate-200"><span class="mt-[2px] text-emerald-600 dark:text-emerald-300">✓</span><span>Up to {{ $limitText($basicLimits['users']) }} users, {{ $limitText($basicLimits['teams']) }} teams, and {{ $limitText($basicLimits['sports']) }} sports</span></li>
                     <li class="flex items-start gap-2 text-slate-700 dark:text-slate-200"><span class="mt-[2px] text-emerald-600 dark:text-emerald-300">✓</span><span>Result submission and standings computation</span></li>
                     <li class="flex items-start gap-2 text-slate-700 dark:text-slate-200"><span class="mt-[2px] text-emerald-600 dark:text-emerald-300">✓</span><span>Game result audit trail</span></li>
                     <li class="flex items-start gap-2 text-slate-500 dark:text-slate-400"><span class="mt-[2px] text-rose-500 dark:text-rose-300">✕</span><span>Advanced analytics <span class="ml-1 rounded bg-rose-100 px-1.5 py-0.5 text-[10px] uppercase tracking-[0.12em] text-rose-700 dark:bg-rose-500/20 dark:text-rose-200">Pro only</span></span></li>
@@ -214,6 +258,7 @@
 
                 <ul class="space-y-2 text-sm">
                     <li class="flex items-start gap-2 text-slate-700 dark:text-slate-200"><span class="mt-[2px] text-emerald-600 dark:text-emerald-300">✓</span><span>Everything in Basic</span></li>
+                    <li class="flex items-start gap-2 text-slate-700 dark:text-slate-200"><span class="mt-[2px] text-emerald-600 dark:text-emerald-300">✓</span><span>Up to {{ $limitText($proLimits['users']) }} users, {{ $limitText($proLimits['teams']) }} teams, and {{ $limitText($proLimits['sports']) }} sports</span></li>
                     <li class="flex items-start gap-2 text-slate-700 dark:text-slate-200"><span class="mt-[2px] text-emerald-600 dark:text-emerald-300">✓</span><span>Advanced intramural analytics dashboard</span></li>
                     <li class="flex items-start gap-2 text-slate-700 dark:text-slate-200"><span class="mt-[2px] text-emerald-600 dark:text-emerald-300">✓</span><span>Bracket generator with winner progression</span></li>
                     <li class="flex items-start gap-2 text-slate-700 dark:text-slate-200"><span class="mt-[2px] text-emerald-600 dark:text-emerald-300">✓</span><span>Bracket and result audit history</span></li>
@@ -300,6 +345,16 @@
                                 @foreach ($marketingPoints as $point)
                                     <li class="flex items-start gap-2 text-slate-700 dark:text-slate-200"><span class="mt-[2px] text-emerald-600 dark:text-emerald-300">✓</span><span>{{ $point }}</span></li>
                                 @endforeach
+                                <li class="flex items-start gap-2 text-slate-700 dark:text-slate-200"><span class="mt-[2px] text-emerald-600 dark:text-emerald-300">✓</span><span>Users: {{ $limitText($plan->max_users) }}</span></li>
+                                <li class="flex items-start gap-2 text-slate-700 dark:text-slate-200"><span class="mt-[2px] text-emerald-600 dark:text-emerald-300">✓</span><span>Teams: {{ $limitText($plan->max_teams) }}</span></li>
+                                <li class="flex items-start gap-2 text-slate-700 dark:text-slate-200"><span class="mt-[2px] text-emerald-600 dark:text-emerald-300">✓</span><span>Sports: {{ $limitText($plan->max_sports) }}</span></li>
+                            </ul>
+                        @else
+                            <hr class="my-6 border-slate-200 dark:border-white/10">
+                            <ul class="space-y-2 text-sm">
+                                <li class="flex items-start gap-2 text-slate-700 dark:text-slate-200"><span class="mt-[2px] text-emerald-600 dark:text-emerald-300">✓</span><span>Users: {{ $limitText($plan->max_users) }}</span></li>
+                                <li class="flex items-start gap-2 text-slate-700 dark:text-slate-200"><span class="mt-[2px] text-emerald-600 dark:text-emerald-300">✓</span><span>Teams: {{ $limitText($plan->max_teams) }}</span></li>
+                                <li class="flex items-start gap-2 text-slate-700 dark:text-slate-200"><span class="mt-[2px] text-emerald-600 dark:text-emerald-300">✓</span><span>Sports: {{ $limitText($plan->max_sports) }}</span></li>
                             </ul>
                         @endif
                     </article>

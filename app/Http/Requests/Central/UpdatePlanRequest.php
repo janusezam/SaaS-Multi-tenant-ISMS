@@ -28,6 +28,9 @@ class UpdatePlanRequest extends FormRequest
         $this->merge([
             'is_active' => $this->boolean('is_active', true),
             'is_featured' => $this->boolean('is_featured', false),
+            'max_users' => $this->normalizeNullableInteger($this->input('max_users')),
+            'max_teams' => $this->normalizeNullableInteger($this->input('max_teams')),
+            'max_sports' => $this->normalizeNullableInteger($this->input('max_sports')),
             'feature_flags' => [
                 'analytics' => filter_var($featureFlags['analytics'] ?? false, FILTER_VALIDATE_BOOLEAN),
                 'bracket' => filter_var($featureFlags['bracket'] ?? false, FILTER_VALIDATE_BOOLEAN),
@@ -54,6 +57,9 @@ class UpdatePlanRequest extends FormRequest
             'marketing_points' => ['nullable', 'string', 'max:1200'],
             'monthly_price' => ['required', 'numeric', 'min:0'],
             'yearly_price' => ['required', 'numeric', 'min:0'],
+            'max_users' => ['nullable', 'integer', 'min:1', 'max:1000000'],
+            'max_teams' => ['nullable', 'integer', 'min:1', 'max:1000000'],
+            'max_sports' => ['nullable', 'integer', 'min:1', 'max:1000000'],
             'feature_flags' => ['nullable', 'array'],
             'feature_flags.analytics' => ['nullable', 'boolean'],
             'feature_flags.bracket' => ['nullable', 'boolean'],
@@ -61,5 +67,14 @@ class UpdatePlanRequest extends FormRequest
             'is_featured' => ['required', 'boolean'],
             'sort_order' => ['nullable', 'integer', 'min:1', 'max:9999'],
         ];
+    }
+
+    private function normalizeNullableInteger(mixed $value): ?int
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        return (int) $value;
     }
 }

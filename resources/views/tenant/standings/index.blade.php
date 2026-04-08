@@ -1,5 +1,23 @@
 <x-app-layout>
     @php
+        $mediaUrl = static function (?string $path): ?string {
+            if ($path === null || trim($path) === '') {
+                return null;
+            }
+
+            $normalized = str_replace('\\', '/', trim($path));
+
+            if (str_starts_with($normalized, 'http://') || str_starts_with($normalized, 'https://')) {
+                return $normalized;
+            }
+
+            $normalized = ltrim($normalized, '/');
+            $normalized = preg_replace('#^(public/)+#', '', $normalized) ?? $normalized;
+            $normalized = preg_replace('#^(storage/)+#', '', $normalized) ?? $normalized;
+
+            return tenant_asset($normalized);
+        };
+
         $selectedSport = (string) request('sport', 'all');
         $selectedDivision = (string) request('division', $selectedDivision ?? '');
 
@@ -56,10 +74,24 @@
                 'rows' => $calculator->calculate($sportGames),
             ];
         })->filter(fn (array $section): bool => ! empty($section['rows']))->values();
+
+        $teamLogoLookupBySport = \App\Models\Team::query()
+            ->select(['sport_id', 'name', 'logo_path'])
+            ->whereIn('sport_id', $sportsToRender->pluck('id')->all())
+            ->get()
+            ->groupBy('sport_id')
+            ->map(function ($teams) {
+                return $teams->mapWithKeys(function ($team): array {
+                    return [strtolower(trim((string) $team->name)) => $team->logo_path];
+                });
+            });
     @endphp
 
     <x-slot name="header">
-        <h2 class="text-2xl font-semibold text-slate-100">Live Standings</h2>
+        <div>
+            <h2 class="text-2xl font-semibold text-slate-100">Live Standings</h2>
+            <p class="mt-1 text-sm text-slate-300">Classroom-style leaderboard view with team identities.</p>
+        </div>
     </x-slot>
 
     <div class="mx-auto max-w-7xl space-y-5 px-4 py-8 sm:px-6 lg:px-8">
@@ -121,11 +153,27 @@
                                         default => '',
                                     };
                                 @endphp
+                                @php
+                                    $teamName = (string) ($row['team'] ?? 'TBD Team');
+                                    $logoPath = $teamLogoLookupBySport
+                                        ->get($section['sport']->id)
+                                        ?->get(strtolower(trim($teamName)));
+                                    $teamLogoUrl = $mediaUrl($logoPath);
+                                @endphp
                                 <tr class="{{ $rankClasses }}">
                                     <td class="px-4 py-3">
                                         <span class="inline-flex min-w-8 items-center justify-center rounded-full border border-white/15 bg-white/5 px-2 py-0.5 text-xs font-semibold text-slate-100">{{ $rank }}</span>
                                     </td>
-                                    <td class="px-4 py-3 font-medium">{{ $row['team'] }}</td>
+                                    <td class="px-4 py-3 font-medium">
+                                        <div class="flex items-center gap-2">
+                                            @if ($teamLogoUrl !== null)
+                                                <img src="{{ $teamLogoUrl }}" alt="{{ $teamName }}" class="h-10 w-10 rounded-full border border-white/15 object-cover" />
+                                            @else
+                                                <span class="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 bg-white/5 text-xs font-semibold text-slate-300">{{ strtoupper(substr($teamName, 0, 1)) }}</span>
+                                            @endif
+                                            <span>{{ $teamName }}</span>
+                                        </div>
+                                    </td>
                                     <td class="px-4 py-3">{{ $row['played'] }}</td>
                                     <td class="px-4 py-3">{{ $row['wins'] }}</td>
                                     <td class="px-4 py-3">{{ $row['draws'] }}</td>

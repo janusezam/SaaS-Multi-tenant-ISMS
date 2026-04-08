@@ -1,6 +1,9 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="text-2xl font-semibold text-slate-100">Sports</h2>
+        <div>
+            <h2 class="text-2xl font-semibold text-slate-100">Sports</h2>
+            <p class="mt-1 text-sm text-slate-300">Classroom-style sport cards with customizable cover photos.</p>
+        </div>
     </x-slot>
 
     <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
@@ -17,42 +20,46 @@
             <input id="sports-search" type="text" placeholder="Search by name or code" class="w-full rounded-xl border border-white/10 bg-slate-950/60 text-slate-100" />
         </div>
 
-        <div class="overflow-hidden rounded-2xl border border-white/10 bg-slate-900/85">
-            <table class="min-w-full divide-y divide-white/10 text-sm">
-                <thead class="bg-slate-950/60 text-slate-300">
-                    <tr>
-                        <th class="px-4 py-3 text-left font-medium">Name</th>
-                        <th class="px-4 py-3 text-left font-medium">Code</th>
-                        <th class="px-4 py-3 text-left font-medium">Status</th>
-                        <th class="px-4 py-3 text-left font-medium">Actions</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-white/10 text-slate-200">
-                    @forelse ($sports as $sport)
-                        <tr data-searchable-row data-search-text="{{ strtolower($sport->name.' '.$sport->code) }}">
-                            <td class="px-4 py-3">{{ $sport->name }}</td>
-                            <td class="px-4 py-3 uppercase">{{ $sport->code }}</td>
-                            <td class="px-4 py-3">
-                                <span class="inline-flex rounded-full border px-2.5 py-1 text-xs font-semibold {{ $sport->is_active ? 'border-emerald-300/40 bg-emerald-500/20 text-emerald-100' : 'border-slate-300/40 bg-slate-500/20 text-slate-100' }}">
-                                    {{ $sport->is_active ? 'Active' : 'Inactive' }}
-                                </span>
-                            </td>
-                            <td class="px-4 py-3">
-                                <div class="flex gap-2">
-                                    <a href="{{ route('tenant.sports.edit', $sport) }}" class="rounded-md border border-slate-300/40 bg-slate-500/20 px-3 py-1 text-xs text-slate-100 hover:bg-slate-500/30">Edit</a>
-                                    <form method="POST" action="{{ route('tenant.sports.destroy', $sport) }}" onsubmit="return confirm('Delete this sport?');">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="rounded-md border border-rose-300/30 bg-rose-500/20 px-3 py-1 text-xs text-rose-100 hover:bg-rose-500/30">Delete</button>
-                                    </form>
-                                </div>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr><td colspan="4" class="px-4 py-6 text-center text-slate-400">No sports available.</td></tr>
-                    @endforelse
-                </tbody>
-            </table>
+        <div id="sports-cards" class="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+            @forelse ($sports as $sport)
+                <article data-searchable-card data-search-text="{{ strtolower($sport->name.' '.$sport->code) }}" class="overflow-hidden rounded-2xl border border-white/10 bg-slate-900/85 shadow-lg shadow-slate-950/20">
+                    <div class="relative h-36 border-b border-white/10 bg-gradient-to-r from-cyan-700/80 via-sky-600/80 to-indigo-700/80">
+                        @if (! empty($sport->cover_photo_path))
+                            @php
+                                $normalizedCoverPath = str_replace('\\', '/', trim((string) $sport->cover_photo_path));
+                                $normalizedCoverPath = ltrim($normalizedCoverPath, '/');
+                                $normalizedCoverPath = preg_replace('#^(public/)+#', '', $normalizedCoverPath) ?? $normalizedCoverPath;
+                                $normalizedCoverPath = preg_replace('#^(storage/)+#', '', $normalizedCoverPath) ?? $normalizedCoverPath;
+                            @endphp
+                            <img src="{{ tenant_asset($normalizedCoverPath) }}" alt="{{ $sport->name }}" class="h-full w-full object-cover" />
+                        @endif
+                        <div class="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-slate-950/10 to-transparent"></div>
+                        <div class="absolute left-4 right-4 top-3 flex items-start justify-between">
+                            <span class="rounded-full border border-white/30 bg-slate-900/40 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-100">{{ $sport->code }}</span>
+                            <span class="inline-flex rounded-full border px-2.5 py-1 text-[11px] font-semibold {{ $sport->is_active ? 'border-emerald-300/40 bg-emerald-500/20 text-emerald-100' : 'border-slate-300/40 bg-slate-500/20 text-slate-100' }}">{{ $sport->is_active ? 'Active' : 'Inactive' }}</span>
+                        </div>
+                        <h3 class="absolute bottom-3 left-4 right-4 truncate text-lg font-semibold text-white">{{ $sport->name }}</h3>
+                    </div>
+
+                    <div class="space-y-4 p-4">
+                        <p class="line-clamp-2 text-sm text-slate-300">{{ $sport->description ?: 'No description yet for this sport.' }}</p>
+                        <div class="flex gap-2">
+                            <a href="{{ route('tenant.sports.edit', $sport) }}" class="rounded-md border border-slate-300/40 bg-slate-500/20 px-3 py-1.5 text-xs text-slate-100 hover:bg-slate-500/30">Edit</a>
+                            <form method="POST" action="{{ route('tenant.sports.destroy', $sport) }}" onsubmit="return confirm('Delete this sport?');">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="rounded-md border border-rose-300/30 bg-rose-500/20 px-3 py-1.5 text-xs text-rose-100 hover:bg-rose-500/30">Delete</button>
+                            </form>
+                        </div>
+                    </div>
+                </article>
+            @empty
+                <div class="rounded-2xl border border-white/10 bg-slate-900/85 px-5 py-8 text-center text-slate-400 sm:col-span-2 xl:col-span-3">No sports available.</div>
+            @endforelse
+        </div>
+
+        <div class="mt-6">
+            {{ $sports->links() }}
         </div>
     </div>
 
@@ -61,13 +68,13 @@
             const input = document.getElementById('sports-search');
             if (!input) return;
 
-            const rows = Array.from(document.querySelectorAll('[data-searchable-row]'));
+            const cards = Array.from(document.querySelectorAll('[data-searchable-card]'));
 
             input.addEventListener('input', () => {
                 const query = input.value.trim().toLowerCase();
-                rows.forEach((row) => {
-                    const text = row.getAttribute('data-search-text') || '';
-                    row.style.display = text.includes(query) ? '' : 'none';
+                cards.forEach((card) => {
+                    const text = card.getAttribute('data-search-text') || '';
+                    card.style.display = text.includes(query) ? '' : 'none';
                 });
             });
         })();

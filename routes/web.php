@@ -5,6 +5,7 @@ use App\Http\Controllers\Central\BusinessControl\CouponController;
 use App\Http\Controllers\Central\BusinessControl\DashboardController;
 use App\Http\Controllers\Central\BusinessControl\PlanController;
 use App\Http\Controllers\Central\BusinessControl\PromotionCampaignController;
+use App\Http\Controllers\Central\BusinessControl\TenantSupportTicketController;
 use App\Http\Controllers\Central\BusinessControl\UpgradeRequestController;
 use App\Http\Controllers\Central\PublicSubscriptionController;
 use App\Http\Controllers\Central\SubscriptionNotificationLogController;
@@ -84,6 +85,10 @@ Route::prefix('central')->name('central.')->group(function () {
             Route::get('upgrade-requests', [UpgradeRequestController::class, 'index'])->name('upgrade-requests.index');
             Route::patch('upgrade-requests/{upgradeRequest}/approve', [UpgradeRequestController::class, 'approve'])->name('upgrade-requests.approve');
             Route::patch('upgrade-requests/{upgradeRequest}/reject', [UpgradeRequestController::class, 'reject'])->name('upgrade-requests.reject');
+
+            Route::get('support-updates', [TenantSupportTicketController::class, 'index'])->name('support-updates.index');
+            Route::post('support-updates/updates', [TenantSupportTicketController::class, 'storeUpdate'])->name('support-updates.updates.store');
+            Route::patch('support-updates/tickets/{ticket}', [TenantSupportTicketController::class, 'updateTicket'])->name('support-updates.tickets.update');
         });
 
         Route::patch('universities/{university}/suspend', [UniversityController::class, 'suspend'])

@@ -14,6 +14,7 @@ class TenantRbacController extends Controller
     {
         return view('tenant.rbac.index', [
             'definitions' => $permissionMatrix->definitions(),
+            'moduleSummaries' => $permissionMatrix->moduleSummaries(),
             'managedRoles' => $permissionMatrix->managedRoles(),
             'matrix' => $permissionMatrix->matrix(),
         ]);

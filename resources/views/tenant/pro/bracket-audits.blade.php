@@ -1,4 +1,24 @@
 <x-app-layout>
+    @php
+        $logoUrl = static function (?string $path): ?string {
+            if ($path === null || trim($path) === '') {
+                return null;
+            }
+
+            $normalizedPath = str_replace('\\', '/', trim($path));
+
+            if (str_starts_with($normalizedPath, 'http://') || str_starts_with($normalizedPath, 'https://')) {
+                return $normalizedPath;
+            }
+
+            $normalizedPath = ltrim($normalizedPath, '/');
+            $normalizedPath = preg_replace('#^(public/)+#', '', $normalizedPath) ?? $normalizedPath;
+            $normalizedPath = preg_replace('#^(storage/)+#', '', $normalizedPath) ?? $normalizedPath;
+
+            return tenant_asset($normalizedPath);
+        };
+    @endphp
+
     <x-slot name="header">
         <h2 class="text-2xl font-semibold text-slate-100">Bracket Result Audits</h2>
     </x-slot>
@@ -40,7 +60,33 @@
                         <tr>
                             <td class="px-4 py-3">{{ $audit->created_at?->format('M d, Y h:i A') }}</td>
                             <td class="px-4 py-3">{{ $audit->bracketMatch?->sport?->name ?? '-' }}</td>
-                            <td class="px-4 py-3">{{ $audit->bracketMatch?->homeTeam?->name ?? ($audit->bracketMatch?->home_slot_label ?? 'TBD') }} vs {{ $audit->bracketMatch?->awayTeam?->name ?? ($audit->bracketMatch?->away_slot_label ?? 'TBD') }}</td>
+                            <td class="px-4 py-3">
+                                <div class="flex items-center gap-2">
+                                    @php
+                                        $homeName = $audit->bracketMatch?->homeTeam?->name ?? ($audit->bracketMatch?->home_slot_label ?? 'TBD');
+                                        $awayName = $audit->bracketMatch?->awayTeam?->name ?? ($audit->bracketMatch?->away_slot_label ?? 'TBD');
+                                        $homeLogo = $logoUrl($audit->bracketMatch?->homeTeam?->logo_path);
+                                        $awayLogo = $logoUrl($audit->bracketMatch?->awayTeam?->logo_path);
+                                    @endphp
+
+                                    @if ($homeLogo !== null)
+                                        <img src="{{ $homeLogo }}" alt="{{ $homeName }}" class="h-8 w-8 rounded-full border border-white/15 object-cover" />
+                                    @else
+                                        <span class="flex h-8 w-8 items-center justify-center rounded-full border border-white/15 bg-white/5 text-xs font-semibold text-slate-300">{{ strtoupper(substr((string) $homeName, 0, 1)) }}</span>
+                                    @endif
+
+                                    <span>{{ $homeName }}</span>
+                                    <span class="text-slate-500">vs</span>
+
+                                    @if ($awayLogo !== null)
+                                        <img src="{{ $awayLogo }}" alt="{{ $awayName }}" class="h-8 w-8 rounded-full border border-white/15 object-cover" />
+                                    @else
+                                        <span class="flex h-8 w-8 items-center justify-center rounded-full border border-white/15 bg-white/5 text-xs font-semibold text-slate-300">{{ strtoupper(substr((string) $awayName, 0, 1)) }}</span>
+                                    @endif
+
+                                    <span>{{ $awayName }}</span>
+                                </div>
+                            </td>
                             <td class="px-4 py-3">{{ $audit->changed_by_user_id ?? 'System' }}</td>
                             <td class="px-4 py-3">{{ $audit->previousWinnerTeam?->name ?? 'None' }} <span class="mx-1 text-slate-500">-></span> {{ $audit->newWinnerTeam?->name ?? 'None' }}</td>
                         </tr>

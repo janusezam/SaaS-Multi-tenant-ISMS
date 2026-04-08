@@ -1,5 +1,23 @@
 <x-app-layout>
     @php
+        $mediaUrl = static function (?string $path): ?string {
+            if ($path === null || trim($path) === '') {
+                return null;
+            }
+
+            $normalized = str_replace('\\', '/', trim($path));
+
+            if (str_starts_with($normalized, 'http://') || str_starts_with($normalized, 'https://')) {
+                return $normalized;
+            }
+
+            $normalized = ltrim($normalized, '/');
+            $normalized = preg_replace('#^(public/)+#', '', $normalized) ?? $normalized;
+            $normalized = preg_replace('#^(storage/)+#', '', $normalized) ?? $normalized;
+
+            return tenant_asset($normalized);
+        };
+
         $sportClasses = [
             'basketball' => 'border-orange-300/40 bg-orange-500/20 text-orange-100',
             'volleyball' => 'border-indigo-300/40 bg-indigo-500/20 text-indigo-100',
@@ -42,6 +60,7 @@
             <table class="min-w-full divide-y divide-white/10 text-sm">
                 <thead class="bg-slate-950/60 text-slate-300">
                     <tr>
+                        <th class="px-4 py-3 text-left font-medium">Logo</th>
                         <th class="px-4 py-3 text-left font-medium">Team</th>
                         <th class="px-4 py-3 text-left font-medium">Sport</th>
                         <th class="px-4 py-3 text-left font-medium">Division</th>
@@ -52,6 +71,16 @@
                 <tbody class="divide-y divide-white/10 text-slate-200">
                     @forelse ($teams as $team)
                         <tr data-searchable-row data-search-text="{{ strtolower($team->name.' '.($team->sport?->name ?? '').' '.($team->division ?? '')) }}">
+                            <td class="px-4 py-3">
+                                @php
+                                    $teamLogoUrl = $mediaUrl($team->logo_path);
+                                @endphp
+                                @if ($teamLogoUrl !== null)
+                                    <img src="{{ $teamLogoUrl }}" alt="{{ $team->name }}" class="h-14 w-14 rounded-xl border border-white/10 object-cover" />
+                                @else
+                                    <div class="flex h-14 w-14 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-sm font-semibold text-slate-300">{{ strtoupper(substr((string) $team->name, 0, 1)) }}</div>
+                                @endif
+                            </td>
                             <td class="px-4 py-3">
                                 <p class="font-medium">{{ $team->name }}</p>
                                 <span class="mt-1 inline-flex rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] {{ $sportBadge($team->sport?->name) }}">
@@ -77,7 +106,7 @@
                             </td>
                         </tr>
                     @empty
-                        <tr><td colspan="5" class="px-4 py-6 text-center text-slate-400">No teams available.</td></tr>
+                        <tr><td colspan="6" class="px-4 py-6 text-center text-slate-400">No teams available.</td></tr>
                     @endforelse
                 </tbody>
             </table>

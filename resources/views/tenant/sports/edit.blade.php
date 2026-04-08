@@ -5,7 +5,7 @@
 
     <div class="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
         <div class="rounded-2xl border border-white/10 bg-slate-900/85 p-6">
-            <form method="POST" action="{{ route('tenant.sports.update', $sport) }}" class="space-y-5">
+            <form method="POST" action="{{ route('tenant.sports.update', $sport) }}" enctype="multipart/form-data" class="space-y-5">
                 @csrf
                 @method('PUT')
                 <div>
@@ -22,6 +22,27 @@
                     <label class="mb-2 block text-sm text-slate-300" for="description">Description</label>
                     <textarea id="description" name="description" class="w-full rounded-xl border border-white/10 bg-slate-950/60 text-slate-100">{{ old('description', $sport->description) }}</textarea>
                     @error('description')<p class="mt-1 text-xs text-rose-300">{{ $message }}</p>@enderror
+                </div>
+                <div class="space-y-3">
+                    <label class="mb-2 block text-sm text-slate-300" for="cover_photo">Cover Photo</label>
+                    @if (! empty($sport->cover_photo_path))
+                        @php
+                            $normalizedCoverPath = str_replace('\\', '/', trim((string) $sport->cover_photo_path));
+                            $normalizedCoverPath = ltrim($normalizedCoverPath, '/');
+                            $normalizedCoverPath = preg_replace('#^(public/)+#', '', $normalizedCoverPath) ?? $normalizedCoverPath;
+                            $normalizedCoverPath = preg_replace('#^(storage/)+#', '', $normalizedCoverPath) ?? $normalizedCoverPath;
+                        @endphp
+                        <img src="{{ tenant_asset($normalizedCoverPath) }}" alt="{{ $sport->name }}" class="h-40 w-full rounded-xl border border-white/10 object-cover" />
+                    @endif
+                    <input id="cover_photo" type="file" name="cover_photo" accept="image/*" class="w-full rounded-xl border border-white/10 bg-slate-950/60 text-slate-200 file:mr-3 file:rounded-lg file:border file:border-white/15 file:bg-white/10 file:px-3 file:py-2 file:text-xs file:text-slate-100" />
+                    @error('cover_photo')<p class="mt-1 text-xs text-rose-300">{{ $message }}</p>@enderror
+
+                    @if (! empty($sport->cover_photo_path))
+                        <label class="inline-flex items-center gap-2 text-sm text-slate-300">
+                            <input type="checkbox" name="remove_cover_photo" value="1" class="rounded border-white/10 bg-slate-950/60" />
+                            Remove current cover photo
+                        </label>
+                    @endif
                 </div>
                 <label class="inline-flex items-center gap-2 text-sm text-slate-300">
                     <input type="checkbox" name="is_active" value="1" @checked(old('is_active', $sport->is_active)) class="rounded border-white/10 bg-slate-950/60" />

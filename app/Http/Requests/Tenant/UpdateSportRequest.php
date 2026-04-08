@@ -31,6 +31,8 @@ class UpdateSportRequest extends FormRequest
             'name' => ['required', 'string', 'max:100'],
             'code' => ['required', 'string', 'max:20', 'alpha_dash', Rule::unique('sports', 'code')->ignore($sport?->id)],
             'description' => ['nullable', 'string', 'max:1000'],
+            'cover_photo' => ['nullable', 'image', 'max:5120'],
+            'remove_cover_photo' => ['nullable', 'boolean'],
             'is_active' => ['nullable', 'boolean'],
         ];
     }

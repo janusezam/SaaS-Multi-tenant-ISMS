@@ -71,6 +71,11 @@ class University extends Tenant implements TenantWithDatabase
         return (string) ($this->subscription?->plan ?? $this->plan ?? 'basic');
     }
 
+    public function currentPlanModel(): ?Plan
+    {
+        return Plan::query()->where('code', $this->currentPlan())->first();
+    }
+
     public function currentStatus(): string
     {
         return (string) ($this->subscription?->status ?? $this->status ?? 'pending');
@@ -98,12 +103,23 @@ class University extends Tenant implements TenantWithDatabase
 
     public function hasFeature(string $featureKey): bool
     {
-        $plan = Plan::query()->where('code', $this->currentPlan())->first();
+        $plan = $this->currentPlanModel();
 
         if ($plan === null) {
             return false;
         }
 
         return $plan->hasFeature($featureKey);
+    }
+
+    public function limitFor(string $resource): ?int
+    {
+        $plan = $this->currentPlanModel();
+
+        if ($plan === null) {
+            return null;
+        }
+
+        return $plan->limitFor($resource);
     }
 }

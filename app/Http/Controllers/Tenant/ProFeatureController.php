@@ -476,8 +476,11 @@ class ProFeatureController extends Controller
                             'away' => $match->awayTeam?->name ?? ($match->away_slot_label ?? 'TBD'),
                             'home_team_id' => $match->home_team_id,
                             'away_team_id' => $match->away_team_id,
+                            'home_team_logo_path' => $match->homeTeam?->logo_path,
+                            'away_team_logo_path' => $match->awayTeam?->logo_path,
                             'winner_team_id' => $match->winner_team_id,
                             'winner' => $match->winnerTeam?->name,
+                            'winner_team_logo_path' => $match->winnerTeam?->logo_path,
                         ];
                     })->values()->all(),
                 ];

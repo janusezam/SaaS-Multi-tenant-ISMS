@@ -1,5 +1,23 @@
 <x-app-layout>
     @php
+        $teamLogoUrl = static function (?string $path): ?string {
+            if ($path === null || trim($path) === '') {
+                return null;
+            }
+
+            $normalizedPath = str_replace('\\', '/', trim($path));
+
+            if (str_starts_with($normalizedPath, 'http://') || str_starts_with($normalizedPath, 'https://')) {
+                return $normalizedPath;
+            }
+
+            $normalizedPath = ltrim($normalizedPath, '/');
+            $normalizedPath = preg_replace('#^(public/)+#', '', $normalizedPath) ?? $normalizedPath;
+            $normalizedPath = preg_replace('#^(storage/)+#', '', $normalizedPath) ?? $normalizedPath;
+
+            return tenant_asset($normalizedPath);
+        };
+
         $sportClasses = [
             'basketball' => 'border-orange-300/40 bg-orange-500/20 text-orange-100',
             'volleyball' => 'border-indigo-300/40 bg-indigo-500/20 text-indigo-100',
@@ -97,7 +115,25 @@
                                     {{ $audit->game?->sport?->name ?? '-' }}
                                 </span>
                             </td>
-                            <td class="px-4 py-3">{{ $audit->game?->homeTeam?->name ?? '-' }} vs {{ $audit->game?->awayTeam?->name ?? '-' }}</td>
+                            <td class="px-4 py-3">
+                                @php
+                                    $homeName = $audit->game?->homeTeam?->name ?? '-';
+                                    $awayName = $audit->game?->awayTeam?->name ?? '-';
+                                    $homeLogo = $teamLogoUrl($audit->game?->homeTeam?->logo_path);
+                                    $awayLogo = $teamLogoUrl($audit->game?->awayTeam?->logo_path);
+                                @endphp
+                                <div class="flex items-center gap-2">
+                                    @if ($homeLogo !== null)
+                                        <img src="{{ $homeLogo }}" alt="{{ $homeName }}" class="h-9 w-9 rounded-full border border-white/15 object-cover" />
+                                    @endif
+                                    <span>{{ $homeName }}</span>
+                                    <span class="text-slate-500">vs</span>
+                                    @if ($awayLogo !== null)
+                                        <img src="{{ $awayLogo }}" alt="{{ $awayName }}" class="h-9 w-9 rounded-full border border-white/15 object-cover" />
+                                    @endif
+                                    <span>{{ $awayName }}</span>
+                                </div>
+                            </td>
                             <td class="px-4 py-3">{{ $audit->changed_by_user_id ?? 'System' }}</td>
                             <td class="px-4 py-3">
                                 <span class="inline-flex rounded-full border px-2 py-0.5 text-xs font-semibold {{ $statusBadge($audit->previous_status) }}">{{ strtoupper($audit->previous_status) }}</span>

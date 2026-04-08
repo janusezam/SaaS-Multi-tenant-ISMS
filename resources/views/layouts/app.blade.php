@@ -1,6 +1,46 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
     <head>
+        @php
+            $mediaUrl = static function (?string $path): ?string {
+                if ($path === null || trim($path) === '') {
+                    return null;
+                }
+
+                $normalized = str_replace('\\', '/', trim($path));
+
+                if (str_starts_with($normalized, 'http://') || str_starts_with($normalized, 'https://')) {
+                    return $normalized;
+                }
+
+                $normalized = ltrim($normalized, '/');
+                $normalized = preg_replace('#^(public/)+#', '', $normalized) ?? $normalized;
+                $normalized = preg_replace('#^(storage/)+#', '', $normalized) ?? $normalized;
+
+                if (tenant() !== null) {
+                    return tenant_asset($normalized);
+                }
+
+                return asset('storage/'.$normalized);
+            };
+
+            $tenantSettings = null;
+            $tenantThemePreference = 'system';
+            $tenantPrimaryColor = '#06b6d4';
+            $tenantSecondaryColor = '#6366f1';
+
+            if (tenant() !== null) {
+                $tenantSettings = \App\Models\TenantSetting::query()->firstWhere('tenant_id', tenant('id'));
+                $tenantThemePreference = (string) ($tenantSettings?->theme_preference ?? 'system');
+                $tenantPrimaryColor = preg_match('/^#[0-9A-Fa-f]{6}$/', (string) ($tenantSettings?->brand_primary_color ?? '')) === 1
+                    ? (string) $tenantSettings?->brand_primary_color
+                    : '#06b6d4';
+                $tenantSecondaryColor = preg_match('/^#[0-9A-Fa-f]{6}$/', (string) ($tenantSettings?->brand_secondary_color ?? '')) === 1
+                    ? (string) $tenantSettings?->brand_secondary_color
+                    : '#6366f1';
+            }
+        @endphp
+
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
@@ -11,6 +51,7 @@
             (function () {
                 var storageKey = 'isms-theme';
                 var savedTheme = null;
+                var tenantThemePreference = @json($tenantThemePreference);
 
                 try {
                     savedTheme = localStorage.getItem(storageKey);
@@ -18,10 +59,22 @@
                     savedTheme = null;
                 }
 
-                var resolvedTheme = savedTheme || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+                var fallbackTheme = tenantThemePreference === 'light' || tenantThemePreference === 'dark'
+                    ? tenantThemePreference
+                    : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+                var resolvedTheme = savedTheme || fallbackTheme;
                 document.documentElement.setAttribute('data-theme', resolvedTheme);
             })();
         </script>
+
+        @if (tenant() !== null)
+            <style>
+                :root {
+                    --isms-glow-a: {{ $tenantPrimaryColor }}3d;
+                    --isms-glow-b: {{ $tenantSecondaryColor }}2e;
+                }
+            </style>
+        @endif
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
@@ -80,12 +133,19 @@
                                         </div>
 
                                         <div class="flex items-center justify-start gap-2 sm:justify-end sm:self-start">
-                                            <a href="{{ route('profile.edit') }}" class="inline-flex items-center rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-slate-200 transition hover:bg-white/10">
+                                            <a href="{{ route('tenant.settings.edit') }}" class="inline-flex items-center rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-slate-200 transition hover:bg-white/10">
                                                 Settings
                                             </a>
 
-                                            <a href="{{ route('profile.edit') }}" class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-cyan-300/35 bg-cyan-500/20 text-sm font-semibold text-cyan-100 transition hover:bg-cyan-500/30" title="Profile">
-                                                {{ $tenantUserInitial }}
+                                            <a href="{{ route('tenant.profile.edit') }}" class="inline-flex h-10 w-10 items-center justify-center overflow-hidden rounded-full border border-cyan-300/35 bg-cyan-500/20 text-sm font-semibold text-cyan-100 transition hover:bg-cyan-500/30" title="Profile">
+                                                @php
+                                                    $headerProfileUrl = $mediaUrl($tenantUser?->profile_photo_path);
+                                                @endphp
+                                                @if ($headerProfileUrl !== null)
+                                                    <img src="{{ $headerProfileUrl }}" alt="{{ $tenantUser?->name }}" class="h-full w-full object-cover">
+                                                @else
+                                                    {{ $tenantUserInitial }}
+                                                @endif
                                             </a>
                                         </div>
                                     </div>

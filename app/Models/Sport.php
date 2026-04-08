@@ -10,6 +10,7 @@ class Sport extends Model
         'name',
         'code',
         'description',
+        'cover_photo_path',
         'is_active',
     ];
 
