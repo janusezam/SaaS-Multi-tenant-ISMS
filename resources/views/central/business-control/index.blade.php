@@ -38,7 +38,7 @@
             </div>
         </div>
 
-        <div class="grid gap-4 md:grid-cols-5">
+        <div class="grid gap-4 md:grid-cols-4">
             <a href="{{ route('central.business-control.plans.index') }}" class="rounded-2xl border border-cyan-200 bg-cyan-50 p-5 transition hover:border-cyan-300 hover:bg-cyan-100 dark:border-cyan-300/20 dark:bg-cyan-500/10 dark:hover:border-cyan-300/40 dark:hover:bg-cyan-500/20">
                 <p class="text-sm font-semibold text-cyan-900 dark:text-cyan-100">Plan Management</p>
                 <p class="mt-1 text-xs text-cyan-700 dark:text-cyan-200/80">Create, activate, and tune monthly and yearly pricing.</p>
@@ -54,10 +54,6 @@
             <a href="{{ route('central.business-control.upgrade-requests.index') }}" class="rounded-2xl border border-amber-200 bg-amber-50 p-5 transition hover:border-amber-300 hover:bg-amber-100 dark:border-amber-300/20 dark:bg-amber-500/10 dark:hover:border-amber-300/40 dark:hover:bg-amber-500/20">
                 <p class="text-sm font-semibold text-amber-900 dark:text-amber-100">Upgrade Queue</p>
                 <p class="mt-1 text-xs text-amber-700 dark:text-amber-200/80">Review and process tenant upgrade requests.</p>
-            </a>
-            <a href="{{ route('central.business-control.support-updates.index') }}" class="rounded-2xl border border-blue-200 bg-blue-50 p-5 transition hover:border-blue-300 hover:bg-blue-100 dark:border-blue-300/20 dark:bg-blue-500/10 dark:hover:border-blue-300/40 dark:hover:bg-blue-500/20">
-                <p class="text-sm font-semibold text-blue-900 dark:text-blue-100">Support &amp; Updates</p>
-                <p class="mt-1 text-xs text-blue-700 dark:text-blue-200/80">See tenant support reports and publish product updates.</p>
             </a>
         </div>
 

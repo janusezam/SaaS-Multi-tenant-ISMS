@@ -12,6 +12,58 @@
             <a href="{{ route('tenant.users.create') }}" class="rounded-xl border border-cyan-300/40 bg-cyan-500/20 px-4 py-2 text-sm font-medium text-cyan-100 hover:bg-cyan-500/30">Add User</a>
         </div>
 
+        <div class="mb-6 overflow-hidden rounded-2xl border border-amber-300/20 bg-amber-500/10">
+            <div class="border-b border-amber-300/20 px-4 py-3">
+                <h3 class="text-sm font-semibold uppercase tracking-[0.16em] text-amber-100">Pending Account Requests</h3>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-amber-300/20 text-sm">
+                    <thead class="bg-slate-950/35 text-amber-100/90">
+                        <tr>
+                            <th class="px-4 py-3 text-left font-medium">Name</th>
+                            <th class="px-4 py-3 text-left font-medium">Email</th>
+                            <th class="px-4 py-3 text-left font-medium">Phone</th>
+                            <th class="px-4 py-3 text-left font-medium">Role</th>
+                            <th class="px-4 py-3 text-left font-medium">Requested</th>
+                            <th class="px-4 py-3 text-left font-medium">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-amber-300/20 text-amber-50">
+                        @forelse ($pendingRegistrations as $registration)
+                            <tr>
+                                <td class="px-4 py-3">{{ $registration->name }}</td>
+                                <td class="px-4 py-3">{{ $registration->email }}</td>
+                                <td class="px-4 py-3">{{ $registration->phone }}</td>
+                                <td class="px-4 py-3">{{ str_replace('_', ' ', ucfirst($registration->role)) }}</td>
+                                <td class="px-4 py-3">{{ $registration->created_at?->diffForHumans() }}</td>
+                                <td class="px-4 py-3">
+                                    <div class="flex flex-wrap gap-2">
+                                        <a href="{{ route('tenant.users.pending.show', $registration) }}" class="rounded-md border border-white/15 bg-white/10 px-3 py-1 text-xs hover:bg-white/15">View</a>
+
+                                        <form method="POST" action="{{ route('tenant.users.pending.approve', $registration) }}">
+                                            @csrf
+                                            <button type="submit" class="rounded-md border border-emerald-300/30 bg-emerald-500/20 px-3 py-1 text-xs text-emerald-100 hover:bg-emerald-500/30">Accept</button>
+                                        </form>
+
+                                        <form method="POST" action="{{ route('tenant.users.pending.destroy', $registration) }}">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="rounded-md border border-rose-300/30 bg-rose-500/20 px-3 py-1 text-xs text-rose-100 hover:bg-rose-500/30">Delete</button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="6" class="px-4 py-4 text-center text-amber-100/70">No pending account requests.</td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
         <div class="overflow-hidden rounded-2xl border border-white/10 bg-slate-900/85">
             <table class="min-w-full divide-y divide-white/10 text-sm">
                 <thead class="bg-slate-950/60 text-slate-300">

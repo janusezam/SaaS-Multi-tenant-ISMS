@@ -9,6 +9,7 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
+        <link rel="icon" type="image/png" href="{{ asset('images/isms-logo.png') }}">
         <title>Central Login | ISMS</title>
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
@@ -17,7 +18,7 @@
             <section class="w-full max-w-md rounded-lg border border-slate-700 bg-[#0b1220] p-6 shadow-2xl shadow-black/40 sm:p-7">
                 <div class="mb-6 flex items-center justify-between">
                     <a href="{{ route('public.landing') }}" class="inline-flex items-center gap-2 text-slate-300">
-                        <img src="{{ asset('images/isms-logo.png') }}" alt="ISMS logo" class="h-8 w-auto">
+                        <img src="{{ asset('images/isms-logo.png') }}" alt="ISMS logo" class="h-14 w-auto">
                         <span class="text-[11px] uppercase tracking-[0.18em]">Central</span>
                     </a>
                     <span class="rounded-md border border-slate-600 px-2 py-1 text-[10px] uppercase tracking-[0.16em] text-slate-400">Restricted</span>

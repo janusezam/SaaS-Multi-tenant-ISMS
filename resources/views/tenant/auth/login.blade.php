@@ -9,6 +9,7 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
+        <link rel="icon" type="image/png" href="{{ asset('images/isms-logo.png') }}">
         <title>Tenant Login | ISMS</title>
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
@@ -17,7 +18,7 @@
             <div class="mx-auto grid w-full max-w-6xl gap-6 lg:grid-cols-2">
                 <section class="rounded-3xl border border-emerald-300/20 bg-slate-950/60 p-6 shadow-2xl shadow-emerald-950/30 backdrop-blur sm:p-8">
                     <a href="{{ route('public.landing') }}" class="inline-flex items-center gap-3 text-emerald-100">
-                        <img src="{{ asset('images/isms-logo.png') }}" alt="ISMS logo" class="h-10 w-auto">
+                        <img src="{{ asset('images/isms-logo.png') }}" alt="ISMS logo" class="h-16 w-auto">
                         <span class="text-xs uppercase tracking-[0.24em]">Tenant Workspace</span>
                     </a>
 
@@ -73,6 +74,20 @@
 
                         <button type="submit" class="inline-flex w-full items-center justify-center rounded-xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-emerald-700/30 transition hover:bg-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2">Sign in to Tenant App</button>
                     </form>
+
+                    <div class="mt-4">
+                        <a href="{{ route('tenant.login.google.redirect') }}" class="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-white/20 bg-white px-4 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-100">
+                            <svg aria-hidden="true" class="h-4 w-4" viewBox="0 0 24 24">
+                                <path fill="#EA4335" d="M12 10.2v3.9h5.5c-.2 1.3-1.5 3.8-5.5 3.8-3.3 0-6-2.8-6-6.2s2.7-6.2 6-6.2c1.9 0 3.2.8 4 1.5l2.7-2.6C17.1 2.9 14.8 2 12 2 6.9 2 2.8 6.3 2.8 11.5S6.9 21 12 21c6.9 0 9.2-4.9 9.2-7.5 0-.5-.1-.9-.1-1.3H12Z"/>
+                            </svg>
+                            Sign in with Google
+                        </a>
+                    </div>
+
+                    <div class="mt-5 flex items-center justify-between text-sm">
+                        <a href="{{ route('tenant.password.otp.request') }}" class="text-emerald-200 transition hover:text-emerald-100">Forgot password?</a>
+                        <a href="{{ route('tenant.register') }}" class="text-emerald-200 transition hover:text-emerald-100">Create tenant account request</a>
+                    </div>
                 </section>
             </div>
         </div>

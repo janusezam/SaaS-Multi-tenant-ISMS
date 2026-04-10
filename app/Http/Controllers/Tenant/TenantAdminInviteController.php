@@ -19,7 +19,7 @@ class TenantAdminInviteController extends Controller
     {
         $email = (string) $request->query('email', '');
 
-        if ($this->resolveInvitee($email, $token) === null) {
+        if ($this->resolveInvitee($email, $token, ['university_admin']) === null) {
             abort(404);
         }
 
@@ -40,7 +40,7 @@ class TenantAdminInviteController extends Controller
             'password' => ['required', Password::defaults(), 'confirmed'],
         ]);
 
-        $user = $this->resolveInvitee((string) $validated['email'], (string) $validated['token']);
+        $user = $this->resolveInvitee((string) $validated['email'], (string) $validated['token'], ['university_admin']);
 
         if ($user === null) {
             throw ValidationException::withMessages([
@@ -78,14 +78,72 @@ class TenantAdminInviteController extends Controller
         return redirect()->route('tenant.login')->with('status', 'Your password has been set. Please sign in.');
     }
 
-    private function resolveInvitee(string $email, string $token): ?User
+    public function showUserInvite(Request $request, string $token): View
+    {
+        $email = (string) $request->query('email', '');
+
+        if ($this->resolveInvitee($email, $token, ['sports_facilitator', 'team_coach', 'student_player']) === null) {
+            abort(404);
+        }
+
+        return view('tenant.auth.accept-user-invite', [
+            'token' => $token,
+            'email' => $email,
+        ]);
+    }
+
+    /**
+     * @throws ValidationException
+     */
+    public function activateUserInvite(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'token' => ['required', 'string'],
+            'email' => ['required', 'email'],
+        ]);
+
+        $user = $this->resolveInvitee((string) $validated['email'], (string) $validated['token'], ['sports_facilitator', 'team_coach', 'student_player']);
+
+        if ($user === null) {
+            throw ValidationException::withMessages([
+                'email' => 'This invite link is invalid or expired.',
+            ]);
+        }
+
+        $attributes = [];
+
+        if (Schema::hasColumn('users', 'invite_token_hash')) {
+            $attributes['invite_token_hash'] = null;
+        }
+
+        if (Schema::hasColumn('users', 'invite_expires_at')) {
+            $attributes['invite_expires_at'] = null;
+        }
+
+        if (Schema::hasColumn('users', 'invite_sent_at')) {
+            $attributes['invite_sent_at'] = null;
+        }
+
+        if (Schema::hasColumn('users', 'email_verified_at') && $user->email_verified_at === null) {
+            $attributes['email_verified_at'] = now();
+        }
+
+        $user->forceFill($attributes)->save();
+
+        return redirect()->route('tenant.login')->with('status', 'Your tenant account is now active. Please sign in.');
+    }
+
+    /**
+     * @param  array<int, string>  $roles
+     */
+    private function resolveInvitee(string $email, string $token, array $roles): ?User
     {
         if ($email === '' || ! Schema::hasColumn('users', 'invite_token_hash') || ! Schema::hasColumn('users', 'invite_expires_at')) {
             return null;
         }
 
         $user = User::query()
-            ->where('role', 'university_admin')
+            ->whereIn('role', $roles)
             ->where('email', $email)
             ->first();
 

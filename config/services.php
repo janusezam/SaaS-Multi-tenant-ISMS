@@ -43,4 +43,10 @@ return [
         'force_in_tests' => (bool) env('RECAPTCHA_FORCE_IN_TESTS', false),
     ],
 
+    'google' => [
+        'client_id' => env('GOOGLE_CLIENT_ID'),
+        'client_secret' => env('GOOGLE_CLIENT_SECRET'),
+        'redirect' => env('GOOGLE_REDIRECT_URI'),
+    ],
+
 ];

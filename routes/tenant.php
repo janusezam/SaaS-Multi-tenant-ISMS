@@ -15,8 +15,11 @@ use App\Http\Controllers\Tenant\StandingsController;
 use App\Http\Controllers\Tenant\SubscriptionController;
 use App\Http\Controllers\Tenant\TeamController;
 use App\Http\Controllers\Tenant\TenantAdminInviteController;
+use App\Http\Controllers\Tenant\TenantGoogleAuthController;
+use App\Http\Controllers\Tenant\TenantPasswordOtpController;
 use App\Http\Controllers\Tenant\TenantProfileController;
 use App\Http\Controllers\Tenant\TenantRbacController;
+use App\Http\Controllers\Tenant\TenantSelfRegistrationController;
 use App\Http\Controllers\Tenant\TenantSettingsController;
 use App\Http\Controllers\Tenant\TenantUserController;
 use App\Http\Controllers\Tenant\VenueController;
@@ -51,9 +54,21 @@ Route::middleware([
     Route::middleware('guest')->group(function () {
         Route::get('/app/login', [AuthenticatedSessionController::class, 'create'])->name('tenant.login');
         Route::post('/app/login', [AuthenticatedSessionController::class, 'store'])->name('tenant.login.store');
+        Route::get('/app/login/google/redirect', [TenantGoogleAuthController::class, 'redirect'])->name('tenant.login.google.redirect');
+        Route::get('/app/login/google/callback', [TenantGoogleAuthController::class, 'callback'])->name('tenant.login.google.callback');
+
+        Route::get('/app/forgot-password', [TenantPasswordOtpController::class, 'create'])->name('tenant.password.otp.request');
+        Route::post('/app/forgot-password', [TenantPasswordOtpController::class, 'store'])->name('tenant.password.otp.send');
+        Route::get('/app/reset-password', [TenantPasswordOtpController::class, 'showResetForm'])->name('tenant.password.otp.reset-form');
+        Route::post('/app/reset-password', [TenantPasswordOtpController::class, 'reset'])->name('tenant.password.otp.reset');
+
+        Route::get('/app/register', [TenantSelfRegistrationController::class, 'create'])->name('tenant.register');
+        Route::post('/app/register', [TenantSelfRegistrationController::class, 'store'])->name('tenant.register.store');
 
         Route::get('/app/admin-invite/{token}', [TenantAdminInviteController::class, 'edit'])->name('tenant.admin-invite.edit');
         Route::post('/app/admin-invite', [TenantAdminInviteController::class, 'update'])->name('tenant.admin-invite.update');
+        Route::get('/app/user-invite/{token}', [TenantAdminInviteController::class, 'showUserInvite'])->name('tenant.user-invite.show');
+        Route::post('/app/user-invite', [TenantAdminInviteController::class, 'activateUserInvite'])->name('tenant.user-invite.activate');
     });
 
     Route::middleware('auth')->group(function () {
@@ -81,6 +96,9 @@ Route::middleware([
 
         Route::middleware('check.role:university_admin')->prefix('/app')->name('tenant.')->group(function () {
             Route::resource('users', TenantUserController::class)->except(['show']);
+            Route::get('users/pending/{registration}', [TenantUserController::class, 'showRegistration'])->name('users.pending.show');
+            Route::post('users/pending/{registration}/approve', [TenantUserController::class, 'approveRegistration'])->name('users.pending.approve');
+            Route::delete('users/pending/{registration}', [TenantUserController::class, 'destroyRegistration'])->name('users.pending.destroy');
             Route::get('rbac', [TenantRbacController::class, 'index'])->name('rbac.index');
             Route::put('rbac', [TenantRbacController::class, 'update'])->name('rbac.update');
             Route::resource('sports', SportController::class)->except(['show']);

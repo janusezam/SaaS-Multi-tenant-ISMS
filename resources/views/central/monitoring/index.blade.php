@@ -293,9 +293,43 @@
                             backgroundColor: color,
                             borderWidth: 2,
                             pointRadius: 1,
+                            pointHoverRadius: 4,
+                            pointHitRadius: 16,
                             tension: 0.35,
                         };
                     });
+                },
+                lineChartOptions(valueSuffix = '', yMax = null) {
+                    return {
+                        maintainAspectRatio: false,
+                        interaction: {
+                            mode: 'index',
+                            intersect: false,
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                max: yMax,
+                                grid: {color: 'rgba(148, 163, 184, 0.2)'},
+                            },
+                            x: {grid: {display: false}},
+                        },
+                        plugins: {
+                            legend: {labels: {color: '#cbd5e1'}},
+                            tooltip: {
+                                enabled: true,
+                                callbacks: {
+                                    label(context) {
+                                        const label = context.dataset.label || 'Value';
+                                        const raw = Number(context.raw || 0);
+                                        const value = Number.isInteger(raw) ? raw.toString() : raw.toFixed(1);
+
+                                        return `${label}: ${value}${valueSuffix}`;
+                                    },
+                                },
+                            },
+                        },
+                    };
                 },
                 renderCharts() {
                     const labels = this.payload.charts.labels;
@@ -306,14 +340,7 @@
                             labels,
                             datasets: this.lineDatasets(this.payload.charts.requests_per_minute_series),
                         },
-                        options: {
-                            maintainAspectRatio: false,
-                            scales: {
-                                y: {beginAtZero: true, grid: {color: 'rgba(148, 163, 184, 0.2)'}},
-                                x: {grid: {display: false}},
-                            },
-                            plugins: {legend: {labels: {color: '#cbd5e1'}}},
-                        },
+                        options: this.lineChartOptions(' rpm'),
                     });
 
                     this.charts.cpu = new Chart(document.getElementById('cpuLineChart'), {
@@ -322,14 +349,7 @@
                             labels,
                             datasets: this.lineDatasets(this.payload.charts.cpu_series),
                         },
-                        options: {
-                            maintainAspectRatio: false,
-                            scales: {
-                                y: {beginAtZero: true, max: 100, grid: {color: 'rgba(148, 163, 184, 0.2)'}},
-                                x: {grid: {display: false}},
-                            },
-                            plugins: {legend: {labels: {color: '#cbd5e1'}}},
-                        },
+                        options: this.lineChartOptions('%', 100),
                     });
 
                     this.charts.bar = new Chart(document.getElementById('resourceBarChart'), {

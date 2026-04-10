@@ -20,7 +20,7 @@ use Illuminate\View\View;
 
 class SubscriptionController extends Controller
 {
-    public function show(): View
+    public function show(PricingEngine $pricingEngine): View
     {
         $tenantId = (string) (tenant()?->id ?? '');
         $tenant = tenant();
@@ -41,6 +41,17 @@ class SubscriptionController extends Controller
         $additionalPlans = $plans
             ->filter(fn (Plan $plan): bool => ! in_array((string) $plan->code, ['basic', 'pro'], true))
             ->values();
+
+        $pricingByPlan = $plans->mapWithKeys(function (Plan $plan) use ($pricingEngine): array {
+            $planCode = (string) $plan->code;
+
+            return [
+                $planCode => [
+                    'monthly' => $pricingEngine->quote($planCode, 'monthly'),
+                    'yearly' => $pricingEngine->quote($planCode, 'yearly'),
+                ],
+            ];
+        });
 
         $currentPlanCode = (string) ($subscription?->plan ?? $tenant?->currentPlan() ?? 'basic');
         $currentBillingCycle = (string) ($subscription?->billing_cycle ?? 'monthly');
@@ -79,6 +90,7 @@ class SubscriptionController extends Controller
             'openUpgradeModal' => request()->boolean('openUpgrade'),
             'resourceUsage' => $resourceUsage,
             'resourceLimits' => $resourceLimits,
+            'pricingByPlan' => $pricingByPlan,
         ]);
     }
 

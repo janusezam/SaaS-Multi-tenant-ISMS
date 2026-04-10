@@ -6,7 +6,7 @@
     <div class="flex h-16 items-center gap-3 border-b px-5" style="border-color: var(--isms-stroke);">
         <a href="{{ route('central.universities.index') }}" class="inline-flex items-center gap-2">
             <x-application-logo class="block h-8 w-auto fill-current text-cyan-300" />
-            <span class="text-sm font-semibold tracking-wide isms-text">Super Admin</span>
+            <span class="text-sm font-semibold tracking-wide isms-text">ISMS Central</span>
         </a>
     </div>
 

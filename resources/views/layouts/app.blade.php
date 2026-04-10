@@ -45,7 +45,9 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        <title>{{ config('app.name', 'Laravel') }}</title>
+        <link rel="icon" type="image/png" href="{{ asset('images/isms-logo.png') }}">
+
+        <title>{{ tenant() !== null ? config('app.name', 'ISMS').' Tenant' : (request()->routeIs('central.*') ? config('app.name', 'ISMS').' Central' : config('app.name', 'ISMS')) }}</title>
 
         <script>
             (function () {

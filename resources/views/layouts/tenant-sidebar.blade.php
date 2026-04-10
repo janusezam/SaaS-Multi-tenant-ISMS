@@ -13,13 +13,20 @@
     $canPlayerViewSchedule = $permissionMatrix->allows($user, 'player.schedule.view');
     $tenantHasAnalytics = tenant() !== null && tenant()->hasFeature('analytics');
     $tenantHasBracket = tenant() !== null && tenant()->hasFeature('bracket');
+    $workspaceLabel = match (true) {
+        $isUniversityAdmin => 'Tenant Admin',
+        $isFacilitator => 'Sports Facilitator',
+        $isCoach => 'Team Coach',
+        $isPlayer => 'Student Player',
+        default => 'Tenant Workspace',
+    };
 @endphp
 
 <aside class="isms-sidebar hidden border-r md:sticky md:top-0 md:flex md:h-screen md:w-72 md:shrink-0 md:flex-col md:self-start md:overflow-y-auto">
     <div class="flex h-16 items-center gap-3 border-b px-5" style="border-color: var(--isms-stroke);">
         <a href="{{ route('tenant.dashboard') }}" class="inline-flex items-center gap-2">
             <x-application-logo class="block h-8 w-auto fill-current text-cyan-300" />
-            <span class="text-sm font-semibold tracking-wide isms-text">Tenant Admin</span>
+            <span class="text-sm font-semibold tracking-wide isms-text">{{ $workspaceLabel }}</span>
         </a>
     </div>
 

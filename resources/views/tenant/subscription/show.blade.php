@@ -20,10 +20,26 @@
     </x-slot>
 
     @php
-        $basicMonthlyPrice = (float) ($basicPlan?->monthly_price ?? 0);
-        $basicYearlyPrice = (float) ($basicPlan?->yearly_price ?? 0);
-        $proMonthlyPrice = (float) ($proPlan?->monthly_price ?? 0);
-        $proYearlyPrice = (float) ($proPlan?->yearly_price ?? 0);
+        $basicMonthlyQuote = data_get($pricingByPlan ?? [], 'basic.monthly');
+        $basicYearlyQuote = data_get($pricingByPlan ?? [], 'basic.yearly');
+        $proMonthlyQuote = data_get($pricingByPlan ?? [], 'pro.monthly');
+        $proYearlyQuote = data_get($pricingByPlan ?? [], 'pro.yearly');
+
+        $basicMonthlyPrice = (float) data_get($basicMonthlyQuote, 'final_price', $basicPlan?->monthly_price ?? 0);
+        $basicYearlyPrice = (float) data_get($basicYearlyQuote, 'final_price', $basicPlan?->yearly_price ?? 0);
+        $proMonthlyPrice = (float) data_get($proMonthlyQuote, 'final_price', $proPlan?->monthly_price ?? 0);
+        $proYearlyPrice = (float) data_get($proYearlyQuote, 'final_price', $proPlan?->yearly_price ?? 0);
+
+        $basicMonthlyBasePrice = (float) data_get($basicMonthlyQuote, 'base_price', $basicPlan?->monthly_price ?? 0);
+        $basicYearlyBasePrice = (float) data_get($basicYearlyQuote, 'base_price', $basicPlan?->yearly_price ?? 0);
+        $proMonthlyBasePrice = (float) data_get($proMonthlyQuote, 'base_price', $proPlan?->monthly_price ?? 0);
+        $proYearlyBasePrice = (float) data_get($proYearlyQuote, 'base_price', $proPlan?->yearly_price ?? 0);
+
+        $basicCampaignName = (string) data_get($basicMonthlyQuote, 'campaign.name', data_get($basicYearlyQuote, 'campaign.name', ''));
+        $proCampaignName = (string) data_get($proMonthlyQuote, 'campaign.name', data_get($proYearlyQuote, 'campaign.name', ''));
+
+        $basicHasCampaignPrice = $basicCampaignName !== '' && ($basicMonthlyPrice < $basicMonthlyBasePrice || $basicYearlyPrice < $basicYearlyBasePrice);
+        $proHasCampaignPrice = $proCampaignName !== '' && ($proMonthlyPrice < $proMonthlyBasePrice || $proYearlyPrice < $proYearlyBasePrice);
 
         $basicYearlyMonthlyEquivalent = $basicYearlyPrice > 0 ? ($basicYearlyPrice / 12) : 0;
         $proYearlyMonthlyEquivalent = $proYearlyPrice > 0 ? ($proYearlyPrice / 12) : 0;
@@ -57,6 +73,14 @@
         ];
 
         $usageKeys = ['users', 'teams', 'sports'];
+
+        $activeCampaignNames = collect([
+            $basicCampaignName,
+            $proCampaignName,
+            ...$additionalPlans->map(function ($plan) use ($pricingByPlan): string {
+                return (string) data_get($pricingByPlan ?? [], $plan->code.'.monthly.campaign.name', data_get($pricingByPlan ?? [], $plan->code.'.yearly.campaign.name', ''));
+            })->all(),
+        ])->filter(fn (string $name): bool => trim($name) !== '')->unique()->values();
     @endphp
 
     <div
@@ -79,6 +103,12 @@
         @if (session('status'))
             <div class="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-300/30 dark:bg-emerald-500/10 dark:text-emerald-100">
                 {{ session('status') }}
+            </div>
+        @endif
+
+        @if ($activeCampaignNames->isNotEmpty())
+            <div class="rounded-xl border border-emerald-300/40 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-100">
+                Campaign sale active: {{ $activeCampaignNames->join(', ') }}. Displayed plan prices already include campaign discounts.
             </div>
         @endif
 
@@ -169,14 +199,20 @@
                     <p class="text-4xl font-semibold text-slate-900 dark:text-slate-100" data-price-plan="basic" data-price-cycle="monthly">
                         ${{ number_format($basicMonthlyPrice, 2) }}
                     </p>
+                    @if ($basicHasCampaignPrice)
+                        <p class="mt-1 text-xs text-slate-500 line-through dark:text-slate-400">Regular: ${{ number_format($basicMonthlyBasePrice, 2) }}/month</p>
+                    @endif
                     <p class="hidden text-4xl font-semibold text-slate-900 dark:text-slate-100" data-price-plan="basic" data-price-cycle="yearly">
                         ${{ number_format($basicYearlyMonthlyEquivalent, 2) }}
                         <span class="text-base font-medium text-slate-500 dark:text-slate-400">/month</span>
                     </p>
-                    <p class="mt-1 text-xs text-slate-500 dark:text-slate-400" data-yearly-note="basic">Billed annually at ${{ number_format($basicYearlyPrice, 2) }}</p>
+                    <p class="mt-1 text-xs text-slate-500 dark:text-slate-400" data-yearly-note="basic">Billed annually at ${{ number_format($basicYearlyPrice, 2) }}@if ($basicHasCampaignPrice) <span class="line-through">${{ number_format($basicYearlyBasePrice, 2) }}</span>@endif</p>
                     <p class="mt-1 text-xs text-emerald-700 dark:text-emerald-200" data-yearly-save="basic" data-plan-yearly-savings-percent="{{ number_format($basicYearlySavingsPercent, 2, '.', '') }}">
                         Save ${{ number_format($basicYearlySavingsAmount, 2) }} ({{ number_format($basicYearlySavingsPercent, 2) }}%) yearly
                     </p>
+                    @if ($basicHasCampaignPrice)
+                        <p class="mt-1 text-xs font-medium text-emerald-300">Campaign active: {{ $basicCampaignName }}</p>
+                    @endif
                 </div>
 
                 <button
@@ -212,6 +248,9 @@
                         ${{ number_format($proMonthlyPrice, 2) }}
                         <span class="text-base font-medium text-slate-500 dark:text-slate-400">/month</span>
                     </p>
+                    @if ($proHasCampaignPrice)
+                        <p class="mt-1 text-xs text-slate-500 line-through dark:text-slate-400">Regular: ${{ number_format($proMonthlyBasePrice, 2) }}/month</p>
+                    @endif
                     <p class="hidden text-4xl font-semibold text-slate-900 dark:text-slate-100" data-price-plan="pro" data-price-cycle="yearly">
                         ${{ number_format($proYearlyMonthlyEquivalent, 2) }}
                         <span class="text-base font-medium text-slate-500 dark:text-slate-400">/month</span>
@@ -219,10 +258,13 @@
                     <p class="mt-1 hidden text-sm text-slate-500 line-through dark:text-slate-400" data-yearly-original-monthly="pro">
                         ${{ number_format($proMonthlyPrice, 2) }}/month
                     </p>
-                    <p class="mt-1 text-xs text-slate-500 dark:text-slate-400" data-yearly-note="pro">Billed annually at ${{ number_format($proYearlyPrice, 2) }}</p>
+                    <p class="mt-1 text-xs text-slate-500 dark:text-slate-400" data-yearly-note="pro">Billed annually at ${{ number_format($proYearlyPrice, 2) }}@if ($proHasCampaignPrice) <span class="line-through">${{ number_format($proYearlyBasePrice, 2) }}</span>@endif</p>
                     <p class="mt-1 text-xs text-emerald-700 dark:text-emerald-200" data-yearly-save="pro" data-plan-yearly-savings-percent="{{ number_format($proYearlySavingsPercent, 2, '.', '') }}">
                         Save ${{ number_format($proYearlySavingsAmount, 2) }} ({{ number_format($proYearlySavingsPercent, 2) }}%) annually
                     </p>
+                    @if ($proHasCampaignPrice)
+                        <p class="mt-1 text-xs font-medium text-emerald-300">Campaign active: {{ $proCampaignName }}</p>
+                    @endif
                 </div>
 
                 @if ($isCurrentPlanPro)
@@ -271,13 +313,19 @@
             <div class="grid gap-5 lg:grid-cols-2">
                 @foreach ($additionalPlans as $plan)
                     @php
-                        $planMonthlyPrice = (float) $plan->monthly_price;
-                        $planYearlyPrice = (float) $plan->yearly_price;
+                        $planMonthlyQuote = data_get($pricingByPlan ?? [], $plan->code.'.monthly');
+                        $planYearlyQuote = data_get($pricingByPlan ?? [], $plan->code.'.yearly');
+                        $planMonthlyPrice = (float) data_get($planMonthlyQuote, 'final_price', $plan->monthly_price);
+                        $planYearlyPrice = (float) data_get($planYearlyQuote, 'final_price', $plan->yearly_price);
+                        $planMonthlyBasePrice = (float) data_get($planMonthlyQuote, 'base_price', $plan->monthly_price);
+                        $planYearlyBasePrice = (float) data_get($planYearlyQuote, 'base_price', $plan->yearly_price);
                         $planYearlyMonthlyEquivalent = $planYearlyPrice > 0 ? ($planYearlyPrice / 12) : 0;
                         $planYearlySavingsAmount = max(0, ($planMonthlyPrice * 12) - $planYearlyPrice);
                         $planYearlySavingsPercent = ($planMonthlyPrice * 12) > 0
                             ? ($planYearlySavingsAmount / ($planMonthlyPrice * 12)) * 100
                             : (float) $plan->yearly_discount_percent;
+                        $planCampaignName = (string) data_get($planMonthlyQuote, 'campaign.name', data_get($planYearlyQuote, 'campaign.name', ''));
+                        $planHasCampaignPrice = $planCampaignName !== '' && ($planMonthlyPrice < $planMonthlyBasePrice || $planYearlyPrice < $planYearlyBasePrice);
                         $marketingPoints = collect(preg_split('/\r\n|\r|\n/', (string) ($plan->marketing_points ?? '')))
                             ->map(fn ($point) => trim((string) $point))
                             ->filter()
@@ -301,14 +349,20 @@
                                 ${{ number_format($planMonthlyPrice, 2) }}
                                 <span class="text-base font-medium text-slate-500 dark:text-slate-400">/month</span>
                             </p>
+                            @if ($planHasCampaignPrice)
+                                <p class="mt-1 text-xs text-slate-500 line-through dark:text-slate-400">Regular: ${{ number_format($planMonthlyBasePrice, 2) }}/month</p>
+                            @endif
                             <p class="hidden text-4xl font-semibold text-slate-900 dark:text-slate-100" data-price-plan="{{ $plan->code }}" data-price-cycle="yearly">
                                 ${{ number_format($planYearlyMonthlyEquivalent, 2) }}
                                 <span class="text-base font-medium text-slate-500 dark:text-slate-400">/month</span>
                             </p>
-                            <p class="mt-1 text-xs text-slate-500 dark:text-slate-400" data-yearly-note="{{ $plan->code }}">Billed annually at ${{ number_format($planYearlyPrice, 2) }}</p>
+                            <p class="mt-1 text-xs text-slate-500 dark:text-slate-400" data-yearly-note="{{ $plan->code }}">Billed annually at ${{ number_format($planYearlyPrice, 2) }}@if ($planHasCampaignPrice) <span class="line-through">${{ number_format($planYearlyBasePrice, 2) }}</span>@endif</p>
                             <p class="mt-1 text-xs text-emerald-700 dark:text-emerald-200" data-yearly-save="{{ $plan->code }}" data-plan-yearly-savings-percent="{{ number_format($planYearlySavingsPercent, 2, '.', '') }}">
                                 Save ${{ number_format($planYearlySavingsAmount, 2) }} ({{ number_format($planYearlySavingsPercent, 2) }}%) annually
                             </p>
+                            @if ($planHasCampaignPrice)
+                                <p class="mt-1 text-xs font-medium text-emerald-300">Campaign active: {{ $planCampaignName }}</p>
+                            @endif
                         </div>
 
                         @if ($isCurrentPlan)
