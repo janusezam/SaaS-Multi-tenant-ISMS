@@ -49,12 +49,12 @@ class TenantPermissionMatrix
             'common.settings.customization.manage' => [
                 'module' => 'Settings Management',
                 'label' => 'Manage Customization',
-                'description' => 'Update theme colors, default mode, and privacy message.',
+                'description' => 'Update theme colors and default mode preferences.',
             ],
             'common.settings.privacy.view' => [
                 'module' => 'Settings Management',
                 'label' => 'View Privacy Notice',
-                'description' => 'Read current tenant privacy policy message.',
+                'description' => 'Read the built-in system privacy notice.',
             ],
             'common.settings.support.manage' => [
                 'module' => 'Settings Management',
@@ -173,7 +173,7 @@ class TenantPermissionMatrix
                 'description' => 'Granular controls for settings tabs and support operations.',
                 'bullets' => [
                     'Settings workspace visibility',
-                    'Customization and privacy message management',
+                    'Customization controls and privacy notice visibility',
                     'Support report operations',
                     'System update feed visibility',
                 ],

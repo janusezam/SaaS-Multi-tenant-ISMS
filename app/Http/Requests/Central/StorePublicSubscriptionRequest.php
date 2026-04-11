@@ -29,7 +29,6 @@ class StorePublicSubscriptionRequest extends FormRequest
 
         $this->merge([
             'subdomain' => $subdomain,
-            'coupon_code' => trim((string) $this->input('coupon_code')),
             'tenant_domain' => $subdomain !== '' ? $subdomain.'.'.$this->tenantBaseDomain() : null,
         ]);
     }
@@ -56,7 +55,6 @@ class StorePublicSubscriptionRequest extends FormRequest
             ],
             'plan' => ['required', Rule::exists('plans', 'code')->where('is_active', true)],
             'billing_cycle' => ['required', Rule::in(['monthly', 'yearly'])],
-            'coupon_code' => ['nullable', 'string', 'max:80'],
             'tenant_domain' => ['required', 'string', 'max:255', 'unique:domains,domain'],
         ];
     }

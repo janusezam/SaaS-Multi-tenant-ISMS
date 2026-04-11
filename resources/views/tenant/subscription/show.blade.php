@@ -59,6 +59,10 @@
         $isCurrentPlanBasic = $currentPlanCode === 'basic';
         $isCurrentPlanPro = $currentPlanCode === 'pro';
         $limitText = static fn (?int $value): string => $value === null ? 'Unlimited' : number_format($value);
+        $lineItems = static fn (?string $value) => collect(preg_split('/\r\n|\r|\n/', (string) $value))
+            ->map(fn ($line) => trim((string) $line))
+            ->filter()
+            ->values();
 
         $basicLimits = [
             'users' => $basicPlan?->max_users,
@@ -71,6 +75,11 @@
             'teams' => $proPlan?->max_teams,
             'sports' => $proPlan?->max_sports,
         ];
+
+        $basicMarketingPoints = $lineItems($basicPlan?->marketing_points);
+        $proMarketingPoints = $lineItems($proPlan?->marketing_points);
+        $basicFlags = is_array($basicPlan?->feature_flags) ? $basicPlan->feature_flags : [];
+        $proFlags = is_array($proPlan?->feature_flags) ? $proPlan->feature_flags : [];
 
         $usageKeys = ['users', 'teams', 'sports'];
 
@@ -189,22 +198,22 @@
             ></span>
         </div>
 
-        <div class="grid gap-5 lg:grid-cols-2">
-            <article class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-slate-900/85">
-                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Basic</p>
-                <h3 class="mt-2 text-2xl font-semibold text-slate-900 dark:text-slate-100">Basic Plan</h3>
-                <p class="mt-2 text-sm text-slate-600 dark:text-slate-300">Core intramurals operations for school-wide scheduling and management.</p>
+        <div class="grid gap-4 lg:grid-cols-2">
+            <article class="rounded-2xl border bg-white p-4 shadow-sm dark:bg-slate-900/85 {{ $isCurrentPlanBasic ? 'border-cyan-300 dark:border-cyan-300/60' : 'border-slate-200 dark:border-white/10' }}">
+                <p class="text-xs font-semibold uppercase tracking-[0.18em] {{ $isCurrentPlanBasic ? 'text-cyan-700 dark:text-cyan-300' : 'text-slate-500 dark:text-slate-400' }}">Basic</p>
+                <h3 class="mt-1 text-xl font-semibold text-slate-900 dark:text-slate-100">{{ $basicPlan?->name ?? 'Basic Plan' }}</h3>
+                <p class="mt-1 text-xs text-slate-600 dark:text-slate-300">{{ $basicPlan?->marketing_tagline ?: 'Core intramurals operations for school-wide scheduling and management.' }}</p>
 
-                <div class="mt-5">
-                    <p class="text-4xl font-semibold text-slate-900 dark:text-slate-100" data-price-plan="basic" data-price-cycle="monthly">
+                <div class="mt-4">
+                    <p class="text-3xl font-semibold text-slate-900 dark:text-slate-100" data-price-plan="basic" data-price-cycle="monthly">
                         ${{ number_format($basicMonthlyPrice, 2) }}
                     </p>
                     @if ($basicHasCampaignPrice)
                         <p class="mt-1 text-xs text-slate-500 line-through dark:text-slate-400">Regular: ${{ number_format($basicMonthlyBasePrice, 2) }}/month</p>
                     @endif
-                    <p class="hidden text-4xl font-semibold text-slate-900 dark:text-slate-100" data-price-plan="basic" data-price-cycle="yearly">
+                    <p class="hidden text-3xl font-semibold text-slate-900 dark:text-slate-100" data-price-plan="basic" data-price-cycle="yearly">
                         ${{ number_format($basicYearlyMonthlyEquivalent, 2) }}
-                        <span class="text-base font-medium text-slate-500 dark:text-slate-400">/month</span>
+                        <span class="text-sm font-medium text-slate-500 dark:text-slate-400">/month</span>
                     </p>
                     <p class="mt-1 text-xs text-slate-500 dark:text-slate-400" data-yearly-note="basic">Billed annually at ${{ number_format($basicYearlyPrice, 2) }}@if ($basicHasCampaignPrice) <span class="line-through">${{ number_format($basicYearlyBasePrice, 2) }}</span>@endif</p>
                     <p class="mt-1 text-xs text-emerald-700 dark:text-emerald-200" data-yearly-save="basic" data-plan-yearly-savings-percent="{{ number_format($basicYearlySavingsPercent, 2, '.', '') }}">
@@ -217,43 +226,43 @@
 
                 <button
                     type="button"
-                    class="mt-5 inline-flex w-full items-center justify-center rounded-xl border border-slate-300 bg-slate-100 px-4 py-2.5 text-sm font-medium text-slate-600 dark:border-white/20 dark:bg-slate-800 dark:text-slate-300"
+                    class="mt-4 inline-flex w-full items-center justify-center rounded-xl border border-slate-300 bg-slate-100 px-3 py-2 text-sm font-medium text-slate-600 dark:border-white/20 dark:bg-slate-800 dark:text-slate-300"
                     data-basic-current-plan-btn
                     disabled
                 >
                     {{ $isCurrentPlanBasic ? 'Your current plan' : 'Basic plan' }}
                 </button>
 
-                <hr class="my-6 border-slate-200 dark:border-white/10">
+                <hr class="my-4 border-slate-200 dark:border-white/10">
 
-                <ul class="space-y-2 text-sm">
-                    <li class="flex items-start gap-2 text-slate-700 dark:text-slate-200"><span class="mt-[2px] text-emerald-600 dark:text-emerald-300">✓</span><span>Sports, venues, teams, players, and schedules management</span></li>
-                    <li class="flex items-start gap-2 text-slate-700 dark:text-slate-200"><span class="mt-[2px] text-emerald-600 dark:text-emerald-300">✓</span><span>Up to {{ $limitText($basicLimits['users']) }} users, {{ $limitText($basicLimits['teams']) }} teams, and {{ $limitText($basicLimits['sports']) }} sports</span></li>
-                    <li class="flex items-start gap-2 text-slate-700 dark:text-slate-200"><span class="mt-[2px] text-emerald-600 dark:text-emerald-300">✓</span><span>Result submission and standings computation</span></li>
-                    <li class="flex items-start gap-2 text-slate-700 dark:text-slate-200"><span class="mt-[2px] text-emerald-600 dark:text-emerald-300">✓</span><span>Game result audit trail</span></li>
-                    <li class="flex items-start gap-2 text-slate-500 dark:text-slate-400"><span class="mt-[2px] text-rose-500 dark:text-rose-300">✕</span><span>Advanced analytics <span class="ml-1 rounded bg-rose-100 px-1.5 py-0.5 text-[10px] uppercase tracking-[0.12em] text-rose-700 dark:bg-rose-500/20 dark:text-rose-200">Pro only</span></span></li>
-                    <li class="flex items-start gap-2 text-slate-500 dark:text-slate-400"><span class="mt-[2px] text-rose-500 dark:text-rose-300">✕</span><span>Bracket management and match progression <span class="ml-1 rounded bg-rose-100 px-1.5 py-0.5 text-[10px] uppercase tracking-[0.12em] text-rose-700 dark:bg-rose-500/20 dark:text-rose-200">Pro only</span></span></li>
-                    <li class="flex items-start gap-2 text-slate-500 dark:text-slate-400"><span class="mt-[2px] text-rose-500 dark:text-rose-300">✕</span><span>CSV and PDF exports <span class="ml-1 rounded bg-rose-100 px-1.5 py-0.5 text-[10px] uppercase tracking-[0.12em] text-rose-700 dark:bg-rose-500/20 dark:text-rose-200">Pro only</span></span></li>
+                <ul class="space-y-1.5 text-xs">
+                    @foreach ($basicMarketingPoints as $point)
+                        <li class="flex items-start gap-2 text-slate-700 dark:text-slate-200"><span class="mt-[2px] text-emerald-600 dark:text-emerald-300">✓</span><span>{{ $point }}</span></li>
+                    @endforeach
+                    <li class="flex items-start gap-2 text-slate-700 dark:text-slate-200"><span class="mt-[2px] text-emerald-600 dark:text-emerald-300">✓</span><span>Users: {{ $limitText($basicLimits['users']) }}</span></li>
+                    <li class="flex items-start gap-2 text-slate-700 dark:text-slate-200"><span class="mt-[2px] text-emerald-600 dark:text-emerald-300">✓</span><span>Teams: {{ $limitText($basicLimits['teams']) }}</span></li>
+                    <li class="flex items-start gap-2 text-slate-700 dark:text-slate-200"><span class="mt-[2px] text-emerald-600 dark:text-emerald-300">✓</span><span>Sports: {{ $limitText($basicLimits['sports']) }}</span></li>
+                    <li class="flex items-start gap-2 {{ ($basicFlags['analytics'] ?? false) ? 'text-slate-700 dark:text-slate-200' : 'text-slate-500 dark:text-slate-400' }}"><span class="mt-[2px] {{ ($basicFlags['analytics'] ?? false) ? 'text-emerald-600 dark:text-emerald-300' : 'text-rose-500 dark:text-rose-300' }}">{{ ($basicFlags['analytics'] ?? false) ? '✓' : '✕' }}</span><span>Analytics dashboard</span></li>
+                    <li class="flex items-start gap-2 {{ ($basicFlags['bracket'] ?? false) ? 'text-slate-700 dark:text-slate-200' : 'text-slate-500 dark:text-slate-400' }}"><span class="mt-[2px] {{ ($basicFlags['bracket'] ?? false) ? 'text-emerald-600 dark:text-emerald-300' : 'text-rose-500 dark:text-rose-300' }}">{{ ($basicFlags['bracket'] ?? false) ? '✓' : '✕' }}</span><span>Bracket generator</span></li>
                 </ul>
             </article>
 
-            <article class="relative rounded-3xl border-2 border-cyan-300 bg-white p-6 shadow-sm dark:border-cyan-300/60 dark:bg-slate-900/85">
-                <span class="absolute -top-3 right-5 rounded-full border border-cyan-300 bg-cyan-100 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-cyan-800 dark:border-cyan-300/40 dark:bg-cyan-500/20 dark:text-cyan-100">Recommended</span>
-                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-700 dark:text-cyan-300">Pro</p>
-                <h3 class="mt-2 text-2xl font-semibold text-slate-900 dark:text-slate-100">Pro Plan</h3>
-                <p class="mt-2 text-sm text-slate-600 dark:text-slate-300">Everything in Basic, plus premium analytics, brackets, and exports.</p>
+            <article class="relative rounded-2xl border bg-white p-4 shadow-sm dark:bg-slate-900/85 {{ $isCurrentPlanPro ? 'border-cyan-300 dark:border-cyan-300/60' : 'border-slate-200 dark:border-white/10' }}">
+                <p class="text-xs font-semibold uppercase tracking-[0.18em] {{ $isCurrentPlanPro ? 'text-cyan-700 dark:text-cyan-300' : 'text-slate-500 dark:text-slate-400' }}">Pro</p>
+                <h3 class="mt-1 text-xl font-semibold text-slate-900 dark:text-slate-100">{{ $proPlan?->name ?? 'Pro Plan' }}</h3>
+                <p class="mt-1 text-xs text-slate-600 dark:text-slate-300">{{ $proPlan?->marketing_tagline ?: 'Everything in Basic, plus premium analytics and bracket tools.' }}</p>
 
-                <div class="mt-5">
-                    <p class="text-4xl font-semibold text-slate-900 dark:text-slate-100" data-price-plan="pro" data-price-cycle="monthly">
+                <div class="mt-4">
+                    <p class="text-3xl font-semibold text-slate-900 dark:text-slate-100" data-price-plan="pro" data-price-cycle="monthly">
                         ${{ number_format($proMonthlyPrice, 2) }}
-                        <span class="text-base font-medium text-slate-500 dark:text-slate-400">/month</span>
+                        <span class="text-sm font-medium text-slate-500 dark:text-slate-400">/month</span>
                     </p>
                     @if ($proHasCampaignPrice)
                         <p class="mt-1 text-xs text-slate-500 line-through dark:text-slate-400">Regular: ${{ number_format($proMonthlyBasePrice, 2) }}/month</p>
                     @endif
-                    <p class="hidden text-4xl font-semibold text-slate-900 dark:text-slate-100" data-price-plan="pro" data-price-cycle="yearly">
+                    <p class="hidden text-3xl font-semibold text-slate-900 dark:text-slate-100" data-price-plan="pro" data-price-cycle="yearly">
                         ${{ number_format($proYearlyMonthlyEquivalent, 2) }}
-                        <span class="text-base font-medium text-slate-500 dark:text-slate-400">/month</span>
+                        <span class="text-sm font-medium text-slate-500 dark:text-slate-400">/month</span>
                     </p>
                     <p class="mt-1 hidden text-sm text-slate-500 line-through dark:text-slate-400" data-yearly-original-monthly="pro">
                         ${{ number_format($proMonthlyPrice, 2) }}/month
@@ -270,7 +279,7 @@
                 @if ($isCurrentPlanPro)
                     <button
                         type="button"
-                        class="mt-5 inline-flex w-full items-center justify-center rounded-xl border border-slate-300 bg-slate-100 px-4 py-2.5 text-sm font-medium text-slate-600 dark:border-white/20 dark:bg-slate-800 dark:text-slate-300"
+                        class="mt-4 inline-flex w-full items-center justify-center rounded-xl border border-slate-300 bg-slate-100 px-3 py-2 text-sm font-medium text-slate-600 dark:border-white/20 dark:bg-slate-800 dark:text-slate-300"
                         disabled
                     >
                         Your current plan
@@ -283,7 +292,7 @@
                         data-pro-upgrade-btn
                         data-plan-code="pro"
                         data-plan-name="Pro"
-                        class="mt-5 inline-flex w-full items-center justify-center rounded-xl border border-cyan-300 bg-cyan-100 px-4 py-2.5 text-sm font-medium text-cyan-800 hover:bg-cyan-200 disabled:cursor-not-allowed disabled:opacity-60 dark:border-cyan-300/40 dark:bg-cyan-500/20 dark:text-cyan-100 dark:hover:bg-cyan-500/30"
+                        class="mt-4 inline-flex w-full items-center justify-center rounded-xl border border-cyan-300 bg-cyan-100 px-3 py-2 text-sm font-medium text-cyan-800 hover:bg-cyan-200 disabled:cursor-not-allowed disabled:opacity-60 dark:border-cyan-300/40 dark:bg-cyan-500/20 dark:text-cyan-100 dark:hover:bg-cyan-500/30"
                         @disabled($pendingUpgradeRequest || ! $canSubmitUpgradeRequest)
                     >
                         @if ($pendingUpgradeRequest)
@@ -291,26 +300,28 @@
                         @elseif (! $canSubmitUpgradeRequest)
                             University admin only
                         @else
-                            Request upgrade to Pro
+                            {{ $proPlan?->cta_label ?: 'Request upgrade to Pro' }}
                         @endif
                     </button>
                 @endif
 
-                <hr class="my-6 border-slate-200 dark:border-white/10">
+                <hr class="my-4 border-slate-200 dark:border-white/10">
 
-                <ul class="space-y-2 text-sm">
-                    <li class="flex items-start gap-2 text-slate-700 dark:text-slate-200"><span class="mt-[2px] text-emerald-600 dark:text-emerald-300">✓</span><span>Everything in Basic</span></li>
-                    <li class="flex items-start gap-2 text-slate-700 dark:text-slate-200"><span class="mt-[2px] text-emerald-600 dark:text-emerald-300">✓</span><span>Up to {{ $limitText($proLimits['users']) }} users, {{ $limitText($proLimits['teams']) }} teams, and {{ $limitText($proLimits['sports']) }} sports</span></li>
-                    <li class="flex items-start gap-2 text-slate-700 dark:text-slate-200"><span class="mt-[2px] text-emerald-600 dark:text-emerald-300">✓</span><span>Advanced intramural analytics dashboard</span></li>
-                    <li class="flex items-start gap-2 text-slate-700 dark:text-slate-200"><span class="mt-[2px] text-emerald-600 dark:text-emerald-300">✓</span><span>Bracket generator with winner progression</span></li>
-                    <li class="flex items-start gap-2 text-slate-700 dark:text-slate-200"><span class="mt-[2px] text-emerald-600 dark:text-emerald-300">✓</span><span>Bracket and result audit history</span></li>
-                    <li class="flex items-start gap-2 text-slate-700 dark:text-slate-200"><span class="mt-[2px] text-emerald-600 dark:text-emerald-300">✓</span><span>CSV and PDF exports for standings and audits</span></li>
+                <ul class="space-y-1.5 text-xs">
+                    @foreach ($proMarketingPoints as $point)
+                        <li class="flex items-start gap-2 text-slate-700 dark:text-slate-200"><span class="mt-[2px] text-emerald-600 dark:text-emerald-300">✓</span><span>{{ $point }}</span></li>
+                    @endforeach
+                    <li class="flex items-start gap-2 text-slate-700 dark:text-slate-200"><span class="mt-[2px] text-emerald-600 dark:text-emerald-300">✓</span><span>Users: {{ $limitText($proLimits['users']) }}</span></li>
+                    <li class="flex items-start gap-2 text-slate-700 dark:text-slate-200"><span class="mt-[2px] text-emerald-600 dark:text-emerald-300">✓</span><span>Teams: {{ $limitText($proLimits['teams']) }}</span></li>
+                    <li class="flex items-start gap-2 text-slate-700 dark:text-slate-200"><span class="mt-[2px] text-emerald-600 dark:text-emerald-300">✓</span><span>Sports: {{ $limitText($proLimits['sports']) }}</span></li>
+                    <li class="flex items-start gap-2 {{ ($proFlags['analytics'] ?? false) ? 'text-slate-700 dark:text-slate-200' : 'text-slate-500 dark:text-slate-400' }}"><span class="mt-[2px] {{ ($proFlags['analytics'] ?? false) ? 'text-emerald-600 dark:text-emerald-300' : 'text-rose-500 dark:text-rose-300' }}">{{ ($proFlags['analytics'] ?? false) ? '✓' : '✕' }}</span><span>Analytics dashboard</span></li>
+                    <li class="flex items-start gap-2 {{ ($proFlags['bracket'] ?? false) ? 'text-slate-700 dark:text-slate-200' : 'text-slate-500 dark:text-slate-400' }}"><span class="mt-[2px] {{ ($proFlags['bracket'] ?? false) ? 'text-emerald-600 dark:text-emerald-300' : 'text-rose-500 dark:text-rose-300' }}">{{ ($proFlags['bracket'] ?? false) ? '✓' : '✕' }}</span><span>Bracket generator</span></li>
                 </ul>
             </article>
         </div>
 
         @if ($additionalPlans->isNotEmpty())
-            <div class="grid gap-5 lg:grid-cols-2">
+            <div class="grid gap-4 lg:grid-cols-2">
                 @foreach ($additionalPlans as $plan)
                     @php
                         $planMonthlyQuote = data_get($pricingByPlan ?? [], $plan->code.'.monthly');
@@ -330,31 +341,29 @@
                             ->map(fn ($point) => trim((string) $point))
                             ->filter()
                             ->values();
+                        $planFlags = is_array($plan->feature_flags) ? $plan->feature_flags : [];
                         $isCurrentPlan = $currentPlanCode === (string) $plan->code;
                     @endphp
 
-                    <article class="relative rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-slate-900/85">
-                        @if ($plan->badge_label)
-                            <span class="absolute -top-3 right-5 rounded-full border border-cyan-300 bg-cyan-100 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-cyan-800 dark:border-cyan-300/40 dark:bg-cyan-500/20 dark:text-cyan-100">{{ $plan->badge_label }}</span>
-                        @endif
+                    <article class="relative rounded-2xl border bg-white p-4 shadow-sm dark:bg-slate-900/85 {{ $isCurrentPlan ? 'border-cyan-300 dark:border-cyan-300/60' : 'border-slate-200 dark:border-white/10' }}">
 
                         <p class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">{{ strtoupper($plan->code) }}</p>
-                        <h3 class="mt-2 text-2xl font-semibold text-slate-900 dark:text-slate-100">{{ $plan->name }}</h3>
+                        <h3 class="mt-1 text-xl font-semibold text-slate-900 dark:text-slate-100">{{ $plan->name }}</h3>
                         @if ($plan->marketing_tagline)
-                            <p class="mt-2 text-sm text-slate-600 dark:text-slate-300">{{ $plan->marketing_tagline }}</p>
+                            <p class="mt-1 text-xs text-slate-600 dark:text-slate-300">{{ $plan->marketing_tagline }}</p>
                         @endif
 
-                        <div class="mt-5">
-                            <p class="text-4xl font-semibold text-slate-900 dark:text-slate-100" data-price-plan="{{ $plan->code }}" data-price-cycle="monthly">
+                        <div class="mt-4">
+                            <p class="text-3xl font-semibold text-slate-900 dark:text-slate-100" data-price-plan="{{ $plan->code }}" data-price-cycle="monthly">
                                 ${{ number_format($planMonthlyPrice, 2) }}
-                                <span class="text-base font-medium text-slate-500 dark:text-slate-400">/month</span>
+                                <span class="text-sm font-medium text-slate-500 dark:text-slate-400">/month</span>
                             </p>
                             @if ($planHasCampaignPrice)
                                 <p class="mt-1 text-xs text-slate-500 line-through dark:text-slate-400">Regular: ${{ number_format($planMonthlyBasePrice, 2) }}/month</p>
                             @endif
-                            <p class="hidden text-4xl font-semibold text-slate-900 dark:text-slate-100" data-price-plan="{{ $plan->code }}" data-price-cycle="yearly">
+                            <p class="hidden text-3xl font-semibold text-slate-900 dark:text-slate-100" data-price-plan="{{ $plan->code }}" data-price-cycle="yearly">
                                 ${{ number_format($planYearlyMonthlyEquivalent, 2) }}
-                                <span class="text-base font-medium text-slate-500 dark:text-slate-400">/month</span>
+                                <span class="text-sm font-medium text-slate-500 dark:text-slate-400">/month</span>
                             </p>
                             <p class="mt-1 text-xs text-slate-500 dark:text-slate-400" data-yearly-note="{{ $plan->code }}">Billed annually at ${{ number_format($planYearlyPrice, 2) }}@if ($planHasCampaignPrice) <span class="line-through">${{ number_format($planYearlyBasePrice, 2) }}</span>@endif</p>
                             <p class="mt-1 text-xs text-emerald-700 dark:text-emerald-200" data-yearly-save="{{ $plan->code }}" data-plan-yearly-savings-percent="{{ number_format($planYearlySavingsPercent, 2, '.', '') }}">
@@ -368,7 +377,7 @@
                         @if ($isCurrentPlan)
                             <button
                                 type="button"
-                                class="mt-5 inline-flex w-full items-center justify-center rounded-xl border border-slate-300 bg-slate-100 px-4 py-2.5 text-sm font-medium text-slate-600 dark:border-white/20 dark:bg-slate-800 dark:text-slate-300"
+                                class="mt-4 inline-flex w-full items-center justify-center rounded-xl border border-slate-300 bg-slate-100 px-3 py-2 text-sm font-medium text-slate-600 dark:border-white/20 dark:bg-slate-800 dark:text-slate-300"
                                 disabled
                             >
                                 Your current plan
@@ -380,7 +389,7 @@
                                 data-page-upgrade-trigger
                                 data-plan-code="{{ $plan->code }}"
                                 data-plan-name="{{ $plan->name }}"
-                                class="mt-5 inline-flex w-full items-center justify-center rounded-xl border border-cyan-300 bg-cyan-100 px-4 py-2.5 text-sm font-medium text-cyan-800 hover:bg-cyan-200 disabled:cursor-not-allowed disabled:opacity-60 dark:border-cyan-300/40 dark:bg-cyan-500/20 dark:text-cyan-100 dark:hover:bg-cyan-500/30"
+                                class="mt-4 inline-flex w-full items-center justify-center rounded-xl border border-cyan-300 bg-cyan-100 px-3 py-2 text-sm font-medium text-cyan-800 hover:bg-cyan-200 disabled:cursor-not-allowed disabled:opacity-60 dark:border-cyan-300/40 dark:bg-cyan-500/20 dark:text-cyan-100 dark:hover:bg-cyan-500/30"
                                 @disabled($pendingUpgradeRequest || ! $canSubmitUpgradeRequest)
                             >
                                 @if ($pendingUpgradeRequest)
@@ -393,24 +402,17 @@
                             </button>
                         @endif
 
-                        @if ($marketingPoints->isNotEmpty())
-                            <hr class="my-6 border-slate-200 dark:border-white/10">
-                            <ul class="space-y-2 text-sm">
-                                @foreach ($marketingPoints as $point)
-                                    <li class="flex items-start gap-2 text-slate-700 dark:text-slate-200"><span class="mt-[2px] text-emerald-600 dark:text-emerald-300">✓</span><span>{{ $point }}</span></li>
-                                @endforeach
-                                <li class="flex items-start gap-2 text-slate-700 dark:text-slate-200"><span class="mt-[2px] text-emerald-600 dark:text-emerald-300">✓</span><span>Users: {{ $limitText($plan->max_users) }}</span></li>
-                                <li class="flex items-start gap-2 text-slate-700 dark:text-slate-200"><span class="mt-[2px] text-emerald-600 dark:text-emerald-300">✓</span><span>Teams: {{ $limitText($plan->max_teams) }}</span></li>
-                                <li class="flex items-start gap-2 text-slate-700 dark:text-slate-200"><span class="mt-[2px] text-emerald-600 dark:text-emerald-300">✓</span><span>Sports: {{ $limitText($plan->max_sports) }}</span></li>
-                            </ul>
-                        @else
-                            <hr class="my-6 border-slate-200 dark:border-white/10">
-                            <ul class="space-y-2 text-sm">
-                                <li class="flex items-start gap-2 text-slate-700 dark:text-slate-200"><span class="mt-[2px] text-emerald-600 dark:text-emerald-300">✓</span><span>Users: {{ $limitText($plan->max_users) }}</span></li>
-                                <li class="flex items-start gap-2 text-slate-700 dark:text-slate-200"><span class="mt-[2px] text-emerald-600 dark:text-emerald-300">✓</span><span>Teams: {{ $limitText($plan->max_teams) }}</span></li>
-                                <li class="flex items-start gap-2 text-slate-700 dark:text-slate-200"><span class="mt-[2px] text-emerald-600 dark:text-emerald-300">✓</span><span>Sports: {{ $limitText($plan->max_sports) }}</span></li>
-                            </ul>
-                        @endif
+                        <hr class="my-4 border-slate-200 dark:border-white/10">
+                        <ul class="space-y-1.5 text-xs">
+                            @foreach ($marketingPoints as $point)
+                                <li class="flex items-start gap-2 text-slate-700 dark:text-slate-200"><span class="mt-[2px] text-emerald-600 dark:text-emerald-300">✓</span><span>{{ $point }}</span></li>
+                            @endforeach
+                            <li class="flex items-start gap-2 text-slate-700 dark:text-slate-200"><span class="mt-[2px] text-emerald-600 dark:text-emerald-300">✓</span><span>Users: {{ $limitText($plan->max_users) }}</span></li>
+                            <li class="flex items-start gap-2 text-slate-700 dark:text-slate-200"><span class="mt-[2px] text-emerald-600 dark:text-emerald-300">✓</span><span>Teams: {{ $limitText($plan->max_teams) }}</span></li>
+                            <li class="flex items-start gap-2 text-slate-700 dark:text-slate-200"><span class="mt-[2px] text-emerald-600 dark:text-emerald-300">✓</span><span>Sports: {{ $limitText($plan->max_sports) }}</span></li>
+                            <li class="flex items-start gap-2 {{ ($planFlags['analytics'] ?? false) ? 'text-slate-700 dark:text-slate-200' : 'text-slate-500 dark:text-slate-400' }}"><span class="mt-[2px] {{ ($planFlags['analytics'] ?? false) ? 'text-emerald-600 dark:text-emerald-300' : 'text-rose-500 dark:text-rose-300' }}">{{ ($planFlags['analytics'] ?? false) ? '✓' : '✕' }}</span><span>Analytics dashboard</span></li>
+                            <li class="flex items-start gap-2 {{ ($planFlags['bracket'] ?? false) ? 'text-slate-700 dark:text-slate-200' : 'text-slate-500 dark:text-slate-400' }}"><span class="mt-[2px] {{ ($planFlags['bracket'] ?? false) ? 'text-emerald-600 dark:text-emerald-300' : 'text-rose-500 dark:text-rose-300' }}">{{ ($planFlags['bracket'] ?? false) ? '✓' : '✕' }}</span><span>Bracket generator</span></li>
+                        </ul>
                     </article>
                 @endforeach
             </div>
@@ -437,10 +439,6 @@
                 <div>
                     <p class="text-xs uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">Expiry Date</p>
                     <p class="mt-1 text-sm text-slate-800 dark:text-slate-100">{{ $expiryDate?->format('M d, Y') ?? 'Not set' }}</p>
-                </div>
-                <div>
-                    <p class="text-xs uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">Applied Coupon</p>
-                    <p class="mt-1 text-sm text-slate-800 dark:text-slate-100">{{ $subscription?->coupon_code ?: 'None' }}</p>
                 </div>
                 <div>
                     <p class="text-xs uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">Last Effective Price</p>

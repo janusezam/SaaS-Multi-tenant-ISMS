@@ -80,6 +80,11 @@ afterEach(function () {
 test('tenant can update customization settings and submit support report', function () {
     $tenant = initializeTenantSettingsContext();
 
+    TenantSetting::query()->create([
+        'tenant_id' => $tenant->id,
+        'privacy_message' => 'Legacy tenant-managed message',
+    ]);
+
     $user = User::query()->create([
         'name' => 'Tenant Admin',
         'email' => 'tenant-settings-admin@example.test',
@@ -99,6 +104,7 @@ test('tenant can update customization settings and submit support report', funct
 
     $savedSettings = TenantSetting::query()->firstWhere('tenant_id', $tenant->id);
     $this->assertSame('#112233', $savedSettings?->brand_primary_color);
+    $this->assertSame('Legacy tenant-managed message', $savedSettings?->privacy_message);
 
     $this->actingAs($user)
         ->post(route('tenant.settings.support.store'), [

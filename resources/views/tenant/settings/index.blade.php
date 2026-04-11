@@ -19,7 +19,7 @@
         <div>
             <p class="text-xs uppercase tracking-[0.2em] text-cyan-300/80">Tenant Workspace</p>
             <h2 class="text-2xl font-semibold text-slate-100">Settings</h2>
-            <p class="mt-1 text-sm text-slate-300">Customization, privacy policy messaging, support reporting, and update visibility.</p>
+            <p class="mt-1 text-sm text-slate-300">Customization, privacy notice details, support reporting, and update visibility.</p>
         </div>
     </x-slot>
 
@@ -37,7 +37,7 @@
                         <button type="button" @click="tab = 'customization'" class="rounded-xl px-4 py-2 text-sm font-medium transition" :class="tab === 'customization' ? 'bg-cyan-500/20 text-cyan-100 border border-cyan-300/30' : 'border border-transparent text-slate-300 hover:bg-white/10'">Customization</button>
                     @endif
                     @if ($canViewPrivacy)
-                        <button type="button" @click="tab = 'privacy'" class="rounded-xl px-4 py-2 text-sm font-medium transition" :class="tab === 'privacy' ? 'bg-cyan-500/20 text-cyan-100 border border-cyan-300/30' : 'border border-transparent text-slate-300 hover:bg-white/10'">Privacy Policy</button>
+                        <button type="button" @click="tab = 'privacy'" class="rounded-xl px-4 py-2 text-sm font-medium transition" :class="tab === 'privacy' ? 'bg-cyan-500/20 text-cyan-100 border border-cyan-300/30' : 'border border-transparent text-slate-300 hover:bg-white/10'">Privacy Notice</button>
                     @endif
                     @if ($canManageSupport)
                         <button type="button" @click="tab = 'support'" class="rounded-xl px-4 py-2 text-sm font-medium transition" :class="tab === 'support' ? 'bg-cyan-500/20 text-cyan-100 border border-cyan-300/30' : 'border border-transparent text-slate-300 hover:bg-white/10'">Support</button>
@@ -96,14 +96,6 @@
                     @enderror
                 </div>
 
-                <div class="lg:col-span-3">
-                    <label for="privacy_message" class="text-sm font-medium text-slate-200">Privacy Policy Message</label>
-                    <textarea id="privacy_message" name="privacy_message" rows="6" class="mt-2 w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-slate-100" placeholder="Tell users how your tenant handles personal data and sports activity information.">{{ old('privacy_message', $privacyMessage) }}</textarea>
-                    @error('privacy_message')
-                        <p class="mt-1 text-xs text-rose-300">{{ $message }}</p>
-                    @enderror
-                </div>
-
                 <div class="lg:col-span-3 flex justify-end">
                     <button type="submit" class="rounded-lg border border-cyan-300/30 bg-cyan-500/20 px-4 py-2 text-sm font-semibold text-cyan-100 hover:bg-cyan-500/30">Save Settings</button>
                 </div>
@@ -113,10 +105,16 @@
 
         @if ($canViewPrivacy)
             <section x-show="tab === 'privacy'" x-cloak class="isms-surface rounded-2xl p-6">
-            <h3 class="text-lg font-semibold text-slate-100">Current Privacy Notice</h3>
-            <p class="mt-1 text-sm text-slate-300">This message is shown as your tenant-level privacy communication.</p>
-            <div class="mt-4 rounded-xl border border-white/10 bg-slate-950/40 p-4 text-sm leading-6 text-slate-200">
-                {{ $privacyMessage !== '' ? $privacyMessage : 'No privacy message has been configured yet. Use the Customization tab to set one.' }}
+            <h3 class="text-lg font-semibold text-slate-100">{{ $privacyNotice['title'] ?? 'System Privacy Notice' }}</h3>
+            <p class="mt-1 text-sm text-slate-300">{{ $privacyNoticeSummary }}</p>
+
+            <div class="mt-4 space-y-3">
+                @foreach ($privacyNoticeSections as $section)
+                    <article class="rounded-xl border border-white/10 bg-slate-950/40 p-4">
+                        <h4 class="text-sm font-semibold text-cyan-100">{{ $section['heading'] }}</h4>
+                        <p class="mt-1 text-sm leading-6 text-slate-200">{{ $section['content'] }}</p>
+                    </article>
+                @endforeach
             </div>
             </section>
         @endif

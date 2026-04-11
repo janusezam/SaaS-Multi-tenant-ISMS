@@ -26,9 +26,9 @@ class StorePromotionCampaignRequest extends FormRequest
 
         $this->merge([
             'status' => (string) ($this->input('status') ?: 'draft'),
-            'is_stackable_with_coupon' => $this->boolean('is_stackable_with_coupon', true),
+            'is_stackable_with_coupon' => false,
             'target_plan_codes' => array_values(array_filter(array_map(fn ($code) => trim((string) $code), $targetPlanCodes))),
-            'priority' => (int) ($this->input('priority') ?: 100),
+            'priority' => 100,
             'lifecycle_policy' => (string) ($this->input('lifecycle_policy') ?: 'next_renewal'),
         ]);
     }
@@ -47,8 +47,6 @@ class StorePromotionCampaignRequest extends FormRequest
             'discount_value' => ['required', 'numeric', 'min:0'],
             'target_plan_codes' => ['nullable', 'array'],
             'target_plan_codes.*' => ['string', Rule::exists('plans', 'code')],
-            'is_stackable_with_coupon' => ['required', 'boolean'],
-            'priority' => ['required', 'integer', 'min:1', 'max:9999'],
             'lifecycle_policy' => ['required', Rule::in(['next_renewal'])],
             'starts_at' => ['nullable', 'date'],
             'ends_at' => ['nullable', 'date', 'after_or_equal:starts_at'],

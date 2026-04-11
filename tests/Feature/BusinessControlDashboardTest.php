@@ -23,7 +23,7 @@ test('authenticated super admin can view business control dashboard', function (
         ->assertOk()
         ->assertSee('Business Control')
         ->assertSee('Plan Management')
-        ->assertSee('Coupon Management')
+        ->assertSee('Campaign Management')
         ->assertSee('Upgrade Queue');
 });
 
@@ -40,14 +40,14 @@ test('authenticated super admin can view all business control pages', function (
         ->assertSee('Plan Management');
 
     $this->actingAs($superAdmin, 'super_admin')
-        ->get(route('central.business-control.coupons.index'))
-        ->assertOk()
-        ->assertSee('Coupon Management');
-
-    $this->actingAs($superAdmin, 'super_admin')
         ->get(route('central.business-control.upgrade-requests.index'))
         ->assertOk()
         ->assertSee('Upgrade Requests');
+
+    $this->actingAs($superAdmin, 'super_admin')
+        ->get(route('central.business-control.campaigns.index'))
+        ->assertOk()
+        ->assertSee('Campaign Management');
 
     $this->actingAs($superAdmin, 'super_admin')
         ->get(route('central.business-control.support-updates.index'))

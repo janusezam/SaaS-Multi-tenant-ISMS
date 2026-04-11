@@ -19,7 +19,6 @@ class PreviewPricingRequest extends FormRequest
     {
         $this->merge([
             'plan' => (string) ($this->input('plan') ?: 'pro'),
-            'coupon_code' => trim((string) $this->input('coupon_code')),
         ]);
     }
 
@@ -33,7 +32,6 @@ class PreviewPricingRequest extends FormRequest
         return [
             'plan' => ['required', 'string', 'max:30'],
             'billing_cycle' => ['required', 'string', 'in:monthly,yearly'],
-            'coupon_code' => ['nullable', 'string', 'max:80'],
         ];
     }
 }

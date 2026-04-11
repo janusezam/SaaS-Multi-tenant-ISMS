@@ -62,7 +62,6 @@
                                 </div>
                                 <p class="mt-1 text-xs text-slate-400">
                                     {{ strtoupper((string) ($subscription?->billing_cycle ?? 'monthly')) }}
-                                    · Coupon: {{ $subscription?->coupon_code ?: 'none' }}
                                     · Final: ${{ number_format((float) ($subscription?->final_price ?? 0), 2) }}
                                 </p>
                             </td>

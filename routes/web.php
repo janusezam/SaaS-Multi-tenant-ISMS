@@ -1,7 +1,6 @@
 <?php
 
 use App\Http\Controllers\Central\Auth\AuthenticatedSessionController as CentralAuthenticatedSessionController;
-use App\Http\Controllers\Central\BusinessControl\CouponController;
 use App\Http\Controllers\Central\BusinessControl\DashboardController;
 use App\Http\Controllers\Central\BusinessControl\PlanController;
 use App\Http\Controllers\Central\BusinessControl\PromotionCampaignController;
@@ -71,11 +70,6 @@ Route::prefix('central')->name('central.')->group(function () {
             Route::post('plans', [PlanController::class, 'store'])->name('plans.store');
             Route::patch('plans/{plan}', [PlanController::class, 'update'])->name('plans.update');
             Route::delete('plans/{plan}', [PlanController::class, 'destroy'])->name('plans.destroy');
-
-            Route::get('coupons', [CouponController::class, 'index'])->name('coupons.index');
-            Route::post('coupons', [CouponController::class, 'store'])->name('coupons.store');
-            Route::patch('coupons/{coupon}', [CouponController::class, 'update'])->name('coupons.update');
-            Route::get('coupons/{coupon}/redemptions', [CouponController::class, 'redemptions'])->name('coupons.redemptions');
 
             Route::get('campaigns', [PromotionCampaignController::class, 'index'])->name('campaigns.index');
             Route::post('campaigns', [PromotionCampaignController::class, 'store'])->name('campaigns.store');

@@ -68,8 +68,6 @@ test('super admin can create campaign and apply it to next renewals', function (
             'discount_type' => 'percent',
             'discount_value' => 20,
             'target_plan_codes' => ['basic'],
-            'is_stackable_with_coupon' => '0',
-            'priority' => 10,
             'lifecycle_policy' => 'next_renewal',
             'starts_at' => now()->subHour()->format('Y-m-d H:i:s'),
             'ends_at' => now()->addHour()->format('Y-m-d H:i:s'),

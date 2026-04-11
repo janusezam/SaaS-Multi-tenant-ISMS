@@ -18,7 +18,7 @@ class PromotionCampaignController extends Controller
     {
         return view('central.business-control.campaigns.index', [
             'campaigns' => PromotionCampaign::query()
-                ->orderBy('priority')
+                ->orderByDesc('discount_value')
                 ->orderByDesc('starts_at')
                 ->paginate(20),
             'plans' => Plan::query()->active()->orderBy('sort_order')->get(),

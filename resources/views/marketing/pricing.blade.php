@@ -175,12 +175,6 @@
                     @error('billing_cycle')<p class="mt-1 text-xs text-rose-300">{{ $message }}</p>@enderror
                 </div>
 
-                <div>
-                    <label class="mb-2 block text-sm text-slate-300" for="coupon_code">Promo Code (optional)</label>
-                    <input id="coupon_code" name="coupon_code" value="{{ old('coupon_code') }}" class="w-full rounded-xl border border-white/10 bg-slate-950/70 text-slate-100">
-                    @error('coupon_code')<p class="mt-1 text-xs text-rose-300">{{ $message }}</p>@enderror
-                </div>
-
                 <div class="md:col-span-2">
                     <button type="submit" class="rounded-xl border border-cyan-300/40 bg-cyan-500/20 px-5 py-3 text-sm font-medium text-cyan-100 hover:bg-cyan-500/30">
                         Submit Subscription Request

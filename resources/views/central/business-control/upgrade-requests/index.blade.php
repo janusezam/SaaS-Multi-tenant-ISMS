@@ -31,7 +31,7 @@
                                     Discount: ${{ number_format((float) $upgradeRequest->discount_amount, 2) }} ·
                                     Effective: ${{ number_format((float) $upgradeRequest->final_price, 2) }}
                                 </p>
-                                <p class="text-xs text-slate-600 dark:text-slate-400">Coupon: {{ $upgradeRequest->coupon_code ?: 'None' }} · Requested by {{ $upgradeRequest->requested_by_email }}</p>
+                                <p class="text-xs text-slate-600 dark:text-slate-400">Requested by {{ $upgradeRequest->requested_by_email }}</p>
                                 <p class="mt-2">
                                     <span class="inline-flex rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-700 dark:border-amber-300/30 dark:bg-amber-500/20 dark:text-amber-100">Pending Review</span>
                                 </p>

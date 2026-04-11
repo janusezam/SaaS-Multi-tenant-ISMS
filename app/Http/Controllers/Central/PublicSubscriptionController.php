@@ -48,7 +48,6 @@ class PublicSubscriptionController extends Controller
         $quote = $pricingEngine->quote(
             (string) $validated['plan'],
             (string) $validated['billing_cycle'],
-            $validated['coupon_code'] ?? null,
         );
 
         $university = new University([
@@ -78,8 +77,6 @@ class PublicSubscriptionController extends Controller
             'base_price' => $quote['base_price'],
             'discount_amount' => $quote['discount_amount'],
             'final_price' => $quote['final_price'],
-            'coupon_id' => $quote['coupon']['id'] ?? null,
-            'coupon_code' => $quote['coupon']['code'] ?? null,
             'pricing_snapshot' => $quote,
             'status' => 'pending',
             'start_date' => null,

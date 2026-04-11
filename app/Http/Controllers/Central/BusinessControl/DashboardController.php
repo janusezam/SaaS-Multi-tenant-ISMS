@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Central\BusinessControl;
 
 use App\Http\Controllers\Controller;
-use App\Models\Coupon;
 use App\Models\Plan;
 use App\Models\PromotionCampaign;
 use App\Models\Subscription;
@@ -24,7 +23,6 @@ class DashboardController extends Controller
         return view('central.business-control.index', [
             'metrics' => [
                 'activePlans' => Plan::query()->active()->count(),
-                'activeCoupons' => Coupon::query()->active()->count(),
                 'activeCampaigns' => PromotionCampaign::query()->active()->withinWindow()->count(),
                 'pendingUpgradeRequests' => SubscriptionUpgradeRequest::query()->where('status', 'pending')->count(),
                 'activeUniversities' => $activeUniversities->count(),
@@ -44,15 +42,10 @@ class DashboardController extends Controller
                 ->orderBy('name')
                 ->limit(6)
                 ->get(),
-            'activeCoupons' => Coupon::query()
-                ->active()
-                ->latest()
-                ->limit(6)
-                ->get(),
             'activeCampaigns' => PromotionCampaign::query()
                 ->active()
                 ->withinWindow()
-                ->orderBy('priority')
+                ->orderByDesc('discount_value')
                 ->limit(6)
                 ->get(),
         ]);

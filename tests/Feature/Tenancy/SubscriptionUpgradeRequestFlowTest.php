@@ -160,7 +160,7 @@ test('duplicate pending upgrade request is blocked', function () {
     $response->assertJsonValidationErrors(['request']);
 });
 
-test('active non stackable campaign applies and blocks coupon stacking in preview', function () {
+test('active campaign discount applies in preview', function () {
     Plan::query()->updateOrCreate([
         'code' => 'pro',
     ], [
@@ -190,8 +190,6 @@ test('active non stackable campaign applies and blocks coupon stacking in previe
         'discount_type' => 'percent',
         'discount_value' => 10,
         'target_plan_codes' => ['pro'],
-        'is_stackable_with_coupon' => false,
-        'priority' => 5,
         'lifecycle_policy' => 'next_renewal',
         'starts_at' => now()->subHour(),
         'ends_at' => now()->addHour(),
@@ -202,11 +200,10 @@ test('active non stackable campaign applies and blocks coupon stacking in previe
     $previewResponse = $this->actingAs($user)->getJson(route('tenant.subscription.preview', [
         'plan' => 'pro',
         'billing_cycle' => 'monthly',
-        'coupon_code' => 'SAVE20',
     ]));
 
     $previewResponse->assertOk();
     $previewResponse->assertJsonPath('quote.campaign.name', 'Promo Blast');
-    $previewResponse->assertJsonPath('quote.coupon', null);
-    $previewResponse->assertJsonPath('quote.coupon_blocked_by_campaign', true);
+    $previewResponse->assertJsonPath('quote.campaign_discount_amount', 4.9);
+    $previewResponse->assertJsonPath('quote.final_price', 44.1);
 });

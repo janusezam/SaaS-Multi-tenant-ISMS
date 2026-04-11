@@ -16,6 +16,7 @@ class TenantSettingsController extends Controller
     public function edit(): View
     {
         $setting = TenantSetting::query()->firstWhere('tenant_id', tenant('id'));
+        $privacyNotice = $this->privacyNotice();
 
         return view('tenant.settings.index', [
             'customization' => [
@@ -23,7 +24,9 @@ class TenantSettingsController extends Controller
                 'brand_secondary_color' => (string) ($setting?->brand_secondary_color ?? '#6366f1'),
                 'theme_preference' => (string) ($setting?->theme_preference ?? 'system'),
             ],
-            'privacyMessage' => (string) ($setting?->privacy_message ?? ''),
+            'privacyNotice' => $privacyNotice,
+            'privacyNoticeSummary' => (string) ($privacyNotice['summary'] ?? ''),
+            'privacyNoticeSections' => $privacyNotice['sections'] ?? [],
             'supportTickets' => TenantSupportTicket::query()
                 ->where('tenant_id', tenant('id'))
                 ->latest()
@@ -49,7 +52,6 @@ class TenantSettingsController extends Controller
             'brand_primary_color' => $validated['brand_primary_color'],
             'brand_secondary_color' => $validated['brand_secondary_color'],
             'theme_preference' => $validated['theme_preference'],
-            'privacy_message' => (string) ($validated['privacy_message'] ?? ''),
         ]);
 
         return redirect()
@@ -77,5 +79,34 @@ class TenantSettingsController extends Controller
         return redirect()
             ->route('tenant.settings.edit')
             ->with('status', 'Support report submitted to central support.');
+    }
+
+    /**
+     * @return array{title: string, summary: string, sections: array<int, array{heading: string, content: string}>}
+     */
+    private function privacyNotice(): array
+    {
+        return [
+            'title' => 'System Privacy Notice',
+            'summary' => 'This notice is managed by the ISMS platform and applies to all tenant workspaces. Tenant admins cannot modify this policy text.',
+            'sections' => [
+                [
+                    'heading' => 'Data We Collect',
+                    'content' => 'The system stores account details, team rosters, match schedules, attendance responses, and audit logs needed to operate intramural sports workflows.',
+                ],
+                [
+                    'heading' => 'Why Data Is Processed',
+                    'content' => 'Data is processed to authenticate users, enforce role-based access, manage sports operations, generate standings, and support tenant-level reporting.',
+                ],
+                [
+                    'heading' => 'Tenant Isolation and Security',
+                    'content' => 'Each tenant workspace is isolated by tenant context and access controls. Users can only access records within their own tenant scope.',
+                ],
+                [
+                    'heading' => 'Retention and Support Access',
+                    'content' => 'Operational records remain available according to platform retention practices. Support reports are visible to authorized central administrators for issue resolution.',
+                ],
+            ],
+        ];
     }
 }

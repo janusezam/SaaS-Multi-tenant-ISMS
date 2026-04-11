@@ -13,7 +13,7 @@
             <button type="button" data-upgrade-close class="rounded-lg border border-slate-300 px-2 py-1 text-xs text-slate-700 hover:bg-slate-100 dark:border-white/15 dark:text-slate-300 dark:hover:bg-white/10">Close</button>
         </div>
 
-        <p class="mt-3 text-sm text-slate-600 dark:text-slate-300">Request central approval for your selected plan. No payment is collected here. Pricing and coupon checks are validated from central business control.</p>
+        <p class="mt-3 text-sm text-slate-600 dark:text-slate-300">Request central approval for your selected plan. No payment is collected here. Pricing checks are validated from central business control.</p>
 
         <div class="mt-4 grid grid-cols-3 gap-3 rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm dark:border-white/10 dark:bg-slate-950/40">
             <div>
@@ -36,13 +36,7 @@
         </div>
 
         <div class="mt-4">
-            <label for="upgrade-coupon" class="mb-2 block text-sm text-slate-700 dark:text-slate-300">Promo Code (optional)</label>
-            <div class="flex gap-2">
-                <input id="upgrade-coupon" type="text" class="w-full rounded-xl border border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 dark:border-white/10 dark:bg-slate-950/60 dark:text-slate-100" placeholder="Enter coupon code" />
-                <button type="button" data-apply-coupon class="rounded-xl border border-cyan-300 bg-cyan-100 px-3 py-2 text-sm text-cyan-800 hover:bg-cyan-200 dark:border-cyan-300/40 dark:bg-cyan-500/20 dark:text-cyan-100 dark:hover:bg-cyan-500/30">Apply</button>
-            </div>
-            <p class="mt-1 hidden text-xs text-emerald-700 dark:text-emerald-200" data-upgrade-coupon-success></p>
-            <p class="mt-1 hidden text-xs text-rose-700 dark:text-rose-300" data-upgrade-error></p>
+            <p class="hidden text-xs text-rose-700 dark:text-rose-300" data-upgrade-error></p>
         </div>
 
         <div class="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm dark:border-white/10 dark:bg-slate-950/60">
@@ -53,10 +47,6 @@
             <div class="mt-2 flex items-center justify-between text-slate-700 dark:text-slate-300">
                 <span>Campaign discount</span>
                 <span data-price-campaign-discount>$0.00</span>
-            </div>
-            <div class="mt-2 flex items-center justify-between text-slate-700 dark:text-slate-300">
-                <span>Coupon discount</span>
-                <span data-price-coupon-discount>$0.00</span>
             </div>
             <div class="mt-2 flex items-center justify-between text-slate-700 dark:text-slate-300">
                 <span>Total discount</span>
@@ -99,16 +89,13 @@
             plan: 'pro',
             planName: 'PRO',
             billingCycle: window.__ismsSubscriptionBillingCycle === 'yearly' ? 'yearly' : 'monthly',
-            couponCode: '',
             pending: false,
         };
 
         var errorNode = modal.querySelector('[data-upgrade-error]');
-        var successNode = modal.querySelector('[data-upgrade-coupon-success]');
         var pendingNode = modal.querySelector('[data-upgrade-pending]');
         var baseNode = modal.querySelector('[data-price-base]');
         var campaignDiscountNode = modal.querySelector('[data-price-campaign-discount]');
-        var couponDiscountNode = modal.querySelector('[data-price-coupon-discount]');
         var discountNode = modal.querySelector('[data-price-discount]');
         var finalNode = modal.querySelector('[data-price-final]');
         var savingsNode = modal.querySelector('[data-yearly-savings]');
@@ -117,8 +104,6 @@
         var summaryPlanNode = modal.querySelector('[data-upgrade-summary-plan]');
         var summaryPriceNode = modal.querySelector('[data-upgrade-summary-price]');
         var submitButton = modal.querySelector('[data-submit-upgrade]');
-        var couponInput = modal.querySelector('#upgrade-coupon');
-        var couponValidationTimer = null;
 
         function formatCurrency(value) {
             var amount = Number(value || 0);
@@ -131,22 +116,6 @@
                 errorNode.classList.toggle('hidden', !message);
             }
 
-            if (message && successNode) {
-                successNode.textContent = '';
-                successNode.classList.add('hidden');
-            }
-        }
-
-        function setCouponSuccess(message) {
-            if (successNode) {
-                successNode.textContent = message || '';
-                successNode.classList.toggle('hidden', !message);
-            }
-
-            if (message && errorNode) {
-                errorNode.textContent = '';
-                errorNode.classList.add('hidden');
-            }
         }
 
         function setPending(message) {
@@ -201,7 +170,6 @@
             var params = new URLSearchParams({
                 plan: state.plan,
                 billing_cycle: state.billingCycle,
-                coupon_code: state.couponCode,
             });
 
             fetch(previewUrl + '?' + params.toString(), {
@@ -227,7 +195,6 @@
 
                 baseNode.textContent = formatCurrency(quote.base_price);
                 campaignDiscountNode.textContent = formatCurrency(quote.campaign_discount_amount);
-                couponDiscountNode.textContent = formatCurrency(quote.coupon_discount_amount);
                 discountNode.textContent = formatCurrency(quote.discount_amount);
                 finalNode.textContent = formatCurrency(quote.final_price);
                 if (summaryPriceNode) {
@@ -240,28 +207,14 @@
                     campaignNoteNode.textContent = '';
                 }
 
-                if (state.couponCode !== '' && quote.coupon) {
-                    var discountType = String(quote.coupon.discount_type || '').toLowerCase();
-                    var discountValue = Number(quote.coupon.discount_value || 0);
-                    var discountDescription = discountType === 'percent'
-                        ? discountValue.toFixed(2) + '% off'
-                        : formatCurrency(discountValue) + ' off';
-                    setCouponSuccess('Promo code applied: ' + quote.coupon.code + ' (' + discountDescription + ')');
-                } else if (state.couponCode !== '' && quote.coupon_blocked_by_campaign) {
-                    setCouponSuccess('Coupon not applied: active campaign is configured as non-stackable.');
-                } else if (state.couponCode === '') {
-                    setCouponSuccess('');
-                }
-
                 if (state.billingCycle === 'yearly' && Number(plan.yearly_discount_percent || 0) > 0) {
                     savingsNode.textContent = 'Yearly savings: ' + Number(plan.yearly_discount_percent).toFixed(2) + '%';
                 } else {
                     savingsNode.textContent = '';
                 }
             }).catch(function (errorPayload) {
-                var message = errorPayload?.errors?.coupon_code?.[0] || errorPayload?.message || 'Unable to compute pricing right now.';
+                var message = errorPayload?.message || 'Unable to compute pricing right now.';
                 setError(message);
-                setCouponSuccess('');
             });
         }
 
@@ -292,23 +245,6 @@
             });
         });
 
-        modal.querySelector('[data-apply-coupon]')?.addEventListener('click', function () {
-            state.couponCode = couponInput?.value?.trim() || '';
-            refreshQuote();
-        });
-
-        couponInput?.addEventListener('input', function () {
-            state.couponCode = couponInput.value.trim();
-
-            if (couponValidationTimer) {
-                clearTimeout(couponValidationTimer);
-            }
-
-            couponValidationTimer = setTimeout(function () {
-                refreshQuote();
-            }, 350);
-        });
-
         submitButton?.addEventListener('click', function () {
             if (state.pending) {
                 return;
@@ -325,7 +261,6 @@
                 body: JSON.stringify({
                     requested_plan: state.plan,
                     billing_cycle: state.billingCycle,
-                    coupon_code: state.couponCode,
                 }),
             }).then(function (response) {
                 return response.json().then(function (data) {
@@ -339,7 +274,6 @@
                 state.pending = true;
                 setPending('Upgrade request submitted and now pending central approval.');
                 setError('');
-                setCouponSuccess('');
                 window.dispatchEvent(new CustomEvent('isms:subscription-upgrade-submitted'));
                 closeModal();
             }).catch(function (errorPayload) {

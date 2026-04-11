@@ -99,7 +99,6 @@ class SubscriptionController extends Controller
         $quote = $pricingEngine->quote(
             (string) $request->validated('plan'),
             (string) $request->validated('billing_cycle'),
-            $request->validated('coupon_code'),
         );
 
         return response()->json([
@@ -141,15 +140,12 @@ class SubscriptionController extends Controller
         $quote = $pricingEngine->quote(
             (string) $validated['requested_plan'],
             (string) $validated['billing_cycle'],
-            $validated['coupon_code'] ?? null,
         );
 
         $pendingRequest = SubscriptionUpgradeRequest::query()->create([
             'tenant_id' => (string) $tenant->id,
             'requested_plan' => (string) $quote['plan']['code'],
             'billing_cycle' => (string) $quote['billing_cycle'],
-            'coupon_id' => $quote['coupon']['id'] ?? null,
-            'coupon_code' => $quote['coupon']['code'] ?? null,
             'base_price' => $quote['base_price'],
             'discount_amount' => $quote['discount_amount'],
             'final_price' => $quote['final_price'],

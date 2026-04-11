@@ -19,7 +19,6 @@ class StoreUpgradeRequest extends FormRequest
     {
         $this->merge([
             'requested_plan' => (string) ($this->input('requested_plan') ?: 'pro'),
-            'coupon_code' => trim((string) $this->input('coupon_code')),
         ]);
     }
 
@@ -33,7 +32,6 @@ class StoreUpgradeRequest extends FormRequest
         return [
             'requested_plan' => ['required', 'string', 'max:30'],
             'billing_cycle' => ['required', 'string', 'in:monthly,yearly'],
-            'coupon_code' => ['nullable', 'string', 'max:80'],
         ];
     }
 }
