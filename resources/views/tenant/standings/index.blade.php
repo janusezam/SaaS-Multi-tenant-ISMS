@@ -18,16 +18,17 @@
             return tenant_asset($normalized);
         };
 
-        $selectedSport = (string) request('sport', 'all');
-        $selectedDivision = (string) request('division', $selectedDivision ?? '');
+        $activeSports = \App\Models\Sport::query()->where('is_active', true)->orderBy('name')->get();
 
-        $sportTabs = [
-            'all' => 'All Sports',
-            'basketball' => 'Basketball',
-            'volleyball' => 'Volleyball',
-            'football' => 'Football',
-            'badminton' => 'Badminton',
-        ];
+        $selectedSportId = request()->integer('sport_id') ?: null;
+        $legacySport = strtolower((string) request('sport', 'all'));
+
+        if ($selectedSportId === null && $legacySport !== 'all' && $legacySport !== '') {
+            $selectedSportId = $activeSports
+                ->first(fn (\App\Models\Sport $sport): bool => str_contains(strtolower($sport->name), $legacySport))
+                ?->id;
+        }
+        $selectedDivision = (string) request('division', $selectedDivision ?? '');
 
         $sportBadgeClasses = [
             'basketball' => 'border-orange-300/40 bg-orange-500/20 text-orange-100',
@@ -49,7 +50,6 @@
         };
 
         $calculator = app(\App\Support\StandingsCalculator::class);
-        $activeSports = \App\Models\Sport::query()->where('is_active', true)->orderBy('name')->get();
         $completedGames = \App\Models\Game::query()->with(['sport', 'homeTeam', 'awayTeam'])->where('status', 'completed')->get();
 
         if ($selectedDivision !== '') {
@@ -58,12 +58,12 @@
             })->values();
         }
 
-        $sportsToRender = $activeSports->filter(function (\App\Models\Sport $sport) use ($selectedSport): bool {
-            if ($selectedSport === 'all') {
+        $sportsToRender = $activeSports->filter(function (\App\Models\Sport $sport) use ($selectedSportId): bool {
+            if ($selectedSportId === null) {
                 return true;
             }
 
-            return str_contains(strtolower($sport->name), $selectedSport);
+            return $sport->id === $selectedSportId;
         })->values();
 
         $sections = $sportsToRender->map(function (\App\Models\Sport $sport) use ($completedGames, $calculator): array {
@@ -96,25 +96,34 @@
 
     <div class="mx-auto max-w-7xl space-y-5 px-4 py-8 sm:px-6 lg:px-8">
         <div class="flex flex-wrap gap-2 rounded-2xl border border-white/10 bg-slate-900/85 p-3">
-            @foreach ($sportTabs as $tabKey => $tabLabel)
+            <a
+                href="{{ route('tenant.standings.index', ['sport_id' => null, 'division' => $selectedDivision !== '' ? $selectedDivision : null]) }}"
+                class="rounded-lg border px-3 py-2 text-xs font-semibold uppercase tracking-[0.14em] transition {{ $selectedSportId === null ? 'border-cyan-300/40 bg-cyan-500/20 text-cyan-100' : 'border-white/10 bg-white/5 text-slate-300 hover:bg-white/10' }}"
+            >
+                All Sports
+            </a>
+
+            @foreach ($activeSports as $sportTab)
                 <a
-                    href="{{ route('tenant.standings.index', ['sport' => $tabKey, 'division' => $selectedDivision !== '' ? $selectedDivision : null]) }}"
-                    class="rounded-lg border px-3 py-2 text-xs font-semibold uppercase tracking-[0.14em] transition {{ $selectedSport === $tabKey ? 'border-cyan-300/40 bg-cyan-500/20 text-cyan-100' : 'border-white/10 bg-white/5 text-slate-300 hover:bg-white/10' }}"
+                    href="{{ route('tenant.standings.index', ['sport_id' => $sportTab->id, 'division' => $selectedDivision !== '' ? $selectedDivision : null]) }}"
+                    class="rounded-lg border px-3 py-2 text-xs font-semibold uppercase tracking-[0.14em] transition {{ $selectedSportId === $sportTab->id ? 'border-cyan-300/40 bg-cyan-500/20 text-cyan-100' : 'border-white/10 bg-white/5 text-slate-300 hover:bg-white/10' }}"
                 >
-                    {{ $tabLabel }}
+                    {{ $sportTab->name }}
                 </a>
             @endforeach
         </div>
 
         <form method="GET" action="{{ route('tenant.standings.index') }}" class="grid gap-4 rounded-2xl border border-white/10 bg-slate-900/85 p-4 sm:grid-cols-3">
-            <input type="hidden" name="sport" value="{{ $selectedSport }}" />
+            @if ($selectedSportId !== null)
+                <input type="hidden" name="sport_id" value="{{ $selectedSportId }}" />
+            @endif
             <div>
                 <label class="mb-2 block text-sm text-slate-300" for="division">Division</label>
                 <input id="division" name="division" value="{{ $selectedDivision }}" class="w-full rounded-xl border border-white/10 bg-slate-950/60 text-slate-100" placeholder="A, B, College, etc." />
             </div>
             <div class="flex items-end gap-2 sm:col-span-2">
                 <button type="submit" class="rounded-xl border border-cyan-300/40 bg-cyan-500/20 px-4 py-2 text-sm font-medium text-cyan-100 hover:bg-cyan-500/30">Apply</button>
-                <a href="{{ route('tenant.standings.index', ['sport' => $selectedSport]) }}" class="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-slate-200 hover:bg-white/10">Reset</a>
+                <a href="{{ route('tenant.standings.index', ['sport_id' => $selectedSportId]) }}" class="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-slate-200 hover:bg-white/10">Reset</a>
             </div>
         </form>
 

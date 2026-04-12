@@ -18,15 +18,16 @@
             return tenant_asset($normalizedPath);
         };
 
-        $selectedSport = (string) request('sport', 'all');
+        $activeSports = \App\Models\Sport::query()->where('is_active', true)->orderBy('name')->get();
 
-        $sportTabs = [
-            'all' => 'All Sports',
-            'basketball' => 'Basketball',
-            'volleyball' => 'Volleyball',
-            'football' => 'Football',
-            'badminton' => 'Badminton',
-        ];
+        $selectedSportId = request()->integer('sport_id') ?: null;
+        $legacySport = strtolower((string) request('sport', 'all'));
+
+        if ($selectedSportId === null && $legacySport !== 'all' && $legacySport !== '') {
+            $selectedSportId = $activeSports
+                ->first(fn (\App\Models\Sport $sport): bool => str_contains(strtolower($sport->name), $legacySport))
+                ?->id;
+        }
 
         $statusClasses = [
             'scheduled' => 'border-cyan-300/40 bg-cyan-500/20 text-cyan-100',
@@ -55,9 +56,9 @@
 
         $gamesCollection = $games->getCollection();
 
-        if ($selectedSport !== 'all') {
-            $gamesCollection = $gamesCollection->filter(function ($game) use ($selectedSport): bool {
-                return str_contains(strtolower((string) $game->sport?->name), $selectedSport);
+        if ($selectedSportId !== null) {
+            $gamesCollection = $gamesCollection->filter(function ($game) use ($selectedSportId): bool {
+                return (int) $game->sport_id === $selectedSportId;
             })->values();
         }
 
@@ -92,12 +93,19 @@
         </div>
 
         <div class="flex flex-wrap gap-2 rounded-2xl border border-white/10 bg-slate-900/85 p-3">
-            @foreach ($sportTabs as $tabKey => $tabLabel)
+            <a
+                href="{{ route('tenant.games.index', ['sport_id' => null]) }}"
+                class="rounded-lg border px-3 py-2 text-xs font-semibold uppercase tracking-[0.14em] transition {{ $selectedSportId === null ? 'border-cyan-300/40 bg-cyan-500/20 text-cyan-100' : 'border-white/10 bg-white/5 text-slate-300 hover:bg-white/10' }}"
+            >
+                All Sports
+            </a>
+
+            @foreach ($activeSports as $sportTab)
                 <a
-                    href="{{ route('tenant.games.index', ['sport' => $tabKey]) }}"
-                    class="rounded-lg border px-3 py-2 text-xs font-semibold uppercase tracking-[0.14em] transition {{ $selectedSport === $tabKey ? 'border-cyan-300/40 bg-cyan-500/20 text-cyan-100' : 'border-white/10 bg-white/5 text-slate-300 hover:bg-white/10' }}"
+                    href="{{ route('tenant.games.index', ['sport_id' => $sportTab->id]) }}"
+                    class="rounded-lg border px-3 py-2 text-xs font-semibold uppercase tracking-[0.14em] transition {{ $selectedSportId === $sportTab->id ? 'border-cyan-300/40 bg-cyan-500/20 text-cyan-100' : 'border-white/10 bg-white/5 text-slate-300 hover:bg-white/10' }}"
                 >
-                    {{ $tabLabel }}
+                    {{ $sportTab->name }}
                 </a>
             @endforeach
         </div>
@@ -204,7 +212,7 @@
         @endforeach
 
         <div>
-            {{ $games->appends(['sport' => $selectedSport])->links() }}
+            {{ $games->appends(['sport_id' => $selectedSportId])->links() }}
         </div>
     </div>
 </x-app-layout>

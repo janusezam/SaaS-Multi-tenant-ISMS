@@ -194,3 +194,24 @@ test('authenticated user can view standings page', function () {
     $response->assertOk();
     $response->assertSee('Live Standings');
 });
+
+test('standings sport tabs are dynamic per tenant sports', function () {
+    $user = User::factory()->create(['role' => 'student_player']);
+
+    Sport::query()->create([
+        'name' => 'Futsal',
+        'code' => 'futsal',
+        'description' => null,
+        'is_active' => true,
+    ]);
+
+    $response = $this->actingAs($user)->get(route('tenant.standings.index'));
+
+    $response->assertOk();
+    $response->assertSee('All Sports');
+    $response->assertSee('Futsal');
+    $response->assertDontSee('Basketball');
+    $response->assertDontSee('Volleyball');
+    $response->assertDontSee('Football');
+    $response->assertDontSee('Badminton');
+});

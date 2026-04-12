@@ -86,7 +86,7 @@
 
                 <div>
                     <label for="theme_preference" class="text-sm font-medium text-slate-200">Default Theme Mode</label>
-                    <select id="theme_preference" name="theme_preference" class="mt-2 w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-slate-100">
+                    <select id="theme_preference" name="theme_preference" class="mt-2 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 dark:border-white/10 dark:bg-white/5 dark:text-slate-100">
                         <option value="system" @selected(old('theme_preference', $customization['theme_preference']) === 'system')>System</option>
                         <option value="light" @selected(old('theme_preference', $customization['theme_preference']) === 'light')>Light</option>
                         <option value="dark" @selected(old('theme_preference', $customization['theme_preference']) === 'dark')>Dark</option>
@@ -130,7 +130,7 @@
 
                     <div>
                         <label for="category" class="text-sm font-medium text-slate-200">Issue Category</label>
-                        <select id="category" name="category" class="mt-2 w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-slate-100">
+                        <select id="category" name="category" class="mt-2 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 dark:border-white/10 dark:bg-white/5 dark:text-slate-100">
                             <option value="bug" @selected(old('category') === 'bug')>Bug</option>
                             <option value="access" @selected(old('category') === 'access')>Access / Permission</option>
                             <option value="billing" @selected(old('category') === 'billing')>Billing / Subscription</option>

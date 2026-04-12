@@ -125,6 +125,27 @@ test('sports facilitator can schedule and update a game', function () {
     $this->assertDatabaseHas('games', ['id' => $gameId, 'status' => 'completed', 'home_score' => 75, 'away_score' => 70]);
 });
 
+test('games sport filter tabs are dynamic per tenant sports', function () {
+    $user = User::factory()->create(['role' => 'sports_facilitator']);
+
+    Sport::query()->create([
+        'name' => 'Futsal',
+        'code' => 'futsal-gm',
+        'description' => null,
+        'is_active' => true,
+    ]);
+
+    $response = $this->actingAs($user)->get(route('tenant.games.index'));
+
+    $response->assertOk();
+    $response->assertSee('All Sports');
+    $response->assertSee('Futsal');
+    $response->assertDontSee('Basketball');
+    $response->assertDontSee('Volleyball');
+    $response->assertDontSee('Football');
+    $response->assertDontSee('Badminton');
+});
+
 test('validation prevents same team as home and away', function () {
     $user = User::factory()->create(['role' => 'sports_facilitator']);
 
