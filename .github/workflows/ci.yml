@@ -47,4 +47,11 @@ jobs:
         run: php artisan key:generate
 
       - name: Run tests
-        run: php artisan test --compact
+        run: >-
+          php artisan test --compact
+          tests/Feature/BusinessControlDashboardTest.php
+          tests/Feature/Central/SystemUpdateVersionSyncCommandTest.php
+          tests/Feature/TenantMigrationSafetyCommandTest.php
+          tests/Feature/Tenancy/StandingsTest.php
+          tests/Feature/Tenancy/GameManagementTest.php
+          tests/Feature/Tenancy/TenantSettingsProfileTest.php
