@@ -42,11 +42,15 @@
             selectedRole: '{{ $managedRoles[0] ?? 'team_coach' }}',
             selectedModule: '{{ $moduleNames->first() ?? '' }}',
             selectedAction: 'enable',
+            editingModule: null,
             toggleModule(module, role, checked) {
                 const selector = `input[data-module='${module}'][data-role='${role}'][type='checkbox']`;
                 document.querySelectorAll(selector).forEach((checkbox) => {
                     checkbox.checked = checked;
                 });
+            },
+            toggleEdit(module) {
+                this.editingModule = this.editingModule === module ? null : module;
             },
             applyModuleAccess() {
                 if (!this.selectedModule || !this.selectedRole) {
@@ -107,31 +111,61 @@
                     </thead>
                     <tbody class="divide-y divide-white/10">
                         @foreach ($definitionsByModule as $moduleName => $moduleDefinitions)
+                            @php
+                                $moduleRoleEnabledCounts = [];
+
+                                foreach ($managedRoles as $role) {
+                                    $moduleRoleEnabledCounts[$role] = $moduleDefinitions->filter(function (array $definition) use ($matrix, $role): bool {
+                                        return (bool) ($matrix[$definition['key']][$role] ?? false);
+                                    })->count();
+                                }
+                            @endphp
+
                             <tr>
                                 <td colspan="5" class="border-y border-white/10 bg-slate-950/50 px-4 py-3">
                                     <div class="flex flex-wrap items-center justify-between gap-3">
                                         <div>
                                             <p class="text-xs uppercase tracking-[0.16em] text-cyan-200">{{ $moduleName }}</p>
-                                            <p class="mt-1 text-xs text-slate-400">{{ $moduleDefinitions->count() }} permission item(s)</p>
+                                            <p class="mt-1 text-xs text-slate-400">{{ $moduleDefinitions->count() }} permission item(s) · Compact view</p>
                                         </div>
                                         <div class="flex flex-wrap items-center gap-2 text-xs text-slate-300">
                                             @foreach ($managedRoles as $role)
-                                                <label class="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-2 py-1">
-                                                    <input
-                                                        type="checkbox"
-                                                        class="h-3.5 w-3.5 rounded border-slate-500 bg-slate-800 text-cyan-400"
-                                                        @change="toggleModule('{{ $moduleName }}', '{{ $role }}', $event.target.checked)"
-                                                    >
-                                                    <span>Select all {{ $roleLabels[$role] ?? $role }}</span>
-                                                </label>
+                                                <span class="rounded-lg border border-white/10 bg-white/5 px-2 py-1">
+                                                    {{ $roleLabels[$role] ?? $role }}: {{ $moduleRoleEnabledCounts[$role] }}/{{ $moduleDefinitions->count() }}
+                                                </span>
                                             @endforeach
+                                            <button
+                                                type="button"
+                                                @click="toggleEdit(@js($moduleName))"
+                                                class="rounded-lg border border-cyan-300/40 bg-cyan-500/20 px-3 py-1 text-xs font-medium text-cyan-100 hover:bg-cyan-500/30"
+                                            >
+                                                <span x-show="editingModule !== @js($moduleName)">Edit</span>
+                                                <span x-show="editingModule === @js($moduleName)">Done</span>
+                                            </button>
                                         </div>
                                     </div>
                                 </td>
                             </tr>
 
+                            <tr x-show="editingModule === @js($moduleName)" x-cloak>
+                                <td colspan="5" class="bg-slate-950/40 px-4 py-2">
+                                    <div class="flex w-full flex-wrap items-center justify-end gap-2 text-xs text-slate-300">
+                                        @foreach ($managedRoles as $role)
+                                            <label class="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-2 py-1">
+                                                <input
+                                                    type="checkbox"
+                                                    class="h-3.5 w-3.5 rounded border-slate-500 bg-slate-800 text-cyan-400"
+                                                    @change="toggleModule(@js($moduleName), @js($role), $event.target.checked)"
+                                                >
+                                                <span>Select all {{ $roleLabels[$role] ?? $role }}</span>
+                                            </label>
+                                        @endforeach
+                                    </div>
+                                </td>
+                            </tr>
+
                             @foreach ($moduleDefinitions as $definition)
-                                <tr>
+                                <tr x-show="editingModule === @js($moduleName)" x-cloak>
                                     <td class="px-4 py-3 align-top">
                                         <p class="font-semibold text-cyan-200">{{ $moduleName }}</p>
                                     </td>
