@@ -71,6 +71,24 @@
                             {{ $campaign->description }}
                         </div>
                     @endif
+
+                    <div class="mt-4 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 dark:border-white/10 dark:bg-slate-950/40">
+                        <p class="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400">Version History</p>
+
+                        @if ($campaign->versions->isEmpty())
+                            <p class="mt-2 text-xs text-slate-500 dark:text-slate-400">No versions yet.</p>
+                        @else
+                            <ul class="mt-2 space-y-1.5 text-xs text-slate-600 dark:text-slate-300">
+                                @foreach ($campaign->versions as $version)
+                                    <li class="flex items-center justify-between gap-2 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 dark:border-white/10 dark:bg-slate-900/70">
+                                        <span class="font-semibold">v{{ $version->version_number }}</span>
+                                        <span class="truncate">{{ $version->name }}</span>
+                                        <span class="shrink-0 text-slate-500 dark:text-slate-400">{{ $version->created_at?->format('M d, Y h:i A') }}</span>
+                                    </li>
+                                @endforeach
+                            </ul>
+                        @endif
+                    </div>
                 </article>
             @empty
                 <div class="col-span-full rounded-2xl border border-slate-200 bg-white px-4 py-6 text-center text-sm text-slate-500 shadow-sm dark:border-white/10 dark:bg-slate-900/80 dark:text-slate-400">

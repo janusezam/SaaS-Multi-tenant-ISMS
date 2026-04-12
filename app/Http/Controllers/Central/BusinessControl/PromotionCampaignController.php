@@ -20,6 +20,9 @@ class PromotionCampaignController extends Controller
     {
         return view('central.business-control.campaigns.index', [
             'campaigns' => PromotionCampaign::query()
+                ->with([
+                    'versions' => fn ($query) => $query->orderByDesc('version_number')->limit(5),
+                ])
                 ->orderByDesc('discount_value')
                 ->orderByDesc('starts_at')
                 ->paginate(20),

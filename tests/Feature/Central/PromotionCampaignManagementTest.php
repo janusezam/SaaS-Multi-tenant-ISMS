@@ -171,3 +171,41 @@ test('campaign update appends next campaign version snapshot', function () {
         ->and((string) $latestVersion->discount_value)->toBe('50.00')
         ->and($latestVersion->changed_by_super_admin_id)->toBe($superAdmin->id);
 });
+
+test('campaign management page shows version history', function () {
+    $superAdmin = SuperAdmin::query()->create([
+        'name' => 'Campaign History Viewer',
+        'email' => 'campaign-history-viewer@example.test',
+        'password' => 'password',
+    ]);
+
+    $campaign = PromotionCampaign::query()->create([
+        'name' => 'History Campaign',
+        'status' => 'active',
+        'discount_type' => 'percent',
+        'discount_value' => 12,
+        'target_plan_codes' => ['basic'],
+        'lifecycle_policy' => 'next_renewal',
+    ]);
+
+    CampaignVersion::query()->create([
+        'promotion_campaign_id' => $campaign->id,
+        'version_number' => 1,
+        'name' => $campaign->name,
+        'status' => $campaign->status,
+        'discount_type' => $campaign->discount_type,
+        'discount_value' => $campaign->discount_value,
+        'target_plan_codes' => $campaign->target_plan_codes,
+        'is_stackable_with_coupon' => false,
+        'priority' => 100,
+        'lifecycle_policy' => $campaign->lifecycle_policy,
+        'changed_by_super_admin_id' => $superAdmin->id,
+    ]);
+
+    $this->actingAs($superAdmin, 'super_admin')
+        ->get(route('central.business-control.campaigns.index'))
+        ->assertOk()
+        ->assertSee('Version History')
+        ->assertSee('v1')
+        ->assertSee('History Campaign');
+});

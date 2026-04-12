@@ -108,6 +108,24 @@
                         <button type="button" @click="editOpen = {{ $plan->id }}" class="mt-7 w-full rounded-2xl border border-cyan-300/30 bg-cyan-400/20 px-4 py-2 text-sm font-semibold text-cyan-100 hover:bg-cyan-400/30">
                             {{ $plan->cta_label ?: 'Manage Plan' }}
                         </button>
+
+                        <div class="mt-5 rounded-2xl border border-cyan-200/20 bg-slate-950/35 p-3">
+                            <p class="text-xs font-semibold uppercase tracking-[0.14em] text-cyan-100/75">Version History</p>
+
+                            @if ($plan->versions->isEmpty())
+                                <p class="mt-2 text-xs text-cyan-100/65">No versions yet.</p>
+                            @else
+                                <ul class="mt-2 space-y-1.5 text-xs text-cyan-50/90">
+                                    @foreach ($plan->versions as $version)
+                                        <li class="flex items-center justify-between gap-2 rounded-lg border border-cyan-200/15 bg-cyan-500/5 px-2.5 py-1.5">
+                                            <span class="font-semibold">v{{ $version->version_number }}</span>
+                                            <span class="truncate text-cyan-100/80">{{ $version->name }}</span>
+                                            <span class="shrink-0 text-cyan-100/65">{{ $version->created_at?->format('M d, Y h:i A') }}</span>
+                                        </li>
+                                    @endforeach
+                                </ul>
+                            @endif
+                        </div>
                     </div>
                 </article>
             @empty

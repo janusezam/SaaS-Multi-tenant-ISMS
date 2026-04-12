@@ -231,6 +231,44 @@ test('plan update appends next plan version snapshot', function () {
         ->and($latestVersion->changed_by_super_admin_id)->toBe($superAdmin->id);
 });
 
+test('plan management page shows version history', function () {
+    $superAdmin = SuperAdmin::query()->create([
+        'name' => 'Plan History Viewer',
+        'email' => 'plan-history-viewer@example.test',
+        'password' => 'password',
+    ]);
+
+    $plan = Plan::query()->create([
+        'code' => 'history_plus',
+        'name' => 'History Plus',
+        'monthly_price' => 33,
+        'yearly_price' => 330,
+        'yearly_discount_percent' => 16.67,
+        'is_active' => true,
+        'sort_order' => 120,
+    ]);
+
+    PlanVersion::query()->create([
+        'plan_id' => $plan->id,
+        'version_number' => 1,
+        'code' => $plan->code,
+        'name' => $plan->name,
+        'monthly_price' => $plan->monthly_price,
+        'yearly_price' => $plan->yearly_price,
+        'yearly_discount_percent' => $plan->yearly_discount_percent,
+        'is_active' => $plan->is_active,
+        'sort_order' => $plan->sort_order,
+        'changed_by_super_admin_id' => $superAdmin->id,
+    ]);
+
+    $this->actingAs($superAdmin, 'super_admin')
+        ->get(route('central.business-control.plans.index'))
+        ->assertOk()
+        ->assertSee('Version History')
+        ->assertSee('v1')
+        ->assertSee('History Plus');
+});
+
 test('basic and pro plans cannot be deleted', function () {
     $superAdmin = SuperAdmin::query()->create([
         'name' => 'Business Control Plan Guard',

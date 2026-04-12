@@ -18,7 +18,13 @@ class PlanController extends Controller
     public function index(): View
     {
         return view('central.business-control.plans.index', [
-            'plans' => Plan::query()->orderBy('sort_order')->orderBy('name')->get(),
+            'plans' => Plan::query()
+                ->with([
+                    'versions' => fn ($query) => $query->orderByDesc('version_number')->limit(5),
+                ])
+                ->orderBy('sort_order')
+                ->orderBy('name')
+                ->get(),
         ]);
     }
 
