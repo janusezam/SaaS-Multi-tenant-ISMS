@@ -8,6 +8,7 @@ use App\Http\Requests\Central\UpdateTenantSupportTicketStatusRequest;
 use App\Models\SystemUpdate;
 use App\Models\TenantSupportTicket;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\View\View;
 
 class TenantSupportTicketController extends Controller
@@ -62,5 +63,14 @@ class TenantSupportTicketController extends Controller
         return redirect()
             ->route('central.business-control.support-updates.index')
             ->with('status', 'System update published.');
+    }
+
+    public function syncCurrentVersion(): RedirectResponse
+    {
+        Artisan::call('app:sync-system-updates-from-app-version');
+
+        return redirect()
+            ->route('central.business-control.support-updates.index')
+            ->with('status', 'Current app version sync completed.');
     }
 }

@@ -3,6 +3,7 @@
 use App\Models\Plan;
 use App\Models\PlanVersion;
 use App\Models\SuperAdmin;
+use App\Models\SystemUpdate;
 use App\Models\TenantSupportTicket;
 
 test('business control dashboard requires super admin authentication', function () {
@@ -103,6 +104,23 @@ test('super admin can post updates and resolve tenant reports', function () {
         'status' => 'resolved',
         'central_note' => 'Patched and deployed.',
     ]);
+});
+
+test('super admin can sync current app version as a system update', function () {
+    config()->set('app.version', 'v2.0.1');
+
+    $superAdmin = SuperAdmin::query()->create([
+        'name' => 'Version Sync Admin',
+        'email' => 'version-sync-admin@example.test',
+        'password' => 'password',
+    ]);
+
+    $this->actingAs($superAdmin, 'super_admin')
+        ->post(route('central.business-control.support-updates.sync-current-version'))
+        ->assertRedirect(route('central.business-control.support-updates.index'))
+        ->assertSessionHas('status', 'Current app version sync completed.');
+
+    expect(SystemUpdate::query()->where('version', 'v2.0.1')->count())->toBe(1);
 });
 
 test('plan can be created when sort order is omitted', function () {

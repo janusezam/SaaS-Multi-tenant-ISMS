@@ -58,6 +58,12 @@
             <section class="space-y-6">
                 <div class="isms-surface rounded-2xl p-6">
                     <h3 class="text-lg font-semibold text-slate-100">Publish Update</h3>
+                    <form method="POST" action="{{ route('central.business-control.support-updates.sync-current-version') }}" class="mt-3">
+                        @csrf
+                        <button type="submit" class="w-full rounded-lg border border-emerald-300/30 bg-emerald-500/20 px-4 py-2 text-sm font-semibold text-emerald-100 hover:bg-emerald-500/30">
+                            Sync Current App Version
+                        </button>
+                    </form>
                     <form method="POST" action="{{ route('central.business-control.support-updates.updates.store') }}" class="mt-4 space-y-3">
                         @csrf
 
