@@ -26,8 +26,8 @@ return new class extends Migration
             $table->timestamp('finished_at')->nullable();
             $table->timestamps();
 
-            $table->index(['tenant_migration_run_id', 'tenant_id']);
-            $table->index(['tenant_id', 'status']);
+            $table->index(['tenant_migration_run_id', 'tenant_id'], 'tmr_items_run_tenant_idx');
+            $table->index(['tenant_id', 'status'], 'tmr_items_tenant_status_idx');
         });
     }
 
