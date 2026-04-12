@@ -6,9 +6,11 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Central\StorePlanRequest;
 use App\Http\Requests\Central\UpdatePlanRequest;
 use App\Models\Plan;
+use App\Models\PlanVersion;
 use App\Models\Subscription;
 use App\Models\SubscriptionUpgradeRequest;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class PlanController extends Controller
@@ -37,7 +39,10 @@ class PlanController extends Controller
             $this->unsetFeaturedPlans();
         }
 
-        Plan::query()->create($payload);
+        DB::transaction(function () use ($payload, $request): void {
+            $plan = Plan::query()->create($payload);
+            $this->createPlanVersionSnapshot($plan, (int) $request->user('super_admin')->id);
+        });
 
         return redirect()
             ->route('central.business-control.plans.index')
@@ -61,7 +66,10 @@ class PlanController extends Controller
             $this->unsetFeaturedPlans($plan->id);
         }
 
-        $plan->update($payload);
+        DB::transaction(function () use ($plan, $payload, $request): void {
+            $plan->update($payload);
+            $this->createPlanVersionSnapshot($plan->fresh(), (int) $request->user('super_admin')->id);
+        });
 
         return redirect()
             ->route('central.business-control.plans.index')
@@ -120,5 +128,31 @@ class PlanController extends Controller
                 fn ($query) => $query->whereKeyNot($exceptPlanId),
             )
             ->update(['is_featured' => false]);
+    }
+
+    private function createPlanVersionSnapshot(Plan $plan, int $changedBySuperAdminId): PlanVersion
+    {
+        $nextVersionNumber = ((int) $plan->versions()->max('version_number')) + 1;
+
+        return $plan->versions()->create([
+            'version_number' => $nextVersionNumber,
+            'code' => $plan->code,
+            'name' => $plan->name,
+            'marketing_tagline' => $plan->marketing_tagline,
+            'badge_label' => $plan->badge_label,
+            'cta_label' => $plan->cta_label,
+            'marketing_points' => $plan->marketing_points,
+            'monthly_price' => $plan->monthly_price,
+            'yearly_price' => $plan->yearly_price,
+            'yearly_discount_percent' => $plan->yearly_discount_percent,
+            'max_users' => $plan->max_users,
+            'max_teams' => $plan->max_teams,
+            'max_sports' => $plan->max_sports,
+            'feature_flags' => $plan->feature_flags,
+            'is_active' => $plan->is_active,
+            'is_featured' => $plan->is_featured,
+            'sort_order' => $plan->sort_order,
+            'changed_by_super_admin_id' => $changedBySuperAdminId,
+        ]);
     }
 }

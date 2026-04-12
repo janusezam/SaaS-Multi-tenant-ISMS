@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Stancl\Tenancy\Database\Concerns\CentralConnection;
 
 class Plan extends Model
@@ -83,5 +84,10 @@ class Plan extends Model
     public function scopeActive(Builder $query): Builder
     {
         return $query->where('is_active', true);
+    }
+
+    public function versions(): HasMany
+    {
+        return $this->hasMany(PlanVersion::class)->orderBy('version_number');
     }
 }

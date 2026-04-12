@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Plan;
+use App\Models\PlanVersion;
 use App\Models\SuperAdmin;
 use App\Models\TenantSupportTicket;
 
@@ -136,6 +137,98 @@ test('plan can be created when sort order is omitted', function () {
         'name' => 'Premium',
         'sort_order' => $expectedSortOrder,
     ]);
+
+    $plan = Plan::query()->where('code', 'premium')->firstOrFail();
+
+    $this->assertDatabaseHas('plan_versions', [
+        'plan_id' => $plan->id,
+        'version_number' => 1,
+        'code' => 'premium',
+        'name' => 'Premium',
+        'changed_by_super_admin_id' => $superAdmin->id,
+    ]);
+});
+
+test('plan update appends next plan version snapshot', function () {
+    $superAdmin = SuperAdmin::query()->create([
+        'name' => 'Business Control Plan Versioner',
+        'email' => 'business-control-plan-versioner@example.test',
+        'password' => 'password',
+    ]);
+
+    $plan = Plan::query()->create([
+        'code' => 'starter',
+        'name' => 'Starter',
+        'monthly_price' => 20,
+        'yearly_price' => 200,
+        'yearly_discount_percent' => 16.67,
+        'max_users' => 15,
+        'max_teams' => 8,
+        'max_sports' => 4,
+        'feature_flags' => [
+            'analytics' => false,
+            'bracket' => false,
+        ],
+        'is_active' => true,
+        'is_featured' => false,
+        'sort_order' => 30,
+    ]);
+
+    PlanVersion::query()->create([
+        'plan_id' => $plan->id,
+        'version_number' => 1,
+        'code' => $plan->code,
+        'name' => $plan->name,
+        'monthly_price' => $plan->monthly_price,
+        'yearly_price' => $plan->yearly_price,
+        'yearly_discount_percent' => $plan->yearly_discount_percent,
+        'max_users' => $plan->max_users,
+        'max_teams' => $plan->max_teams,
+        'max_sports' => $plan->max_sports,
+        'feature_flags' => $plan->feature_flags,
+        'is_active' => $plan->is_active,
+        'is_featured' => $plan->is_featured,
+        'sort_order' => $plan->sort_order,
+        'changed_by_super_admin_id' => $superAdmin->id,
+    ]);
+
+    $response = $this->actingAs($superAdmin, 'super_admin')
+        ->patch(route('central.business-control.plans.update', $plan), [
+            'code' => 'starter',
+            'name' => 'Starter Plus',
+            'marketing_tagline' => 'Best for growing leagues',
+            'badge_label' => 'Popular',
+            'cta_label' => 'Upgrade Now',
+            'marketing_points' => "Faster setup\nBetter insights",
+            'monthly_price' => 24,
+            'yearly_price' => 240,
+            'max_users' => 25,
+            'max_teams' => 10,
+            'max_sports' => 6,
+            'feature_flags' => [
+                'analytics' => '1',
+                'bracket' => '0',
+            ],
+            'is_active' => '1',
+            'is_featured' => '0',
+            'sort_order' => 30,
+        ]);
+
+    $response
+        ->assertRedirect(route('central.business-control.plans.index'))
+        ->assertSessionHas('status', 'Plan updated successfully.');
+
+    $this->assertSame(2, PlanVersion::query()->where('plan_id', $plan->id)->count());
+
+    $latestVersion = PlanVersion::query()
+        ->where('plan_id', $plan->id)
+        ->orderByDesc('version_number')
+        ->firstOrFail();
+
+    expect($latestVersion->version_number)->toBe(2)
+        ->and($latestVersion->name)->toBe('Starter Plus')
+        ->and((string) $latestVersion->monthly_price)->toBe('24.00')
+        ->and($latestVersion->changed_by_super_admin_id)->toBe($superAdmin->id);
 });
 
 test('basic and pro plans cannot be deleted', function () {
