@@ -67,10 +67,14 @@ class TenantSupportTicketController extends Controller
 
     public function syncCurrentVersion(): RedirectResponse
     {
-        Artisan::call('app:sync-system-updates-from-app-version');
+        $exitCode = Artisan::call('app:sync-system-updates-from-app-version');
+        $output = trim(Artisan::output());
+        $message = $output !== ''
+            ? $output
+            : ($exitCode === 0 ? 'Current app version sync completed.' : 'Current app version sync failed.');
 
         return redirect()
             ->route('central.business-control.support-updates.index')
-            ->with('status', 'Current app version sync completed.');
+            ->with('status', $message);
     }
 }

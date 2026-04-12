@@ -118,7 +118,10 @@ test('super admin can sync current app version as a system update', function () 
     $this->actingAs($superAdmin, 'super_admin')
         ->post(route('central.business-control.support-updates.sync-current-version'))
         ->assertRedirect(route('central.business-control.support-updates.index'))
-        ->assertSessionHas('status', 'Current app version sync completed.');
+        ->assertSessionHas('status', function (string $status): bool {
+            return str_contains($status, 'v2.0.1')
+                && (str_contains($status, 'Published system update') || str_contains($status, 'already exists'));
+        });
 
     expect(SystemUpdate::query()->where('version', 'v2.0.1')->count())->toBe(1);
 });
