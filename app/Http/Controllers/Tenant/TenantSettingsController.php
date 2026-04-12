@@ -8,6 +8,7 @@ use App\Http\Requests\Tenant\UpdateTenantSettingsRequest;
 use App\Models\SystemUpdate;
 use App\Models\TenantSetting;
 use App\Models\TenantSupportTicket;
+use App\Models\TenantSystemUpdateRead;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
@@ -17,6 +18,26 @@ class TenantSettingsController extends Controller
     {
         $setting = TenantSetting::query()->firstWhere('tenant_id', tenant('id'));
         $privacyNotice = $this->privacyNotice();
+        $tenantId = (string) tenant('id');
+        $tenantUserId = auth()->id();
+        $systemUpdates = SystemUpdate::query()
+            ->published()
+            ->latest('published_at')
+            ->latest('id')
+            ->limit(10)
+            ->get();
+
+        $updateIds = $systemUpdates->pluck('id')->all();
+        $readUpdateIds = TenantSystemUpdateRead::query()
+            ->where('tenant_id', $tenantId)
+            ->whereIn('system_update_id', $updateIds)
+            ->where(function ($query) use ($tenantUserId): void {
+                $query
+                    ->whereNull('tenant_user_id')
+                    ->orWhere('tenant_user_id', $tenantUserId);
+            })
+            ->pluck('system_update_id')
+            ->all();
 
         return view('tenant.settings.index', [
             'customization' => [
@@ -32,14 +53,29 @@ class TenantSettingsController extends Controller
                 ->latest()
                 ->limit(10)
                 ->get(),
-            'systemUpdates' => SystemUpdate::query()
-                ->published()
-                ->latest('published_at')
-                ->latest('id')
-                ->limit(10)
-                ->get(),
+            'systemUpdates' => $systemUpdates,
+            'readUpdateIds' => $readUpdateIds,
             'tenantVersion' => (string) config('app.version', 'v1.0.0'),
         ]);
+    }
+
+    public function markUpdateAsRead(SystemUpdate $update): RedirectResponse
+    {
+        if (! $update->is_published || ($update->published_at !== null && $update->published_at->isFuture())) {
+            abort(404);
+        }
+
+        TenantSystemUpdateRead::query()->firstOrCreate([
+            'system_update_id' => $update->id,
+            'tenant_id' => (string) tenant('id'),
+            'tenant_user_id' => auth()->id(),
+        ], [
+            'read_at' => now(),
+        ]);
+
+        return redirect()
+            ->route('tenant.settings.edit')
+            ->with('status', 'System update marked as read.');
     }
 
     public function update(UpdateTenantSettingsRequest $request): RedirectResponse

@@ -199,14 +199,31 @@
 
             <div class="mt-5 space-y-3">
                 @forelse ($systemUpdates as $update)
+                    @php
+                        $isRead = in_array($update->id, $readUpdateIds ?? [], true);
+                    @endphp
                     <article class="rounded-xl border border-white/10 bg-slate-950/40 p-4">
                         <div class="flex flex-wrap items-center justify-between gap-2">
                             <p class="text-sm font-semibold text-slate-100">{{ $update->title }}</p>
-                            <p class="text-xs text-slate-400">{{ $update->published_at?->format('M d, Y h:i A') ?? $update->created_at?->format('M d, Y h:i A') }}</p>
+                            <div class="flex items-center gap-2">
+                                <span class="rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] {{ $isRead ? 'border-emerald-300/30 bg-emerald-500/15 text-emerald-100' : 'border-amber-300/30 bg-amber-500/15 text-amber-100' }}">
+                                    {{ $isRead ? 'Read' : 'New' }}
+                                </span>
+                                <p class="text-xs text-slate-400">{{ $update->published_at?->format('M d, Y h:i A') ?? $update->created_at?->format('M d, Y h:i A') }}</p>
+                            </div>
                         </div>
                         <p class="mt-1 text-xs text-cyan-200">Version: {{ $update->version ?? 'N/A' }} · Source: {{ strtoupper($update->source) }}</p>
                         @if (!empty($update->summary))
                             <p class="mt-2 text-sm text-slate-300">{{ $update->summary }}</p>
+                        @endif
+
+                        @if (! $isRead)
+                            <form method="POST" action="{{ route('tenant.settings.updates.read', $update) }}" class="mt-3">
+                                @csrf
+                                <button type="submit" class="rounded-lg border border-cyan-300/30 bg-cyan-500/20 px-3 py-1.5 text-xs font-semibold text-cyan-100 hover:bg-cyan-500/30">
+                                    Mark as read
+                                </button>
+                            </form>
                         @endif
                     </article>
                 @empty

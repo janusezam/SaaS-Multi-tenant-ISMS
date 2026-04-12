@@ -83,6 +83,7 @@ Route::middleware([
         Route::get('/app/settings', [TenantSettingsController::class, 'edit'])->middleware('check.permission:common.settings.view')->name('tenant.settings.edit');
         Route::patch('/app/settings', [TenantSettingsController::class, 'update'])->middleware('check.permission:common.settings.customization.manage')->name('tenant.settings.update');
         Route::post('/app/settings/support', [TenantSettingsController::class, 'storeSupport'])->middleware('check.permission:common.settings.support.manage')->name('tenant.settings.support.store');
+        Route::post('/app/settings/updates/{update}/read', [TenantSettingsController::class, 'markUpdateAsRead'])->middleware('check.permission:common.settings.updates.view')->name('tenant.settings.updates.read');
         Route::get('/app/profile', [TenantProfileController::class, 'edit'])->middleware('check.permission:common.profile.manage')->name('tenant.profile.edit');
         Route::patch('/app/profile', [TenantProfileController::class, 'update'])->middleware('check.permission:common.profile.manage')->name('tenant.profile.update');
         Route::get('/app/standings', [StandingsController::class, 'index'])->middleware('check.permission:common.standings.view')->name('tenant.standings.index');

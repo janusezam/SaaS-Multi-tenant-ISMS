@@ -1,8 +1,10 @@
 <?php
 
 use App\Http\Middleware\EnsureTenantSubscriptionIsActive;
+use App\Models\SystemUpdate;
 use App\Models\TenantSetting;
 use App\Models\TenantSupportTicket;
+use App\Models\TenantSystemUpdateRead;
 use App\Models\University;
 use App\Models\User;
 use Illuminate\Database\Schema\Blueprint;
@@ -153,4 +155,82 @@ test('tenant can update profile details', function () {
 
     $updatedUser = $user->fresh();
     expect(Hash::check('new-strong-password', (string) $updatedUser?->password))->toBeTrue();
+});
+
+test('tenant only sees published system updates and can mark as read', function () {
+    $tenant = initializeTenantSettingsContext();
+
+    $user = User::query()->create([
+        'name' => 'Tenant Updates Viewer',
+        'email' => 'tenant-updates-viewer@example.test',
+        'role' => 'university_admin',
+        'password' => 'password',
+        'email_verified_at' => now(),
+    ]);
+
+    $publishedUpdate = SystemUpdate::query()->create([
+        'title' => 'Release Notes v1.2.0',
+        'summary' => 'New planning tools and bug fixes.',
+        'version' => 'v1.2.0',
+        'source' => 'manual',
+        'is_published' => true,
+        'published_at' => now()->subMinute(),
+    ]);
+
+    SystemUpdate::query()->create([
+        'title' => 'Draft Internal Update',
+        'summary' => 'Should not be visible to tenant.',
+        'version' => 'v1.2.1',
+        'source' => 'manual',
+        'is_published' => false,
+        'published_at' => now(),
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('tenant.settings.edit'))
+        ->assertOk()
+        ->assertSee('Release Notes v1.2.0')
+        ->assertDontSee('Draft Internal Update')
+        ->assertSee('New');
+
+    $this->actingAs($user)
+        ->post(route('tenant.settings.updates.read', $publishedUpdate))
+        ->assertRedirect(route('tenant.settings.edit'))
+        ->assertSessionHas('status', 'System update marked as read.');
+
+    expect(TenantSystemUpdateRead::query()
+        ->where('system_update_id', $publishedUpdate->id)
+        ->where('tenant_id', $tenant->id)
+        ->where('tenant_user_id', $user->id)
+        ->exists())->toBeTrue();
+
+    $this->actingAs($user)
+        ->get(route('tenant.settings.edit'))
+        ->assertOk()
+        ->assertSee('Read')
+        ->assertDontSee('Mark as read');
+});
+
+test('tenant cannot mark unpublished update as read', function () {
+    initializeTenantSettingsContext();
+
+    $user = User::query()->create([
+        'name' => 'Tenant Updates Guard',
+        'email' => 'tenant-updates-guard@example.test',
+        'role' => 'university_admin',
+        'password' => 'password',
+        'email_verified_at' => now(),
+    ]);
+
+    $draftUpdate = SystemUpdate::query()->create([
+        'title' => 'Draft Release',
+        'source' => 'manual',
+        'is_published' => false,
+    ]);
+
+    $this->actingAs($user)
+        ->post(route('tenant.settings.updates.read', $draftUpdate))
+        ->assertNotFound();
+
+    expect(TenantSystemUpdateRead::query()->count())->toBe(0);
 });

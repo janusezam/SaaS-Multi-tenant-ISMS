@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Stancl\Tenancy\Database\Concerns\CentralConnection;
 
 class SystemUpdate extends Model
@@ -39,5 +40,10 @@ class SystemUpdate extends Model
                     ->whereNull('published_at')
                     ->orWhere('published_at', '<=', now());
             });
+    }
+
+    public function tenantReads(): HasMany
+    {
+        return $this->hasMany(TenantSystemUpdateRead::class);
     }
 }
