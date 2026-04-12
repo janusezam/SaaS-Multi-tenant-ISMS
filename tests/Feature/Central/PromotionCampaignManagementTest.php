@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\CampaignVersion;
 use App\Models\PromotionCampaign;
 use App\Models\Subscription;
 use App\Models\SuperAdmin;
@@ -77,6 +78,13 @@ test('super admin can create campaign and apply it to next renewals', function (
 
     $campaign = PromotionCampaign::query()->where('name', 'Black Friday 2026')->firstOrFail();
 
+    $this->assertDatabaseHas('campaign_versions', [
+        'promotion_campaign_id' => $campaign->id,
+        'version_number' => 1,
+        'name' => 'Black Friday 2026',
+        'changed_by_super_admin_id' => $superAdmin->id,
+    ]);
+
     $applyResponse = $this->actingAs($superAdmin, 'super_admin')
         ->post(route('central.business-control.campaigns.apply-renewals', $campaign), [
             'plan_code' => 'basic',
@@ -95,4 +103,71 @@ test('super admin can create campaign and apply it to next renewals', function (
         'tenant_id' => $proTenant->id,
         'next_renewal_campaign_id' => null,
     ]);
+});
+
+test('campaign update appends next campaign version snapshot', function () {
+    $superAdmin = SuperAdmin::query()->create([
+        'name' => 'Campaign Version Admin',
+        'email' => 'campaign-version-admin@example.test',
+        'password' => 'password',
+    ]);
+
+    $campaign = PromotionCampaign::query()->create([
+        'name' => 'Summer Saver',
+        'status' => 'draft',
+        'discount_type' => 'percent',
+        'discount_value' => 10,
+        'target_plan_codes' => ['basic'],
+        'is_stackable_with_coupon' => false,
+        'priority' => 100,
+        'lifecycle_policy' => 'next_renewal',
+        'starts_at' => now()->subDay(),
+        'ends_at' => now()->addDays(2),
+        'description' => 'Initial campaign draft',
+    ]);
+
+    CampaignVersion::query()->create([
+        'promotion_campaign_id' => $campaign->id,
+        'version_number' => 1,
+        'name' => $campaign->name,
+        'status' => $campaign->status,
+        'discount_type' => $campaign->discount_type,
+        'discount_value' => $campaign->discount_value,
+        'target_plan_codes' => $campaign->target_plan_codes,
+        'is_stackable_with_coupon' => $campaign->is_stackable_with_coupon,
+        'priority' => $campaign->priority,
+        'lifecycle_policy' => $campaign->lifecycle_policy,
+        'starts_at' => $campaign->starts_at,
+        'ends_at' => $campaign->ends_at,
+        'description' => $campaign->description,
+        'changed_by_super_admin_id' => $superAdmin->id,
+    ]);
+
+    $response = $this->actingAs($superAdmin, 'super_admin')
+        ->patch(route('central.business-control.campaigns.update', $campaign), [
+            'name' => 'Summer Saver Plus',
+            'status' => 'active',
+            'discount_type' => 'fixed',
+            'discount_value' => 50,
+            'target_plan_codes' => ['pro'],
+            'lifecycle_policy' => 'next_renewal',
+            'starts_at' => now()->subHour()->format('Y-m-d H:i:s'),
+            'ends_at' => now()->addDays(5)->format('Y-m-d H:i:s'),
+            'description' => 'Updated campaign details',
+        ]);
+
+    $response->assertRedirect(route('central.business-control.campaigns.index'));
+
+    $this->assertSame(2, CampaignVersion::query()->where('promotion_campaign_id', $campaign->id)->count());
+
+    $latestVersion = CampaignVersion::query()
+        ->where('promotion_campaign_id', $campaign->id)
+        ->orderByDesc('version_number')
+        ->firstOrFail();
+
+    expect($latestVersion->version_number)->toBe(2)
+        ->and($latestVersion->name)->toBe('Summer Saver Plus')
+        ->and($latestVersion->status)->toBe('active')
+        ->and((string) $latestVersion->discount_value)->toBe('50.00')
+        ->and($latestVersion->changed_by_super_admin_id)->toBe($superAdmin->id);
 });

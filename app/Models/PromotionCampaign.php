@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 use Stancl\Tenancy\Database\Concerns\CentralConnection;
 
@@ -72,5 +73,10 @@ class PromotionCampaign extends Model
         }
 
         return in_array($planCode, $targetPlanCodes, true);
+    }
+
+    public function versions(): HasMany
+    {
+        return $this->hasMany(CampaignVersion::class, 'promotion_campaign_id')->orderBy('version_number');
     }
 }
