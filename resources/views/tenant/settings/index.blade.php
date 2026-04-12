@@ -193,7 +193,7 @@
                     <p class="mt-1 text-sm text-slate-300">Current tenant app version: <span class="font-semibold text-cyan-200">{{ $tenantVersion }}</span></p>
                 </div>
                 <div class="rounded-xl border border-amber-300/30 bg-amber-500/15 px-3 py-2 text-xs text-amber-100">
-                    GitHub auto-update sync is planned next. This module is ready for that feed.
+                    Updates published by central admins appear here automatically for all tenants.
                 </div>
             </div>
 
