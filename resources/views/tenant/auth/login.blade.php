@@ -1,6 +1,7 @@
 @php
     $recaptchaEnabled = filled(config('services.recaptcha.site_key'));
     $recaptchaVersion = (string) config('services.recaptcha.version', 'v3');
+    $googleAuthEnabled = (bool) config('services.google.enabled', false);
 @endphp
 
 <!DOCTYPE html>
@@ -75,14 +76,16 @@
                         <button type="submit" class="inline-flex w-full items-center justify-center rounded-xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-emerald-700/30 transition hover:bg-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2">Sign in to Tenant App</button>
                     </form>
 
-                    <div class="mt-4">
-                        <a href="{{ route('tenant.login.google.redirect') }}" class="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-white/20 bg-white px-4 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-100">
-                            <svg aria-hidden="true" class="h-4 w-4" viewBox="0 0 24 24">
-                                <path fill="#EA4335" d="M12 10.2v3.9h5.5c-.2 1.3-1.5 3.8-5.5 3.8-3.3 0-6-2.8-6-6.2s2.7-6.2 6-6.2c1.9 0 3.2.8 4 1.5l2.7-2.6C17.1 2.9 14.8 2 12 2 6.9 2 2.8 6.3 2.8 11.5S6.9 21 12 21c6.9 0 9.2-4.9 9.2-7.5 0-.5-.1-.9-.1-1.3H12Z"/>
-                            </svg>
-                            Sign in with Google
-                        </a>
-                    </div>
+                    @if ($googleAuthEnabled)
+                        <div class="mt-4">
+                            <a href="{{ route('tenant.login.google.redirect') }}" class="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-white/20 bg-white px-4 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-100">
+                                <svg aria-hidden="true" class="h-4 w-4" viewBox="0 0 24 24">
+                                    <path fill="#EA4335" d="M12 10.2v3.9h5.5c-.2 1.3-1.5 3.8-5.5 3.8-3.3 0-6-2.8-6-6.2s2.7-6.2 6-6.2c1.9 0 3.2.8 4 1.5l2.7-2.6C17.1 2.9 14.8 2 12 2 6.9 2 2.8 6.3 2.8 11.5S6.9 21 12 21c6.9 0 9.2-4.9 9.2-7.5 0-.5-.1-.9-.1-1.3H12Z"/>
+                                </svg>
+                                Sign in with Google
+                            </a>
+                        </div>
+                    @endif
 
                     <div class="mt-5 flex items-center justify-between text-sm">
                         <a href="{{ route('tenant.password.otp.request') }}" class="text-emerald-200 transition hover:text-emerald-100">Forgot password?</a>

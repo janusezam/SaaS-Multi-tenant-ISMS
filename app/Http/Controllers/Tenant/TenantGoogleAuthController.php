@@ -18,7 +18,7 @@ class TenantGoogleAuthController extends Controller
             return redirect()->route('tenant.login')->with('status', 'Google sign-in is not configured yet.');
         }
 
-        return Socialite::driver('google')
+        return $this->googleDriver()
             ->scopes(['openid', 'profile', 'email'])
             ->redirect();
     }
@@ -30,7 +30,7 @@ class TenantGoogleAuthController extends Controller
         }
 
         try {
-            $googleUser = Socialite::driver('google')->stateless()->user();
+            $googleUser = $this->googleDriver()->stateless()->user();
         } catch (Throwable) {
             return redirect()->route('tenant.login')->withErrors([
                 'email' => 'Google sign-in failed. Please try again.',
@@ -79,8 +79,14 @@ class TenantGoogleAuthController extends Controller
 
     private function isGoogleConfigured(): bool
     {
-        return filled((string) config('services.google.client_id'))
-            && filled((string) config('services.google.client_secret'))
-            && filled((string) config('services.google.redirect'));
+        return (bool) config('services.google.enabled', false)
+            && filled((string) config('services.google.client_id'))
+            && filled((string) config('services.google.client_secret'));
+    }
+
+    private function googleDriver()
+    {
+        return Socialite::driver('google')
+            ->redirectUrl(route('tenant.login.google.callback', absolute: true));
     }
 }
