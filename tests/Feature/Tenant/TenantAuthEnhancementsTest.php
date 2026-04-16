@@ -187,9 +187,9 @@ test('tenant user can reset password using otp email flow', function () {
 });
 
 test('google callback signs in existing tenant user only', function () {
+    config()->set('services.google.enabled', true);
     config()->set('services.google.client_id', 'test-client');
     config()->set('services.google.client_secret', 'test-secret');
-    config()->set('services.google.redirect', 'http://localhost/app/login/google/callback');
 
     $tenantUser = User::factory()->create([
         'email' => 'google.user@tenant.test',
@@ -203,7 +203,7 @@ test('google callback signs in existing tenant user only', function () {
         'name' => 'Google User',
     ]);
 
-    Socialite::shouldReceive('driver->stateless->user')->andReturn($socialiteUser);
+    Socialite::shouldReceive('driver->redirectUrl->stateless->user')->andReturn($socialiteUser);
 
     $response = $this->get(route('tenant.login.google.callback'));
 
@@ -217,9 +217,9 @@ test('google callback signs in existing tenant user only', function () {
 });
 
 test('google callback rejects unknown tenant email', function () {
+    config()->set('services.google.enabled', true);
     config()->set('services.google.client_id', 'test-client');
     config()->set('services.google.client_secret', 'test-secret');
-    config()->set('services.google.redirect', 'http://localhost/app/login/google/callback');
 
     $socialiteUser = new SocialiteUser;
     $socialiteUser->map([
@@ -228,10 +228,24 @@ test('google callback rejects unknown tenant email', function () {
         'name' => 'Unknown User',
     ]);
 
-    Socialite::shouldReceive('driver->stateless->user')->andReturn($socialiteUser);
+    Socialite::shouldReceive('driver->redirectUrl->stateless->user')->andReturn($socialiteUser);
 
     $response = $this->from(route('tenant.login'))->get(route('tenant.login.google.callback'));
 
     $response->assertRedirect(route('tenant.login'));
     $response->assertSessionHasErrors('email');
+});
+
+test('google redirect uses tenant callback url', function () {
+    config()->set('services.google.enabled', true);
+    config()->set('services.google.client_id', 'test-client');
+    config()->set('services.google.client_secret', 'test-secret');
+
+    Socialite::shouldReceive('driver->redirectUrl->scopes->redirect')
+        ->once()
+        ->andReturn(redirect('/oauth/google'));
+
+    $response = $this->get(route('tenant.login.google.redirect'));
+
+    $response->assertRedirect('/oauth/google');
 });
