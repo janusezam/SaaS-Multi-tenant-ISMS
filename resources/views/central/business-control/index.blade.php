@@ -1,8 +1,8 @@
 <x-app-layout>
     <x-slot name="header">
         <div>
-            <p class="text-xs uppercase tracking-[0.2em] text-cyan-300/80">Central App</p>
-            <h2 class="text-2xl font-semibold text-slate-100">Business Control</h2>
+            <p class="text-xs uppercase tracking-[0.2em] text-cyan-700/80 dark:text-cyan-300/80">Central App</p>
+            <h2 class="text-2xl font-semibold text-slate-900 dark:text-slate-100">Business Control</h2>
         </div>
     </x-slot>
 

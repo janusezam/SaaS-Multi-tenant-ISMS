@@ -71,6 +71,12 @@ test('authenticated super admin can create a university tenant', function () {
         'plan' => 'pro',
         'status' => 'active',
     ]);
+
+    $university = University::query()->findOrFail('nsu');
+    $databaseName = (string) $university->database()->getName();
+
+    expect($databaseName)->toStartWith((string) config('tenancy.database.prefix'));
+    expect($databaseName)->not->toContain('nsu');
 });
 
 test('tenant domain generation uses configured central base domain', function () {

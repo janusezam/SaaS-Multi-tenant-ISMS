@@ -19,15 +19,24 @@ class TenantUserController extends Controller
 {
     public function index(): View
     {
+        $roleOrderCase = 'CASE role'
+            ." WHEN 'university_admin' THEN 1"
+            ." WHEN 'sports_facilitator' THEN 2"
+            ." WHEN 'team_coach' THEN 3"
+            ." WHEN 'student_player' THEN 4"
+            .' ELSE 99 END';
+
         $users = User::query()
-            ->orderByRaw("FIELD(role, 'university_admin', 'sports_facilitator', 'team_coach', 'student_player')")
+            ->orderByRaw($roleOrderCase)
             ->orderBy('name')
             ->get();
 
-        $pendingRegistrations = TenantUserRegistrationRequest::query()
-            ->where('status', TenantUserRegistrationRequest::STATUS_PENDING)
-            ->latest()
-            ->get();
+        $pendingRegistrations = Schema::hasTable((new TenantUserRegistrationRequest)->getTable())
+            ? TenantUserRegistrationRequest::query()
+                ->where('status', TenantUserRegistrationRequest::STATUS_PENDING)
+                ->latest()
+                ->get()
+            : collect();
 
         return view('tenant.users.index', [
             'users' => $users,

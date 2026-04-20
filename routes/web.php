@@ -82,7 +82,6 @@ Route::prefix('central')->name('central.')->group(function () {
 
             Route::get('support-updates', [TenantSupportTicketController::class, 'index'])->name('support-updates.index');
             Route::post('support-updates/updates', [TenantSupportTicketController::class, 'storeUpdate'])->name('support-updates.updates.store');
-            Route::post('support-updates/sync-current-version', [TenantSupportTicketController::class, 'syncCurrentVersion'])->name('support-updates.sync-current-version');
             Route::patch('support-updates/tickets/{ticket}', [TenantSupportTicketController::class, 'updateTicket'])->name('support-updates.tickets.update');
         });
 

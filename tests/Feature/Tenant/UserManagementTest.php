@@ -37,6 +37,18 @@ test('university admin can create tenant users', function () {
     expect(Hash::check('password123', (string) $created?->password))->toBeTrue();
 });
 
+test('university admin can view tenant users index', function () {
+    $admin = User::factory()->create([
+        'role' => 'university_admin',
+    ]);
+
+    $response = $this->actingAs($admin)->get(route('tenant.users.index'));
+
+    $response->assertOk();
+    $response->assertSee('Pending Account Requests');
+    $response->assertSee('No pending account requests.');
+});
+
 test('non admin user is forbidden from tenant user management', function () {
     $facilitator = User::factory()->create([
         'role' => 'sports_facilitator',

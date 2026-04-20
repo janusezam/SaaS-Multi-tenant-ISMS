@@ -44,6 +44,7 @@ class TenantSettingsController extends Controller
                 'brand_primary_color' => (string) ($setting?->brand_primary_color ?? '#06b6d4'),
                 'brand_secondary_color' => (string) ($setting?->brand_secondary_color ?? '#6366f1'),
                 'theme_preference' => (string) ($setting?->theme_preference ?? 'system'),
+                'use_custom_theme' => (bool) ($setting?->use_custom_theme ?? false),
             ],
             'privacyNotice' => $privacyNotice,
             'privacyNoticeSummary' => (string) ($privacyNotice['summary'] ?? ''),
@@ -88,6 +89,7 @@ class TenantSettingsController extends Controller
             'brand_primary_color' => $validated['brand_primary_color'],
             'brand_secondary_color' => $validated['brand_secondary_color'],
             'theme_preference' => $validated['theme_preference'],
+            'use_custom_theme' => (bool) ($validated['use_custom_theme'] ?? false),
         ]);
 
         return redirect()

@@ -63,7 +63,7 @@ class UniversityController extends Controller
         $validated = $request->validated();
         $subscriptionStartDate = $validated['subscription_starts_at'] ?? now()->toDateString();
 
-        $university = University::query()->create([
+        $university = new University([
             'id' => $validated['subdomain'],
             'name' => $validated['name'],
             'school_address' => $validated['school_address'],
@@ -74,6 +74,9 @@ class UniversityController extends Controller
             'subscription_starts_at' => $subscriptionStartDate,
             'expires_at' => $validated['expires_at'] ?? null,
         ]);
+
+        $university->assignObfuscatedDatabaseNameIfMissing();
+        $university->save();
 
         $university->domains()->create([
             'domain' => $validated['tenant_domain'],

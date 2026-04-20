@@ -100,6 +100,7 @@ test('tenant can update customization settings and submit support report', funct
             'brand_primary_color' => '#112233',
             'brand_secondary_color' => '#445566',
             'theme_preference' => 'dark',
+            'use_custom_theme' => true,
             'privacy_message' => 'This tenant protects athlete profile data and game activity logs.',
         ])
         ->assertRedirect(route('tenant.settings.edit'));
@@ -107,6 +108,18 @@ test('tenant can update customization settings and submit support report', funct
     $savedSettings = TenantSetting::query()->firstWhere('tenant_id', $tenant->id);
     $this->assertSame('#112233', $savedSettings?->brand_primary_color);
     $this->assertSame('Legacy tenant-managed message', $savedSettings?->privacy_message);
+
+    $this->actingAs($user)
+        ->get(route('tenant.settings.edit'))
+        ->assertOk()
+        ->assertSee('data-app-context="tenant"', false)
+        ->assertSee("classList.toggle('dark'", false)
+        ->assertSee('--isms-brand-primary-accent: #112233;')
+        ->assertSee('--isms-brand-primary-on: #f8fafc;')
+        ->assertSee('--isms-brand-primary-shadow: rgba(17, 34, 51, 0.26);')
+        ->assertSee('--isms-brand-secondary-accent: #445566;')
+        ->assertSee('--isms-brand-secondary-on: #f8fafc;')
+        ->assertSee('--isms-brand-secondary-shadow: rgba(68, 85, 102, 0.26);');
 
     $this->actingAs($user)
         ->post(route('tenant.settings.support.store'), [
@@ -123,6 +136,68 @@ test('tenant can update customization settings and submit support report', funct
             ->where('status', 'open')
             ->exists()
     )->toBeTrue();
+});
+
+test('light tenant brand colors expose readable on-color variables', function () {
+    initializeTenantSettingsContext();
+
+    $user = User::query()->create([
+        'name' => 'Light Palette Admin',
+        'email' => 'tenant-light-palette-admin@example.test',
+        'role' => 'university_admin',
+        'password' => 'password',
+        'email_verified_at' => now(),
+    ]);
+
+    $this->actingAs($user)
+        ->patch(route('tenant.settings.update'), [
+            'brand_primary_color' => '#fef08a',
+            'brand_secondary_color' => '#fde68a',
+            'theme_preference' => 'light',
+            'use_custom_theme' => true,
+        ])
+        ->assertRedirect(route('tenant.settings.edit'));
+
+    $this->actingAs($user)
+        ->get(route('tenant.settings.edit'))
+        ->assertOk()
+        ->assertSee('--isms-brand-primary-accent: #0f172a;')
+        ->assertSee('--isms-brand-primary-on: #0f172a;')
+        ->assertSee('--isms-brand-secondary-accent: #0f172a;')
+        ->assertSee('--isms-brand-secondary-on: #0f172a;');
+});
+
+test('tenant can save brand colors without applying them', function () {
+    $tenant = initializeTenantSettingsContext();
+
+    $user = User::query()->create([
+        'name' => 'Tenant Custom Theme Saver',
+        'email' => 'tenant-custom-theme-saver@example.test',
+        'role' => 'university_admin',
+        'password' => 'password',
+        'email_verified_at' => now(),
+    ]);
+
+    $this->actingAs($user)
+        ->patch(route('tenant.settings.update'), [
+            'brand_primary_color' => '#a855f7',
+            'brand_secondary_color' => '#f97316',
+            'theme_preference' => 'system',
+            'use_custom_theme' => false,
+        ])
+        ->assertRedirect(route('tenant.settings.edit'));
+
+    $savedSettings = TenantSetting::query()->firstWhere('tenant_id', $tenant->id);
+    $this->assertSame('#a855f7', $savedSettings?->brand_primary_color);
+    $this->assertSame('#f97316', $savedSettings?->brand_secondary_color);
+    $this->assertFalse((bool) ($savedSettings?->use_custom_theme ?? true));
+
+    $this->actingAs($user)
+        ->get(route('tenant.settings.edit'))
+        ->assertOk()
+        ->assertSee('data-app-context="tenant"', false)
+        ->assertDontSee('--isms-brand-primary:', false)
+        ->assertDontSee('--isms-brand-secondary:', false);
 });
 
 test('tenant can update profile details', function () {

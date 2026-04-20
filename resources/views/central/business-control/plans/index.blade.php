@@ -44,15 +44,15 @@
                     $protectedPlan = in_array(strtolower((string) $plan->code), ['basic', 'pro'], true);
                 @endphp
 
-                <article class="relative overflow-hidden rounded-3xl border border-cyan-300/30 bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.26),_rgba(15,23,42,0.96)_55%)] p-6 text-slate-100 shadow-[0_0_0_1px_rgba(34,211,238,0.12),0_18px_36px_rgba(6,10,25,0.45)]">
-                    <div class="pointer-events-none absolute -right-12 -top-14 h-40 w-40 rounded-full bg-cyan-300/15 blur-3xl"></div>
+                <article class="relative overflow-hidden rounded-3xl border border-slate-200 bg-white p-6 text-slate-900 shadow-sm dark:border-cyan-300/30 dark:bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.14),_rgba(15,23,42,0.96)_55%)] dark:text-slate-100 dark:shadow-[0_0_0_1px_rgba(34,211,238,0.07),0_16px_28px_rgba(6,10,25,0.4)]">
+                    <div class="pointer-events-none absolute -right-12 -top-14 h-40 w-40 rounded-full bg-cyan-200/35 blur-3xl dark:bg-cyan-300/10 dark:blur-2xl"></div>
                     <div class="relative">
                         <div class="flex items-start justify-between gap-3">
                             <div>
                                 <h3 class="text-3xl font-semibold">{{ $plan->name }}</h3>
-                                <p class="mt-1 text-xs uppercase tracking-[0.18em] text-cyan-100/75">{{ $plan->marketing_tagline ?: 'Subscription Plan' }}</p>
+                                <p class="mt-1 text-xs uppercase tracking-[0.18em] text-slate-500 dark:text-cyan-100/75">{{ $plan->marketing_tagline ?: 'Subscription Plan' }}</p>
                             </div>
-                            <button type="button" @click="editOpen = {{ $plan->id }}" class="inline-flex h-9 w-9 items-center justify-center rounded-full border border-cyan-200/35 bg-cyan-400/10 text-cyan-100 hover:bg-cyan-400/20" aria-label="Edit {{ $plan->name }}">
+                            <button type="button" @click="editOpen = {{ $plan->id }}" class="inline-flex h-9 w-9 items-center justify-center rounded-full border border-cyan-200 bg-cyan-50 text-cyan-700 hover:bg-cyan-100 dark:border-cyan-200/35 dark:bg-cyan-400/10 dark:text-cyan-100 dark:hover:bg-cyan-400/20" aria-label="Edit {{ $plan->name }}">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a2.121 2.121 0 1 1 3 3L10.582 16.767a4.5 4.5 0 0 1-1.897 1.13L6 18.75l.853-2.685a4.5 4.5 0 0 1 1.13-1.897L16.862 4.487ZM19.5 7.125 16.875 4.5" />
                                 </svg>
@@ -60,19 +60,19 @@
                         </div>
 
                         @if ($plan->is_featured || $plan->badge_label)
-                            <div class="mt-4 inline-flex rounded-full border border-cyan-200/35 bg-cyan-400/15 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-cyan-100">
+                            <div class="mt-4 inline-flex rounded-full border border-cyan-200 bg-cyan-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-cyan-800 dark:border-cyan-200/35 dark:bg-cyan-400/15 dark:text-cyan-100">
                                 {{ $plan->badge_label ?: 'Featured' }}
                             </div>
                         @endif
 
                         <div class="mt-5">
-                            <p class="text-6xl font-semibold leading-none">${{ number_format((float) $plan->monthly_price, 0) }}<span class="ml-2 text-3xl font-medium text-cyan-100/80">/month</span></p>
-                            <p class="mt-3 text-sm text-cyan-100/65">
+                            <p class="text-6xl font-semibold leading-none">${{ number_format((float) $plan->monthly_price, 0) }}<span class="ml-2 text-3xl font-medium text-slate-500 dark:text-cyan-100/80">/month</span></p>
+                            <p class="mt-3 text-sm text-slate-500 dark:text-cyan-100/65">
                                 Regular: <span class="line-through">${{ number_format((float) $plan->monthly_price * 12, 2) }}/year</span>
                             </p>
                             <p class="mt-1 text-2xl font-semibold">
                                 ${{ number_format((float) $plan->yearly_price, 2) }} /year
-                                <span class="text-lg font-medium text-emerald-300">(save {{ number_format((float) $plan->yearly_discount_percent, 2) }}%)</span>
+                                <span class="text-lg font-medium text-emerald-700 dark:text-emerald-300">(save {{ number_format((float) $plan->yearly_discount_percent, 2) }}%)</span>
                             </p>
                         </div>
 
@@ -98,29 +98,29 @@
                         </ul>
 
                         <div class="mt-6 flex items-center justify-between gap-2 text-xs">
-                            <span class="rounded-full border px-2.5 py-1 {{ $plan->is_active ? 'border-emerald-300/40 bg-emerald-500/15 text-emerald-100' : 'border-slate-300/30 bg-slate-500/20 text-slate-200' }}">
+                            <span class="rounded-full border px-2.5 py-1 {{ $plan->is_active ? 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-300/40 dark:bg-emerald-500/15 dark:text-emerald-100' : 'border-slate-300 bg-slate-100 text-slate-700 dark:border-slate-300/30 dark:bg-slate-500/20 dark:text-slate-200' }}">
                                 {{ $plan->is_active ? 'Active' : 'Inactive' }}
                             </span>
-                            <span class="rounded-full border px-2.5 py-1 {{ ($flags['analytics'] ?? false) ? 'border-cyan-300/40 bg-cyan-400/15 text-cyan-100' : 'border-slate-300/30 bg-slate-500/20 text-slate-200' }}">Analytics {{ ($flags['analytics'] ?? false) ? 'On' : 'Off' }}</span>
-                            <span class="rounded-full border px-2.5 py-1 {{ ($flags['bracket'] ?? false) ? 'border-cyan-300/40 bg-cyan-400/15 text-cyan-100' : 'border-slate-300/30 bg-slate-500/20 text-slate-200' }}">Bracket {{ ($flags['bracket'] ?? false) ? 'On' : 'Off' }}</span>
+                            <span class="rounded-full border px-2.5 py-1 {{ ($flags['analytics'] ?? false) ? 'border-cyan-200 bg-cyan-50 text-cyan-800 dark:border-cyan-300/40 dark:bg-cyan-400/15 dark:text-cyan-100' : 'border-slate-300 bg-slate-100 text-slate-700 dark:border-slate-300/30 dark:bg-slate-500/20 dark:text-slate-200' }}">Analytics {{ ($flags['analytics'] ?? false) ? 'On' : 'Off' }}</span>
+                            <span class="rounded-full border px-2.5 py-1 {{ ($flags['bracket'] ?? false) ? 'border-cyan-200 bg-cyan-50 text-cyan-800 dark:border-cyan-300/40 dark:bg-cyan-400/15 dark:text-cyan-100' : 'border-slate-300 bg-slate-100 text-slate-700 dark:border-slate-300/30 dark:bg-slate-500/20 dark:text-slate-200' }}">Bracket {{ ($flags['bracket'] ?? false) ? 'On' : 'Off' }}</span>
                         </div>
 
-                        <button type="button" @click="editOpen = {{ $plan->id }}" class="mt-7 w-full rounded-2xl border border-cyan-300/30 bg-cyan-400/20 px-4 py-2 text-sm font-semibold text-cyan-100 hover:bg-cyan-400/30">
+                        <button type="button" @click="editOpen = {{ $plan->id }}" class="mt-7 w-full rounded-2xl border border-cyan-200 bg-cyan-50 px-4 py-2 text-sm font-semibold text-cyan-800 hover:bg-cyan-100 dark:border-cyan-300/30 dark:bg-cyan-400/20 dark:text-cyan-100 dark:hover:bg-cyan-400/30">
                             {{ $plan->cta_label ?: 'Manage Plan' }}
                         </button>
 
-                        <div class="mt-5 rounded-2xl border border-cyan-200/20 bg-slate-950/35 p-3">
-                            <p class="text-xs font-semibold uppercase tracking-[0.14em] text-cyan-100/75">Version History</p>
+                        <div class="mt-5 rounded-2xl border border-slate-200 bg-slate-50 p-3 dark:border-cyan-200/20 dark:bg-slate-950/35">
+                            <p class="text-xs font-semibold uppercase tracking-[0.14em] text-slate-600 dark:text-cyan-100/75">Version History</p>
 
                             @if ($plan->versions->isEmpty())
-                                <p class="mt-2 text-xs text-cyan-100/65">No versions yet.</p>
+                                <p class="mt-2 text-xs text-slate-500 dark:text-cyan-100/65">No versions yet.</p>
                             @else
-                                <ul class="mt-2 space-y-1.5 text-xs text-cyan-50/90">
+                                <ul class="mt-2 space-y-1.5 text-xs text-slate-700 dark:text-cyan-50/90">
                                     @foreach ($plan->versions as $version)
-                                        <li class="flex items-center justify-between gap-2 rounded-lg border border-cyan-200/15 bg-cyan-500/5 px-2.5 py-1.5">
+                                        <li class="flex items-center justify-between gap-2 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 dark:border-cyan-200/15 dark:bg-cyan-500/5">
                                             <span class="font-semibold">v{{ $version->version_number }}</span>
-                                            <span class="truncate text-cyan-100/80">{{ $version->name }}</span>
-                                            <span class="shrink-0 text-cyan-100/65">{{ $version->created_at?->format('M d, Y h:i A') }}</span>
+                                            <span class="truncate text-slate-600 dark:text-cyan-100/80">{{ $version->name }}</span>
+                                            <span class="shrink-0 text-slate-500 dark:text-cyan-100/65">{{ $version->created_at?->format('M d, Y h:i A') }}</span>
                                         </li>
                                     @endforeach
                                 </ul>

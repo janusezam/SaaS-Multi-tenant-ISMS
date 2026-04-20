@@ -64,6 +64,7 @@ class PublicSubscriptionController extends Controller
 
         // Public signup should not provision tenant infrastructure until central approval.
         $university->setInternal('create_database', false);
+        $university->assignObfuscatedDatabaseNameIfMissing();
         $university->save();
 
         $university->domains()->create([

@@ -62,6 +62,20 @@
                 @csrf
                 @method('PATCH')
 
+                <div class="lg:col-span-3">
+                    <label class="flex items-start gap-3 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-200">
+                        <input type="hidden" name="use_custom_theme" value="0">
+                        <input type="checkbox" name="use_custom_theme" value="1" class="mt-1 h-4 w-4 rounded border-white/20 bg-transparent text-cyan-500 focus:ring-cyan-400" @checked((bool) old('use_custom_theme', $customization['use_custom_theme']))>
+                        <span>
+                            <span class="font-semibold text-slate-100">Apply Custom Theme</span>
+                            <span class="mt-1 block text-xs text-slate-300">When off, your tenant stays on the default ISMS light/dark colors (your chosen colors are saved but not applied). When on, the whole tenant UI uses the saved brand palette (backgrounds, cards, sidebar/header accents).</span>
+                        </span>
+                    </label>
+                    @error('use_custom_theme')
+                        <p class="mt-1 text-xs text-rose-300">{{ $message }}</p>
+                    @enderror
+                </div>
+
                 <div>
                     <label for="brand_primary_color" class="text-sm font-medium text-slate-200">Primary Color</label>
                     <div class="mt-2 flex items-center gap-3">

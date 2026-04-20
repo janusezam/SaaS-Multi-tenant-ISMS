@@ -12,14 +12,14 @@
             <a href="{{ route('tenant.users.create') }}" class="rounded-xl border border-cyan-300/40 bg-cyan-500/20 px-4 py-2 text-sm font-medium text-cyan-100 hover:bg-cyan-500/30">Add User</a>
         </div>
 
-        <div class="mb-6 overflow-hidden rounded-2xl border border-amber-300/20 bg-amber-500/10">
-            <div class="border-b border-amber-300/20 px-4 py-3">
-                <h3 class="text-sm font-semibold uppercase tracking-[0.16em] text-amber-100">Pending Account Requests</h3>
+        <div class="mb-6 overflow-hidden rounded-2xl border border-slate-200 bg-white dark:border-amber-300/20 dark:bg-amber-500/10">
+            <div class="border-b border-slate-200 px-4 py-3 dark:border-amber-300/20">
+                <h3 class="text-sm font-semibold uppercase tracking-[0.16em] text-slate-800 dark:text-amber-100">Pending Account Requests</h3>
             </div>
 
             <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-amber-300/20 text-sm">
-                    <thead class="bg-slate-950/35 text-amber-100/90">
+                <table class="min-w-full divide-y divide-slate-200 text-sm dark:divide-amber-300/20">
+                    <thead class="bg-slate-50 text-slate-700 dark:bg-slate-950/35 dark:text-amber-100/90">
                         <tr>
                             <th class="px-4 py-3 text-left font-medium">Name</th>
                             <th class="px-4 py-3 text-left font-medium">Email</th>
@@ -29,7 +29,7 @@
                             <th class="px-4 py-3 text-left font-medium">Actions</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-amber-300/20 text-amber-50">
+                    <tbody class="divide-y divide-slate-200 text-slate-800 dark:divide-amber-300/20 dark:text-amber-50">
                         @forelse ($pendingRegistrations as $registration)
                             <tr>
                                 <td class="px-4 py-3">{{ $registration->name }}</td>
@@ -39,11 +39,11 @@
                                 <td class="px-4 py-3">{{ $registration->created_at?->diffForHumans() }}</td>
                                 <td class="px-4 py-3">
                                     <div class="flex flex-wrap gap-2">
-                                        <a href="{{ route('tenant.users.pending.show', $registration) }}" class="rounded-md border border-white/15 bg-white/10 px-3 py-1 text-xs hover:bg-white/15">View</a>
+                                        <a href="{{ route('tenant.users.pending.show', $registration) }}" class="rounded-md border border-slate-200 bg-slate-50 px-3 py-1 text-xs hover:bg-slate-100 dark:border-white/15 dark:bg-white/10 dark:hover:bg-white/15">View</a>
 
                                         <form method="POST" action="{{ route('tenant.users.pending.approve', $registration) }}">
                                             @csrf
-                                            <button type="submit" class="rounded-md border border-emerald-300/30 bg-emerald-500/20 px-3 py-1 text-xs text-emerald-100 hover:bg-emerald-500/30">Accept</button>
+                                            <button type="submit" class="rounded-md border border-emerald-300/30 bg-emerald-500/20 px-3 py-1 text-xs text-white hover:bg-emerald-500/30 dark:text-emerald-100">Accept</button>
                                         </form>
 
                                         <form method="POST" action="{{ route('tenant.users.pending.destroy', $registration) }}">
@@ -56,7 +56,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" class="px-4 py-4 text-center text-amber-100/70">No pending account requests.</td>
+                                <td colspan="6" class="px-4 py-4 text-center text-slate-500 dark:text-amber-100/70">No pending account requests.</td>
                             </tr>
                         @endforelse
                     </tbody>

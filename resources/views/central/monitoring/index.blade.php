@@ -2,10 +2,10 @@
     <x-slot name="header">
         <div class="flex items-center justify-between gap-3">
             <div>
-                <p class="text-xs uppercase tracking-[0.2em] text-cyan-300/80">Central App</p>
-                <h2 class="text-2xl font-semibold text-slate-100">Tenant Monitoring</h2>
+                <p class="text-xs uppercase tracking-[0.2em] text-cyan-700/80 dark:text-cyan-300/80">Central App</p>
+                <h2 class="text-2xl font-semibold text-slate-900 dark:text-slate-100">Tenant Monitoring</h2>
             </div>
-            <p class="text-xs text-slate-400">Auto-refresh every 15 seconds</p>
+            <p class="text-xs text-slate-500 dark:text-slate-400">Auto-refresh every 15 seconds</p>
         </div>
     </x-slot>
 

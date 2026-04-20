@@ -42,6 +42,10 @@ test('public pricing signup creates pending tenant and subscription', function (
 
     $university = University::query()->findOrFail($tenantId);
     expect($university->getInternal('create_database'))->toBeFalse();
+    $databaseName = (string) $university->database()->getName();
+
+    expect($databaseName)->toStartWith((string) config('tenancy.database.prefix'));
+    expect($databaseName)->not->toContain($tenantId);
 });
 
 test('approving a public pending tenant enables database provisioning', function () {
