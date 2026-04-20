@@ -56,6 +56,34 @@ class University extends Tenant implements TenantWithDatabase
         ];
     }
 
+    protected static function booted(): void
+    {
+        static::creating(function (self $university): void {
+            $university->assignObfuscatedDatabaseNameIfMissing();
+        });
+    }
+
+    public function assignObfuscatedDatabaseNameIfMissing(): void
+    {
+        if (is_string($this->getInternal('db_name')) && $this->getInternal('db_name') !== '') {
+            return;
+        }
+
+        $this->setInternal('db_name', self::generateObfuscatedDatabaseName());
+    }
+
+    private static function generateObfuscatedDatabaseName(): string
+    {
+        $prefix = (string) config('tenancy.database.prefix', '');
+        $suffix = (string) config('tenancy.database.suffix', '');
+
+        do {
+            $candidate = $prefix.bin2hex(random_bytes(12)).$suffix;
+        } while (self::query()->where('data->db_name', $candidate)->exists());
+
+        return $candidate;
+    }
+
     public function scopeActive(Builder $query): Builder
     {
         return $query->where('status', 'active');

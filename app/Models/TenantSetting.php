@@ -14,6 +14,7 @@ class TenantSetting extends Model
         'brand_primary_color',
         'brand_secondary_color',
         'theme_preference',
+        'use_custom_theme',
         'privacy_message',
     ];
 }

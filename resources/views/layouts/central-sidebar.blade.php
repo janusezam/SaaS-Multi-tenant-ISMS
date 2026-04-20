@@ -15,15 +15,15 @@
     </div>
 
     <nav class="flex-1 space-y-1 px-3 pb-4 text-sm">
-        <a href="{{ route('central.universities.index') }}" class="block rounded-lg px-3 py-2 {{ request()->routeIs('central.universities.*') ? 'bg-cyan-500/20 text-cyan-100 border border-cyan-300/30' : 'isms-sidebar-link hover:bg-white/5 border border-transparent' }}">School Management</a>
+        <a href="{{ route('central.universities.index') }}" class="block rounded-lg px-3 py-2 {{ request()->routeIs('central.universities.*') ? 'border border-cyan-300/40 bg-cyan-500/10 text-cyan-900 dark:border-cyan-300/30 dark:bg-cyan-500/20 dark:text-cyan-100' : 'border border-transparent isms-sidebar-link hover:bg-slate-200/60 dark:hover:bg-white/5' }}">School Management</a>
 
-        <a href="{{ route('central.business-control.index') }}" class="block rounded-lg px-3 py-2 {{ request()->routeIs('central.business-control.*') ? 'bg-cyan-500/20 text-cyan-100 border border-cyan-300/30' : 'isms-sidebar-link hover:bg-white/5 border border-transparent' }}">Business Control</a>
+        <a href="{{ route('central.business-control.index') }}" class="block rounded-lg px-3 py-2 {{ request()->routeIs('central.business-control.*') ? 'border border-cyan-300/40 bg-cyan-500/10 text-cyan-900 dark:border-cyan-300/30 dark:bg-cyan-500/20 dark:text-cyan-100' : 'border border-transparent isms-sidebar-link hover:bg-slate-200/60 dark:hover:bg-white/5' }}">Business Control</a>
 
-        <a href="{{ route('central.business-control.support-updates.index') }}" class="block rounded-lg px-3 py-2 {{ request()->routeIs('central.business-control.support-updates.*') ? 'bg-cyan-500/20 text-cyan-100 border border-cyan-300/30' : 'isms-sidebar-link hover:bg-white/5 border border-transparent' }}">Support &amp; Updates</a>
+        <a href="{{ route('central.business-control.support-updates.index') }}" class="block rounded-lg px-3 py-2 {{ request()->routeIs('central.business-control.support-updates.*') ? 'border border-cyan-300/40 bg-cyan-500/10 text-cyan-900 dark:border-cyan-300/30 dark:bg-cyan-500/20 dark:text-cyan-100' : 'border border-transparent isms-sidebar-link hover:bg-slate-200/60 dark:hover:bg-white/5' }}">Support &amp; Updates</a>
 
-        <a href="{{ route('central.tenant-monitoring.index') }}" class="block rounded-lg px-3 py-2 {{ request()->routeIs('central.tenant-monitoring.*') ? 'bg-cyan-500/20 text-cyan-100 border border-cyan-300/30' : 'isms-sidebar-link hover:bg-white/5 border border-transparent' }}">Tenant Monitoring</a>
+        <a href="{{ route('central.tenant-monitoring.index') }}" class="block rounded-lg px-3 py-2 {{ request()->routeIs('central.tenant-monitoring.*') ? 'border border-cyan-300/40 bg-cyan-500/10 text-cyan-900 dark:border-cyan-300/30 dark:bg-cyan-500/20 dark:text-cyan-100' : 'border border-transparent isms-sidebar-link hover:bg-slate-200/60 dark:hover:bg-white/5' }}">Tenant Monitoring</a>
 
-        <a href="{{ route('central.subscription-notification-logs.index') }}" class="block rounded-lg px-3 py-2 {{ request()->routeIs('central.subscription-notification-logs.*') ? 'bg-cyan-500/20 text-cyan-100 border border-cyan-300/30' : 'isms-sidebar-link hover:bg-white/5 border border-transparent' }}">Notification Logs</a>
+        <a href="{{ route('central.subscription-notification-logs.index') }}" class="block rounded-lg px-3 py-2 {{ request()->routeIs('central.subscription-notification-logs.*') ? 'border border-cyan-300/40 bg-cyan-500/10 text-cyan-900 dark:border-cyan-300/30 dark:bg-cyan-500/20 dark:text-cyan-100' : 'border border-transparent isms-sidebar-link hover:bg-slate-200/60 dark:hover:bg-white/5' }}">Notification Logs</a>
 
     </nav>
 
@@ -37,7 +37,7 @@
 
             <form method="POST" action="{{ route('central.logout') }}">
                 @csrf
-                <button type="submit" class="w-full rounded-lg border border-rose-300/30 bg-rose-500/20 px-3 py-2 text-left text-sm text-rose-100 hover:bg-rose-500/30">Log Out</button>
+                <button type="submit" class="w-full rounded-lg border border-rose-300/40 bg-rose-500/10 px-3 py-2 text-left text-sm text-rose-900 hover:bg-rose-500/15 dark:border-rose-300/30 dark:bg-rose-500/20 dark:text-rose-100 dark:hover:bg-rose-500/30">Log Out</button>
             </form>
         </div>
     </div>

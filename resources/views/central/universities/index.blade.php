@@ -2,11 +2,11 @@
     <x-slot name="header">
         <div class="flex items-center justify-between gap-3">
             <div>
-                <p class="text-xs uppercase tracking-[0.2em] text-cyan-300/80">Central App</p>
-                <h2 class="text-2xl font-semibold text-slate-100">School Management</h2>
+                <p class="text-xs uppercase tracking-[0.2em] text-cyan-700/80 dark:text-cyan-300/80">Central App</p>
+                <h2 class="text-2xl font-semibold text-slate-900 dark:text-slate-100">School Management</h2>
             </div>
             <div class="flex items-center gap-2">
-                <a href="{{ route('central.universities.create') }}" class="rounded-xl border border-cyan-300/40 bg-cyan-500/20 px-4 py-2 text-sm font-medium text-cyan-100 hover:bg-cyan-500/30">
+                <a href="{{ route('central.universities.create') }}" class="rounded-xl border border-cyan-300/40 bg-cyan-500/10 px-4 py-2 text-sm font-medium text-cyan-900 hover:bg-cyan-500/15 dark:bg-cyan-500/20 dark:text-cyan-100 dark:hover:bg-cyan-500/30">
                     Add School
                 </a>
             </div>

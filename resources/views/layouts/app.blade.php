@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" data-app-context="{{ tenant() !== null ? 'tenant' : 'central' }}">
     <head>
         @php
             $mediaUrl = static function (?string $path): ?string {
@@ -24,20 +24,66 @@
                 return asset('storage/'.$normalized);
             };
 
+            $hexToRgb = static function (string $hex): ?array {
+                if (preg_match('/^#[0-9A-Fa-f]{6}$/', $hex) !== 1) {
+                    return null;
+                }
+
+                return [
+                    hexdec(substr($hex, 1, 2)),
+                    hexdec(substr($hex, 3, 2)),
+                    hexdec(substr($hex, 5, 2)),
+                ];
+            };
+
+            $isLightColor = static function (string $hex) use ($hexToRgb): bool {
+                $rgb = $hexToRgb($hex);
+
+                if ($rgb === null) {
+                    return false;
+                }
+
+                [$red, $green, $blue] = $rgb;
+                $luma = (0.299 * $red) + (0.587 * $green) + (0.114 * $blue);
+
+                return $luma >= 186;
+            };
+
             $tenantSettings = null;
             $tenantThemePreference = 'system';
+            $tenantUseCustomTheme = false;
             $tenantPrimaryColor = '#06b6d4';
             $tenantSecondaryColor = '#6366f1';
+            $tenantPrimaryAccent = '#06b6d4';
+            $tenantSecondaryAccent = '#6366f1';
+            $tenantPrimaryOn = '#f8fafc';
+            $tenantSecondaryOn = '#f8fafc';
+            $tenantPrimaryShadow = 'rgba(6, 182, 212, 0.26)';
+            $tenantSecondaryShadow = 'rgba(99, 102, 241, 0.26)';
 
             if (tenant() !== null) {
                 $tenantSettings = \App\Models\TenantSetting::query()->firstWhere('tenant_id', tenant('id'));
                 $tenantThemePreference = (string) ($tenantSettings?->theme_preference ?? 'system');
-                $tenantPrimaryColor = preg_match('/^#[0-9A-Fa-f]{6}$/', (string) ($tenantSettings?->brand_primary_color ?? '')) === 1
-                    ? (string) $tenantSettings?->brand_primary_color
-                    : '#06b6d4';
-                $tenantSecondaryColor = preg_match('/^#[0-9A-Fa-f]{6}$/', (string) ($tenantSettings?->brand_secondary_color ?? '')) === 1
-                    ? (string) $tenantSettings?->brand_secondary_color
-                    : '#6366f1';
+                $tenantUseCustomTheme = (bool) ($tenantSettings?->use_custom_theme ?? false);
+
+                if ($tenantUseCustomTheme) {
+                    $tenantPrimaryColor = preg_match('/^#[0-9A-Fa-f]{6}$/', (string) ($tenantSettings?->brand_primary_color ?? '')) === 1
+                        ? (string) $tenantSettings?->brand_primary_color
+                        : '#06b6d4';
+                    $tenantSecondaryColor = preg_match('/^#[0-9A-Fa-f]{6}$/', (string) ($tenantSettings?->brand_secondary_color ?? '')) === 1
+                        ? (string) $tenantSettings?->brand_secondary_color
+                        : '#6366f1';
+                }
+
+                $tenantPrimaryRgb = $hexToRgb($tenantPrimaryColor) ?? [6, 182, 212];
+                $tenantSecondaryRgb = $hexToRgb($tenantSecondaryColor) ?? [99, 102, 241];
+
+                $tenantPrimaryAccent = $isLightColor($tenantPrimaryColor) ? '#0f172a' : $tenantPrimaryColor;
+                $tenantSecondaryAccent = $isLightColor($tenantSecondaryColor) ? '#0f172a' : $tenantSecondaryColor;
+                $tenantPrimaryOn = $isLightColor($tenantPrimaryColor) ? '#0f172a' : '#f8fafc';
+                $tenantSecondaryOn = $isLightColor($tenantSecondaryColor) ? '#0f172a' : '#f8fafc';
+                $tenantPrimaryShadow = sprintf('rgba(%d, %d, %d, 0.26)', $tenantPrimaryRgb[0], $tenantPrimaryRgb[1], $tenantPrimaryRgb[2]);
+                $tenantSecondaryShadow = sprintf('rgba(%d, %d, %d, 0.26)', $tenantSecondaryRgb[0], $tenantSecondaryRgb[1], $tenantSecondaryRgb[2]);
             }
         @endphp
 
@@ -54,6 +100,20 @@
                 var storageKey = 'isms-theme';
                 var savedTheme = null;
                 var tenantThemePreference = @json($tenantThemePreference);
+                var tenantBrandingEnabled = @json($tenantUseCustomTheme);
+
+                document.documentElement.setAttribute('data-tenant-theme-preference', tenantThemePreference);
+
+                if (tenantBrandingEnabled) {
+                    document.documentElement.setAttribute('data-tenant-branding', 'on');
+                    document.documentElement.setAttribute('data-theme', 'custom');
+                    document.documentElement.setAttribute('data-theme-locked', 'custom');
+                    document.documentElement.classList.add('dark');
+                    return;
+                } else {
+                    document.documentElement.removeAttribute('data-tenant-branding');
+                    document.documentElement.removeAttribute('data-theme-locked');
+                }
 
                 try {
                     savedTheme = localStorage.getItem(storageKey);
@@ -65,13 +125,37 @@
                     ? tenantThemePreference
                     : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
                 var resolvedTheme = savedTheme || fallbackTheme;
+
+                if (resolvedTheme !== 'light' && resolvedTheme !== 'dark') {
+                    resolvedTheme = fallbackTheme;
+                }
+
                 document.documentElement.setAttribute('data-theme', resolvedTheme);
+                document.documentElement.classList.toggle('dark', resolvedTheme === 'dark');
             })();
         </script>
 
-        @if (tenant() !== null)
+        @if (tenant() !== null && $tenantUseCustomTheme)
             <style>
                 :root {
+                    --isms-brand-primary: {{ $tenantPrimaryColor }};
+                    --isms-brand-primary-accent: {{ $tenantPrimaryAccent }};
+                    --isms-brand-primary-on: {{ $tenantPrimaryOn }};
+                    --isms-brand-primary-shadow: {{ $tenantPrimaryShadow }};
+                    --isms-brand-primary-10: {{ $tenantPrimaryColor }}1a;
+                    --isms-brand-primary-20: {{ $tenantPrimaryColor }}33;
+                    --isms-brand-primary-30: {{ $tenantPrimaryColor }}4d;
+                    --isms-brand-primary-40: {{ $tenantPrimaryColor }}66;
+
+                    --isms-brand-secondary: {{ $tenantSecondaryColor }};
+                    --isms-brand-secondary-accent: {{ $tenantSecondaryAccent }};
+                    --isms-brand-secondary-on: {{ $tenantSecondaryOn }};
+                    --isms-brand-secondary-shadow: {{ $tenantSecondaryShadow }};
+                    --isms-brand-secondary-10: {{ $tenantSecondaryColor }}1a;
+                    --isms-brand-secondary-20: {{ $tenantSecondaryColor }}33;
+                    --isms-brand-secondary-30: {{ $tenantSecondaryColor }}4d;
+                    --isms-brand-secondary-40: {{ $tenantSecondaryColor }}66;
+
                     --isms-glow-a: {{ $tenantPrimaryColor }}3d;
                     --isms-glow-b: {{ $tenantSecondaryColor }}2e;
                 }

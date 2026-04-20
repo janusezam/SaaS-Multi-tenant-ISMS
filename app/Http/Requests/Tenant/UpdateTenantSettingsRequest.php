@@ -26,6 +26,7 @@ class UpdateTenantSettingsRequest extends FormRequest
             'brand_primary_color' => ['required', 'regex:/^#[0-9A-Fa-f]{6}$/'],
             'brand_secondary_color' => ['required', 'regex:/^#[0-9A-Fa-f]{6}$/'],
             'theme_preference' => ['required', 'in:system,light,dark'],
+            'use_custom_theme' => ['sometimes', 'boolean'],
         ];
     }
 }

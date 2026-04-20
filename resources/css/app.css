@@ -6,17 +6,25 @@
 
 @layer base {
 	:root {
-		--isms-bg: #050a1d;
-		--isms-bg-solid: #050a1d;
-		--isms-panel: #0f1733;
-		--isms-panel-soft: rgba(2, 6, 23, 0.74);
-		--isms-stroke: rgba(255, 255, 255, 0.11);
-		--isms-glow-a: rgba(56, 189, 248, 0.24);
-		--isms-glow-b: rgba(99, 102, 241, 0.18);
+		--isms-bg-base: #050a1d;
+		--isms-bg-solid-base: #050a1d;
+		--isms-panel-base: #0f1733;
+		--isms-panel-soft-base: rgba(2, 6, 23, 0.74);
+		--isms-stroke-base: rgba(255, 255, 255, 0.11);
+		--isms-surface-top-base: rgba(19, 28, 59, 0.84);
+		--isms-surface-bottom-base: rgba(8, 13, 30, 0.9);
+
+		--isms-bg: var(--isms-bg-base);
+		--isms-bg-solid: var(--isms-bg-solid-base);
+		--isms-panel: var(--isms-panel-base);
+		--isms-panel-soft: var(--isms-panel-soft-base);
+		--isms-stroke: var(--isms-stroke-base);
+		--isms-glow-a: var(--isms-brand-primary-20, rgba(56, 189, 248, 0.24));
+		--isms-glow-b: var(--isms-brand-secondary-20, rgba(99, 102, 241, 0.18));
 		--isms-text: #dbe6ff;
 		--isms-muted: #94a3b8;
-		--isms-surface-top: rgba(19, 28, 59, 0.84);
-		--isms-surface-bottom: rgba(8, 13, 30, 0.9);
+		--isms-surface-top: var(--isms-surface-top-base);
+		--isms-surface-bottom: var(--isms-surface-bottom-base);
 		--isms-sidebar-link: #cbd5e1;
 		--isms-sidebar-link-hover: #ffffff;
 		--isms-toggle-bg: rgba(255, 255, 255, 0.05);
@@ -25,22 +33,60 @@
 	}
 
 	:root[data-theme='light'] {
-		--isms-bg: #f3f6fb;
-		--isms-bg-solid: #f5f8ff;
-		--isms-panel: #ffffff;
-		--isms-panel-soft: rgba(255, 255, 255, 0.94);
-		--isms-stroke: rgba(15, 23, 42, 0.12);
-		--isms-glow-a: rgba(148, 163, 184, 0.08);
-		--isms-glow-b: rgba(148, 163, 184, 0.06);
+		--isms-bg-base: #f3f6fb;
+		--isms-bg-solid-base: #f5f8ff;
+		--isms-panel-base: #ffffff;
+		--isms-panel-soft-base: rgba(255, 255, 255, 0.94);
+		--isms-stroke-base: rgba(15, 23, 42, 0.12);
+		--isms-surface-top-base: rgba(255, 255, 255, 0.95);
+		--isms-surface-bottom-base: rgba(241, 245, 249, 0.9);
+
+		--isms-bg: var(--isms-bg-base);
+		--isms-bg-solid: var(--isms-bg-solid-base);
+		--isms-panel: var(--isms-panel-base);
+		--isms-panel-soft: var(--isms-panel-soft-base);
+		--isms-stroke: var(--isms-stroke-base);
+		--isms-glow-a: var(--isms-brand-primary-10, rgba(148, 163, 184, 0.08));
+		--isms-glow-b: var(--isms-brand-secondary-10, rgba(148, 163, 184, 0.06));
 		--isms-text: #0f172a;
 		--isms-muted: #475569;
-		--isms-surface-top: rgba(255, 255, 255, 0.95);
-		--isms-surface-bottom: rgba(241, 245, 249, 0.9);
+		--isms-surface-top: var(--isms-surface-top-base);
+		--isms-surface-bottom: var(--isms-surface-bottom-base);
 		--isms-sidebar-link: #334155;
 		--isms-sidebar-link-hover: #0f172a;
 		--isms-toggle-bg: rgba(15, 23, 42, 0.04);
 		--isms-toggle-bg-hover: rgba(15, 23, 42, 0.09);
 		--isms-toggle-text: #0f172a;
+	}
+
+	@supports (color: color-mix(in oklab, white, black)) {
+		:root[data-app-context='tenant'][data-tenant-branding='on'][data-theme='custom'] {
+			--isms-bg-base: color-mix(in oklab, #020617 60%, var(--isms-brand-primary, #06b6d4) 40%);
+			--isms-bg-solid-base: color-mix(in oklab, #020617 66%, var(--isms-brand-primary, #06b6d4) 34%);
+			--isms-panel-base: color-mix(in oklab, #0b1028 62%, var(--isms-brand-secondary, #6366f1) 38%);
+			--isms-panel-soft-base: color-mix(in oklab, rgba(2, 6, 23, 0.82) 64%, var(--isms-brand-secondary-30, rgba(99, 102, 241, 0.3)) 36%);
+			--isms-stroke-base: color-mix(in oklab, rgba(255, 255, 255, 0.14) 62%, var(--isms-brand-primary-40, rgba(6, 182, 212, 0.4)) 38%);
+			--isms-surface-top-base: color-mix(in oklab, rgba(19, 28, 59, 0.9) 56%, var(--isms-brand-primary-30, rgba(6, 182, 212, 0.3)) 44%);
+			--isms-surface-bottom-base: color-mix(in oklab, rgba(8, 13, 30, 0.92) 58%, var(--isms-brand-secondary-30, rgba(99, 102, 241, 0.3)) 42%);
+
+			--isms-bg: var(--isms-bg-base);
+			--isms-bg-solid: var(--isms-bg-solid-base);
+			--isms-panel: var(--isms-panel-base);
+			--isms-panel-soft: var(--isms-panel-soft-base);
+			--isms-stroke: var(--isms-stroke-base);
+			--isms-surface-top: var(--isms-surface-top-base);
+			--isms-surface-bottom: var(--isms-surface-bottom-base);
+
+			--isms-glow-a: var(--isms-brand-primary-40, rgba(56, 189, 248, 0.24));
+			--isms-glow-b: var(--isms-brand-secondary-40, rgba(99, 102, 241, 0.18));
+			--isms-text: #f8fafc;
+			--isms-muted: color-mix(in oklab, #cbd5e1 72%, var(--isms-brand-primary, #06b6d4) 28%);
+			--isms-sidebar-link: color-mix(in oklab, #e2e8f0 78%, var(--isms-brand-primary, #06b6d4) 22%);
+			--isms-sidebar-link-hover: #ffffff;
+			--isms-toggle-bg: color-mix(in oklab, rgba(255, 255, 255, 0.08) 68%, var(--isms-brand-primary-30, rgba(6, 182, 212, 0.3)) 32%);
+			--isms-toggle-bg-hover: color-mix(in oklab, rgba(255, 255, 255, 0.14) 62%, var(--isms-brand-primary-40, rgba(6, 182, 212, 0.4)) 38%);
+			--isms-toggle-text: #f8fafc;
+		}
 	}
 
 	body {
@@ -54,9 +100,23 @@
 
 	:root[data-theme='light'] body {
 		background:
-			radial-gradient(circle at 0% 0%, rgba(148, 163, 184, 0.08), transparent 32%),
-			radial-gradient(circle at 100% 0%, rgba(148, 163, 184, 0.06), transparent 28%),
-			linear-gradient(180deg, #f8fafc 0%, #f3f6fb 100%);
+			radial-gradient(circle at 0% 0%, var(--isms-glow-a), transparent 32%),
+			radial-gradient(circle at 100% 0%, var(--isms-glow-b), transparent 28%),
+			linear-gradient(180deg, #f8fafc 0%, var(--isms-bg) 100%);
+	}
+
+	:root[data-app-context='tenant'][data-tenant-branding='on'][data-theme='light'] body {
+		background:
+			radial-gradient(circle at 0% 0%, var(--isms-glow-a), transparent 32%),
+			radial-gradient(circle at 100% 0%, var(--isms-glow-b), transparent 28%),
+			linear-gradient(180deg, var(--isms-bg-solid) 0%, var(--isms-bg) 100%);
+	}
+
+	:root[data-app-context='tenant'][data-tenant-branding='on'][data-theme='custom'] body {
+		background:
+			radial-gradient(circle at 10% 10%, var(--isms-glow-a), transparent 38%),
+			radial-gradient(circle at 90% 0%, var(--isms-glow-b), transparent 34%),
+			var(--isms-bg);
 	}
 
 	h1,
@@ -159,6 +219,25 @@
 		color: rgba(255, 255, 255, 0.72);
 	}
 
+	:root[data-app-context='tenant'] .border-white\/10 {
+		border-color: var(--isms-stroke) !important;
+	}
+
+	:root[data-app-context='tenant'] .border-white\/20 {
+		border-color: var(--isms-stroke) !important;
+	}
+
+	:root[data-app-context='tenant'] .bg-slate-900\/85,
+	:root[data-app-context='tenant'] .bg-slate-900\/80,
+	:root[data-app-context='tenant'] .bg-slate-950\/60,
+	:root[data-app-context='tenant'] .bg-slate-950\/70,
+	:root[data-app-context='tenant'] .bg-slate-950\/50,
+	:root[data-app-context='tenant'] .bg-slate-950\/40 {
+		background-color: var(--isms-panel-soft) !important;
+	}
+
+
+
 	:root[data-theme='light'] .text-slate-100 {
 		color: #0f172a !important;
 	}
@@ -178,16 +257,16 @@
 
 	:root[data-theme='light'] .text-cyan-100,
 	:root[data-theme='light'] .text-cyan-200 {
-		color: #0e7490 !important;
+		color: var(--isms-brand-primary-accent, #0e7490) !important;
 	}
 
 	:root[data-theme='light'] .text-cyan-300,
 	:root[data-theme='light'] .text-cyan-300\/80 {
-		color: #0891b2 !important;
+		color: var(--isms-brand-primary-accent, #0891b2) !important;
 	}
 
 	:root[data-theme='light'] .text-cyan-100\/70 {
-		color: #0f766e !important;
+		color: var(--isms-brand-primary-accent, #0f766e) !important;
 	}
 
 	:root[data-theme='light'] .text-rose-100 {
@@ -215,9 +294,7 @@
 		box-shadow: 0 10px 28px rgba(30, 64, 175, 0.08);
 	}
 
-	:root[data-theme='light'] thead.bg-slate-950\/60 {
-		background-color: rgba(226, 236, 255, 0.9) !important;
-	}
+
 
 	:root[data-theme='light'] .bg-white\/5 {
 		background-color: rgba(15, 23, 42, 0.04) !important;
@@ -238,39 +315,39 @@
 	}
 
 	:root[data-theme='light'] .bg-cyan-500\/20 {
-		background-color: #0284c7 !important;
+		background-color: var(--isms-brand-primary-20, #0284c7) !important;
 	}
 
 	:root[data-theme='light'] .hover\:bg-cyan-500\/30:hover {
-		background-color: #0369a1 !important;
+		background-color: var(--isms-brand-primary-30, #0369a1) !important;
 	}
 
 	:root[data-theme='light'] .border-cyan-300\/30,
 	:root[data-theme='light'] .border-cyan-300\/40 {
-		border-color: #0369a1 !important;
+		border-color: var(--isms-brand-primary-40, #0369a1) !important;
 	}
 
 	:root[data-theme='light'] .bg-cyan-500\/20.text-cyan-100,
 	:root[data-theme='light'] .bg-cyan-500\/20.text-cyan-200 {
-		color: #ffffff !important;
+		color: var(--isms-brand-primary-accent, #0f172a) !important;
 	}
 
 	:root[data-theme='light'] .bg-cyan-500\/20.border-cyan-300\/30,
 	:root[data-theme='light'] .bg-cyan-500\/20.border-cyan-300\/40 {
-		box-shadow: 0 6px 16px rgba(3, 105, 161, 0.26);
+		box-shadow: 0 6px 16px var(--isms-brand-primary-shadow, rgba(3, 105, 161, 0.26));
 	}
 
 	:root[data-theme='light'] .bg-emerald-500\/20 {
-		background-color: #15803d !important;
+		background-color: var(--isms-brand-secondary-20, #15803d) !important;
 	}
 
 	:root[data-theme='light'] .hover\:bg-emerald-500\/30:hover {
-		background-color: #166534 !important;
+		background-color: var(--isms-brand-secondary-30, #166534) !important;
 	}
 
 	:root[data-theme='light'] .text-emerald-100,
 	:root[data-theme='light'] .text-emerald-200 {
-		color: #ffffff !important;
+		color: var(--isms-brand-secondary-accent, #15803d) !important;
 	}
 
 	:root[data-theme='light'] .bg-amber-500\/20 {
@@ -312,6 +389,12 @@
 		color-scheme: light;
 	}
 
+	:root[data-theme='light'] select option,
+	:root[data-theme='light'] select optgroup {
+		background-color: #ffffff;
+		color: #0f172a;
+	}
+
 	:root[data-theme='dark'] input[type='date'],
 	:root[data-theme='dark'] input[type='datetime-local'],
 	:root[data-theme='dark'] select,
@@ -320,6 +403,28 @@
 	:root[data-theme='dark'] input[type='email'],
 	:root[data-theme='dark'] input[type='number'] {
 		color-scheme: dark;
+	}
+
+	:root[data-theme='dark'] select option,
+	:root[data-theme='dark'] select optgroup {
+		background-color: var(--isms-panel-base, #0f1733);
+		color: var(--isms-text, #dbe6ff);
+	}
+
+	:root[data-theme='custom'] input[type='date'],
+	:root[data-theme='custom'] input[type='datetime-local'],
+	:root[data-theme='custom'] select,
+	:root[data-theme='custom'] textarea,
+	:root[data-theme='custom'] input[type='text'],
+	:root[data-theme='custom'] input[type='email'],
+	:root[data-theme='custom'] input[type='number'] {
+		color-scheme: dark;
+	}
+
+	:root[data-theme='custom'] select option,
+	:root[data-theme='custom'] select optgroup {
+		background-color: var(--isms-panel-base, #0f1733);
+		color: var(--isms-text, #dbe6ff);
 	}
 
 	.tenant-subscription-pricing [data-basic-current-plan-btn] {
@@ -416,6 +521,45 @@
 	:root[data-theme='light'] .pro-lock-note {
 		color: #475569;
 	}
+
+	/* Brand color remapping: apply tenant primary/secondary to shared accent classes */
+	.text-cyan-100,
+	.text-cyan-200,
+	.text-cyan-300,
+	.text-cyan-300\/80 {
+		color: var(--isms-brand-primary, #06b6d4) !important;
+	}
+
+	.bg-cyan-500\/20 {
+		background-color: var(--isms-brand-primary-20, rgba(6, 182, 212, 0.2)) !important;
+	}
+
+	.hover\:bg-cyan-500\/30:hover {
+		background-color: var(--isms-brand-primary-30, rgba(6, 182, 212, 0.3)) !important;
+	}
+
+	.border-cyan-300\/30,
+	.border-cyan-300\/40 {
+		border-color: var(--isms-brand-primary-40, rgba(6, 182, 212, 0.4)) !important;
+	}
+
+	.text-emerald-100,
+	.text-emerald-200 {
+		color: var(--isms-brand-secondary, #6366f1) !important;
+	}
+
+	.bg-emerald-500\/20 {
+		background-color: var(--isms-brand-secondary-20, rgba(99, 102, 241, 0.2)) !important;
+	}
+
+	.hover\:bg-emerald-500\/30:hover {
+		background-color: var(--isms-brand-secondary-30, rgba(99, 102, 241, 0.3)) !important;
+	}
+
+	.border-emerald-300\/30,
+	.border-emerald-300\/40 {
+		border-color: var(--isms-brand-secondary-40, rgba(99, 102, 241, 0.4)) !important;
+	}
 }
 
 @layer utilities {
@@ -434,4 +578,18 @@
 		opacity: 1;
 		transform: translateY(0);
 	}
+}
+
+/*
+ * Keep table headers readable across theme modes.
+ * Defined outside Tailwind layers to avoid variant generation producing invalid selectors.
+ */
+:root[data-app-context='tenant'] thead.bg-slate-950\/60,
+:root[data-app-context='tenant'] thead.dark\:bg-slate-950\/60 {
+	background-color: var(--isms-panel) !important;
+}
+
+:root[data-theme='light'] thead.bg-slate-950\/60,
+:root[data-theme='light'] thead.dark\:bg-slate-950\/60 {
+	background-color: rgba(226, 236, 255, 0.9) !important;
 }

@@ -16,6 +16,28 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Verify VERSION matches tag
+        shell: bash
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+
+          if [ ! -f VERSION ]; then
+            echo "VERSION file missing at repo root"
+            exit 1
+          fi
+
+          VERSION_VALUE="$(cat VERSION | tr -d '\r\n' | xargs)"
+
+          if [ -z "$VERSION_VALUE" ]; then
+            echo "VERSION file is empty"
+            exit 1
+          fi
+
+          if [ "$VERSION_VALUE" != "$TAG" ]; then
+            echo "VERSION ($VERSION_VALUE) does not match tag ($TAG)"
+            exit 1
+          fi
+
       - name: Create GitHub release
         uses: softprops/action-gh-release@v2
         with:
