@@ -7,8 +7,11 @@ use App\Models\TenantSupportTicket;
 use App\Models\TenantSystemUpdateRead;
 use App\Models\University;
 use App\Models\User;
+use App\Services\SelfUpdateService;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
 use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
 use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
@@ -65,6 +68,10 @@ beforeEach(function () {
         PreventAccessFromCentralDomains::class,
         EnsureTenantSubscriptionIsActive::class,
     ]);
+
+    if (! Route::has('tenant.settings.edit')) {
+        Route::group([], base_path('routes/tenant.php'));
+    }
 });
 
 afterEach(function () {
@@ -308,4 +315,57 @@ test('tenant cannot mark unpublished update as read', function () {
         ->assertNotFound();
 
     expect(TenantSystemUpdateRead::query()->count())->toBe(0);
+});
+
+test('tenant settings shows latest github release notes when available', function () {
+    initializeTenantSettingsContext();
+
+    Http::fake([
+        'api.github.com/repos/janusezam/SaaS-Multi-tenant-ISMS/releases/latest' => Http::response([
+            'tag_name' => 'v9.9.9',
+            'name' => 'v9.9.9',
+            'body' => "Added new module\nFixed bug",
+            'html_url' => 'https://github.com/janusezam/SaaS-Multi-tenant-ISMS/releases/tag/v9.9.9',
+            'published_at' => now()->toISOString(),
+        ], 200),
+    ]);
+
+    $user = User::query()->create([
+        'name' => 'Tenant Updates Viewer',
+        'email' => 'tenant-release-viewer@example.test',
+        'role' => 'university_admin',
+        'password' => 'password',
+        'email_verified_at' => now(),
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('tenant.settings.edit'))
+        ->assertOk()
+        ->assertSee('Latest GitHub Release')
+        ->assertSee('v9.9.9')
+        ->assertSee('Added new module')
+        ->assertSee('Fixed bug');
+});
+
+test('tenant admin can start a self update', function () {
+    initializeTenantSettingsContext();
+
+    $user = User::query()->create([
+        'name' => 'Tenant Admin',
+        'email' => 'tenant-self-update-admin@example.test',
+        'role' => 'university_admin',
+        'password' => 'password',
+        'email_verified_at' => now(),
+    ]);
+
+    $this->mock(SelfUpdateService::class, function ($mock): void {
+        $mock->shouldReceive('preflightError')->once()->andReturnNull();
+        $mock->shouldReceive('start')->once();
+        $mock->shouldReceive('isUpdateInProgress')->andReturnFalse();
+    });
+
+    $this->actingAs($user)
+        ->post(route('tenant.settings.self-update'))
+        ->assertRedirect(route('tenant.settings.edit'))
+        ->assertSessionHas('status', 'Update started. Refresh in a few minutes.');
 });

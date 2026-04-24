@@ -9,7 +9,10 @@ use App\Models\SystemUpdate;
 use App\Models\TenantSetting;
 use App\Models\TenantSupportTicket;
 use App\Models\TenantSystemUpdateRead;
+use App\Services\GitHubLatestReleaseService;
+use App\Services\SelfUpdateService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class TenantSettingsController extends Controller
@@ -39,6 +42,12 @@ class TenantSettingsController extends Controller
             ->pluck('system_update_id')
             ->all();
 
+        $tenantVersion = (string) config('app.version', 'v1.0.0');
+        $latestRelease = app(GitHubLatestReleaseService::class)->latest();
+        $latestTag = (string) ($latestRelease['tag'] ?? '');
+        $updateAvailable = $latestTag !== ''
+            && version_compare(ltrim($latestTag, 'v'), ltrim($tenantVersion, 'v'), '>');
+
         return view('tenant.settings.index', [
             'customization' => [
                 'brand_primary_color' => (string) ($setting?->brand_primary_color ?? '#06b6d4'),
@@ -56,8 +65,32 @@ class TenantSettingsController extends Controller
                 ->get(),
             'systemUpdates' => $systemUpdates,
             'readUpdateIds' => $readUpdateIds,
-            'tenantVersion' => (string) config('app.version', 'v1.0.0'),
+            'tenantVersion' => $tenantVersion,
+            'latestRelease' => $latestRelease,
+            'updateAvailable' => $updateAvailable,
+            'selfUpdateInProgress' => app(SelfUpdateService::class)->isUpdateInProgress(),
         ]);
+    }
+
+    public function startSelfUpdate(Request $request, SelfUpdateService $selfUpdateService): RedirectResponse
+    {
+        if (! app()->environment(['local', 'testing'])) {
+            abort(404);
+        }
+
+        $error = $selfUpdateService->preflightError();
+
+        if ($error !== null) {
+            return redirect()
+                ->route('tenant.settings.edit')
+                ->with('status', $error);
+        }
+
+        $selfUpdateService->start();
+
+        return redirect()
+            ->route('tenant.settings.edit')
+            ->with('status', 'Update started. Refresh in a few minutes.');
     }
 
     public function markUpdateAsRead(SystemUpdate $update): RedirectResponse
