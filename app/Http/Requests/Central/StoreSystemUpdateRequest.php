@@ -27,7 +27,7 @@ class StoreSystemUpdateRequest extends FormRequest
             'title' => ['required', 'string', 'max:180'],
             'summary' => ['nullable', 'string', 'max:3000'],
             'version' => ['nullable', 'string', 'max:60'],
-            'source' => ['required', 'in:manual,github'],
+            'source' => ['required', 'in:github'],
             'is_published' => ['nullable', 'boolean'],
             'published_at' => ['nullable', 'date'],
         ];
@@ -36,12 +36,6 @@ class StoreSystemUpdateRequest extends FormRequest
     public function withValidator(Validator $validator): void
     {
         $validator->after(function (Validator $validator): void {
-            $source = (string) $this->input('source', 'manual');
-
-            if ($source !== 'github') {
-                return;
-            }
-
             if ((string) config('services.github.owner') === '' || (string) config('services.github.repo') === '') {
                 $validator->errors()->add('source', 'GitHub repo is not configured. Set GITHUB_OWNER and GITHUB_REPO.');
             }

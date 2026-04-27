@@ -82,13 +82,7 @@
                             <input id="version" name="version" type="text" class="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 dark:border-white/10 dark:bg-white/5 dark:text-slate-100 dark:placeholder:text-slate-500" value="{{ old('version', $suggestedUpdateVersion ?? '') }}" placeholder="{{ $suggestedUpdateVersion ?? 'v1.0.0' }}">
                         </div>
 
-                        <div>
-                            <label for="source" class="text-xs uppercase tracking-wide text-slate-600 dark:text-slate-300">Source</label>
-                            <select id="source" name="source" class="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 dark:border-white/10 dark:bg-white/5 dark:text-slate-100">
-                                <option value="manual" @selected(old('source', 'manual') === 'manual')>Manual</option>
-                                <option value="github" @selected(old('source') === 'github')>GitHub</option>
-                            </select>
-                        </div>
+                        <input type="hidden" name="source" value="github">
 
                         <div>
                             <label for="summary" class="text-xs uppercase tracking-wide text-slate-600 dark:text-slate-300">Summary</label>

@@ -353,7 +353,7 @@ test('tenant only sees published system updates and can mark as read', function 
         'title' => 'Release Notes v1.2.0',
         'summary' => 'New planning tools and bug fixes.',
         'version' => 'v1.2.0',
-        'source' => 'manual',
+        'source' => 'github',
         'is_published' => true,
         'published_at' => now()->subMinute(),
     ]);
@@ -362,7 +362,7 @@ test('tenant only sees published system updates and can mark as read', function 
         'title' => 'Draft Internal Update',
         'summary' => 'Should not be visible to tenant.',
         'version' => 'v1.2.1',
-        'source' => 'manual',
+        'source' => 'github',
         'is_published' => false,
         'published_at' => now(),
     ]);
@@ -405,7 +405,7 @@ test('tenant cannot mark unpublished update as read', function () {
 
     $draftUpdate = SystemUpdate::query()->create([
         'title' => 'Draft Release',
-        'source' => 'manual',
+        'source' => 'github',
         'is_published' => false,
     ]);
 

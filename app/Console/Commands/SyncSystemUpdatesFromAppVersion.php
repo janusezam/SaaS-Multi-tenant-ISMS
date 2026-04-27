@@ -53,7 +53,7 @@ class SyncSystemUpdatesFromAppVersion extends Command
             'title' => "Release {$version}",
             'summary' => $summary,
             'version' => $version,
-            'source' => 'manual',
+            'source' => 'github',
             'is_published' => true,
             'published_at' => now(),
         ]);

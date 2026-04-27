@@ -4,6 +4,7 @@ use App\Models\Plan;
 use App\Models\PlanVersion;
 use App\Models\SuperAdmin;
 use App\Models\TenantSupportTicket;
+use Illuminate\Support\Facades\Http;
 
 test('business control dashboard requires super admin authentication', function () {
     $this->get(route('central.business-control.index'))
@@ -57,6 +58,38 @@ test('authenticated super admin can view all business control pages', function (
 });
 
 test('super admin can post updates and resolve tenant reports', function () {
+    config()->set('services.github.owner', 'janusezam');
+    config()->set('services.github.repo', 'SaaS-Multi-tenant-ISMS');
+    config()->set('services.github.default_branch', 'main');
+    config()->set('services.github.token', 'test-token');
+
+    Http::fake(function ($request) {
+        $url = (string) $request->url();
+
+        if (str_ends_with($url, '/releases/latest')) {
+            return Http::response([
+                'tag_name' => 'v1.0.9',
+                'name' => 'Release v1.0.9',
+                'body' => 'Previous release',
+                'html_url' => 'https://github.com/janusezam/SaaS-Multi-tenant-ISMS/releases/tag/v1.0.9',
+                'published_at' => '2026-04-27T00:00:00Z',
+            ], 200);
+        }
+
+        if (str_ends_with($url, '/releases') && $request->method() === 'POST') {
+            return Http::response([
+                'id' => 200,
+                'tag_name' => 'v1.1.0',
+                'name' => 'April Maintenance Rollup',
+                'body' => 'Improved support tooling and tenant profile controls.',
+                'html_url' => 'https://github.com/janusezam/SaaS-Multi-tenant-ISMS/releases/tag/v1.1.0',
+                'published_at' => '2026-04-27T01:00:00Z',
+            ], 201);
+        }
+
+        return Http::response([], 404);
+    });
+
     $superAdmin = SuperAdmin::query()->create([
         'name' => 'Support Queue Admin',
         'email' => 'support-queue-admin@example.test',
@@ -81,7 +114,7 @@ test('super admin can post updates and resolve tenant reports', function () {
             'title' => 'April Maintenance Rollup',
             'summary' => 'Improved support tooling and tenant profile controls.',
             'version' => 'v1.1.0',
-            'source' => 'manual',
+            'source' => 'github',
             'is_published' => 1,
         ])
         ->assertRedirect(route('central.business-control.support-updates.index'));
