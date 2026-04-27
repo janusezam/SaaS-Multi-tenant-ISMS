@@ -13,6 +13,7 @@ use App\Services\GitHubLatestReleaseService;
 use App\Services\SelfUpdateService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
@@ -95,11 +96,40 @@ class TenantSettingsController extends Controller
                 ->with('status', $error);
         }
 
-        $selfUpdateService->start();
+        // Set the "in progress" flag before we send the response
+        $selfUpdateService->markInProgress();
 
-        return redirect()
+        // Build the redirect response
+        $response = redirect()
             ->route('tenant.settings.edit')
             ->with('status', 'Update started. Refresh in a few minutes.');
+
+        // Send the response to the browser immediately
+        $response->send();
+
+        // Ensure PHP continues running even after the browser disconnects
+        ignore_user_abort(true);
+        set_time_limit(0);
+
+        // Close the session so it doesn't block other requests
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_write_close();
+        }
+
+        // Flush all output buffers so the browser gets the response right away
+        if (function_exists('fastcgi_finish_request')) {
+            fastcgi_finish_request();
+        } else {
+            while (ob_get_level() > 0) {
+                ob_end_flush();
+            }
+            flush();
+        }
+
+        // Now run the update synchronously — no child process, no risk of being killed
+        Artisan::call('app:self-update');
+
+        exit(0);
     }
 
     public function markUpdateAsRead(SystemUpdate $update): RedirectResponse
