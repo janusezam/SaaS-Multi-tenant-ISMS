@@ -52,4 +52,36 @@ class SelfUpdateService
     {
         Cache::store('central')->put('self_update.in_progress', true, now()->addHours(2));
     }
+
+    /**
+     * Launch the self-update command in a fully detached process.
+     * On Windows, this creates a batch file and opens it in a new cmd.exe window.
+     */
+    public function runDetached(): void
+    {
+        $php = PHP_BINARY;
+        $artisan = base_path('artisan');
+        $base = base_path();
+        $logFile = storage_path('logs/self-update.log');
+
+        if (PHP_OS_FAMILY === 'Windows') {
+            $batchFile = storage_path('app/self-update.bat');
+
+            // Write a batch file that runs the update, logs output, then deletes itself
+            file_put_contents($batchFile, implode("\r\n", [
+                '@echo off',
+                'cd /d "'.$base.'"',
+                '"'.$php.'" "'.$artisan.'" app:self-update > "'.$logFile.'" 2>&1',
+                'del "%~f0"',
+            ]));
+
+            // Launch the batch file in its own minimized cmd.exe window
+            // This is completely independent of Apache
+            pclose(popen('start /min "" "'.$batchFile.'"', 'r'));
+        } else {
+            // On Linux/macOS, use nohup to detach
+            $cmd = "nohup \"{$php}\" \"{$artisan}\" app:self-update > \"{$logFile}\" 2>&1 &";
+            exec($cmd);
+        }
+    }
 }
