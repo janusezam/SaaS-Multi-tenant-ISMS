@@ -15,19 +15,7 @@ return [
 
     'name' => env('APP_NAME', 'Laravel'),
 
-    'version' => (function (): string {
-        $versionFilePath = base_path('VERSION');
-
-        if (is_string($versionFilePath) && is_file($versionFilePath)) {
-            $version = trim((string) file_get_contents($versionFilePath));
-
-            if ($version !== '') {
-                return $version;
-            }
-        }
-
-        return env('APP_VERSION', 'v1.0.0');
-    })(),
+    'version' => env('APP_VERSION', 'v1.0.0'),
 
     /*
     |--------------------------------------------------------------------------

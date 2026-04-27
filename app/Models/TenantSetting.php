@@ -15,6 +15,13 @@ class TenantSetting extends Model
         'brand_secondary_color',
         'theme_preference',
         'use_custom_theme',
+        'branding_logo_path',
+        'login_brand_badge',
+        'login_brand_heading',
+        'login_brand_description',
+        'login_brand_feature_1',
+        'login_brand_feature_2',
+        'login_brand_feature_3',
         'privacy_message',
     ];
 }

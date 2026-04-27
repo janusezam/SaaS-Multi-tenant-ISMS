@@ -2,12 +2,13 @@
 
 namespace App\Support;
 
+use App\Models\Game;
 use Illuminate\Support\Collection;
 
 class StandingsCalculator
 {
     /**
-     * @param Collection<int, \App\Models\Game> $games
+     * @param  Collection<int, Game>  $games
      * @return array<int, array<string, int|string>>
      */
     public function calculate(Collection $games): array

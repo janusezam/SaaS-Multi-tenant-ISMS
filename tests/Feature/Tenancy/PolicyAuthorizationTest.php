@@ -23,16 +23,24 @@ afterEach(function () {
         tenancy()->end();
     }
 
-    $databasePath = database_path('tenantpolicy-tenant');
+    $databasePath = policyTenantDatabasePath();
 
     if (is_file($databasePath)) {
         @unlink($databasePath);
     }
 });
 
+function policyTenantDatabasePath(): string
+{
+    $prefix = (string) config('tenancy.database.prefix', '');
+    $suffix = (string) config('tenancy.database.suffix', '');
+
+    return database_path($prefix.'policy-tenant'.$suffix);
+}
+
 function initializePolicyTenant(): void
 {
-    $databasePath = database_path('tenantpolicy-tenant');
+    $databasePath = policyTenantDatabasePath();
 
     if (! is_file($databasePath)) {
         touch($databasePath);

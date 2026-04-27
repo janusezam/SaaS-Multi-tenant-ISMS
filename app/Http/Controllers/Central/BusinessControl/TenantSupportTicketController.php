@@ -7,6 +7,8 @@ use App\Http\Requests\Central\StoreSystemUpdateRequest;
 use App\Http\Requests\Central\UpdateTenantSupportTicketStatusRequest;
 use App\Models\SystemUpdate;
 use App\Models\TenantSupportTicket;
+use App\Services\GitHubLatestReleaseService;
+use App\Services\GitHubReleasePublisher;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
@@ -49,13 +51,55 @@ class TenantSupportTicketController extends Controller
     {
         $validated = $request->validated();
 
+        $version = $validated['version'] ?? null;
+        $meta = null;
+
+        if ($validated['source'] === 'github') {
+            $latestRelease = app(GitHubLatestReleaseService::class)->latest();
+            $suggestedTag = app(GitHubReleasePublisher::class)->suggestNextTag($latestRelease['tag'] ?? null);
+            $tag = (string) ($version ?: $suggestedTag);
+
+            $normalizedTag = str_starts_with($tag, 'v') ? $tag : 'v'.$tag;
+
+            $existing = SystemUpdate::query()->where('version', $normalizedTag)->first();
+
+            if ($existing !== null) {
+                return redirect()
+                    ->route('central.business-control.support-updates.index')
+                    ->with('status', "System update for {$normalizedTag} already exists.");
+            }
+
+            try {
+                $release = app(GitHubReleasePublisher::class)->publish(
+                    tag: $normalizedTag,
+                    title: $validated['title'],
+                    summary: $validated['summary'] ?? null,
+                );
+
+                $version = $release['tag'];
+                $meta = [
+                    'github' => [
+                        'release_id' => $release['id'],
+                        'html_url' => $release['html_url'],
+                        'name' => $release['name'],
+                        'published_at' => $release['published_at'],
+                    ],
+                ];
+            } catch (\Throwable $exception) {
+                return redirect()
+                    ->route('central.business-control.support-updates.index')
+                    ->with('status', 'GitHub publish failed: '.$exception->getMessage());
+            }
+        }
+
         SystemUpdate::query()->create([
             'title' => $validated['title'],
             'summary' => $validated['summary'] ?? null,
-            'version' => $validated['version'] ?? null,
+            'version' => $version,
             'source' => $validated['source'],
             'is_published' => (bool) ($validated['is_published'] ?? true),
             'published_at' => $validated['published_at'] ?? now(),
+            'meta' => $meta,
             'created_by_super_admin_id' => auth('super_admin')->id(),
         ]);
 

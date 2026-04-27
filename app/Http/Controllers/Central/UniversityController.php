@@ -101,6 +101,9 @@ class UniversityController extends Controller
             true,
         );
 
+        $university->loadMissing(['domains', 'subscription']);
+        $this->subscriptionNotificationService->send($university, 'plan_started');
+
         return redirect()
             ->route('central.universities.index')
             ->with('status', 'School created and activated. Tenant admin invite sent.');

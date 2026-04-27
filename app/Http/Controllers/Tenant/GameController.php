@@ -3,16 +3,16 @@
 namespace App\Http\Controllers\Tenant;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Tenant\StoreGameResultRequest;
 use App\Http\Requests\Tenant\StoreGameRequest;
+use App\Http\Requests\Tenant\StoreGameResultRequest;
 use App\Http\Requests\Tenant\UpdateGameRequest;
 use App\Models\Game;
 use App\Models\GameResultAudit;
 use App\Models\Sport;
 use App\Models\Team;
 use App\Models\Venue;
-use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class GameController extends Controller

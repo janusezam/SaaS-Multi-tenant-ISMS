@@ -9,10 +9,12 @@ use App\Models\University;
 use App\Models\User;
 use App\Services\SelfUpdateService;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
 use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
 use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
 
@@ -205,6 +207,103 @@ test('tenant can save brand colors without applying them', function () {
         ->assertSee('data-app-context="tenant"', false)
         ->assertDontSee('--isms-brand-primary:', false)
         ->assertDontSee('--isms-brand-secondary:', false);
+});
+
+test('tenant admin can customize login branding content and logo', function () {
+    $tenant = initializeTenantSettingsContext();
+
+    Storage::fake('public');
+
+    $user = User::query()->create([
+        'name' => 'Branding Admin',
+        'email' => 'tenant-branding-admin@example.test',
+        'role' => 'university_admin',
+        'password' => 'password',
+        'email_verified_at' => now(),
+    ]);
+
+    $this->actingAs($user)
+        ->patch(route('tenant.settings.update'), [
+            'brand_primary_color' => '#22c55e',
+            'brand_secondary_color' => '#0ea5e9',
+            'theme_preference' => 'system',
+            'use_custom_theme' => true,
+            'branding_logo' => UploadedFile::fake()->image('tenant-branding.png', 220, 220),
+            'login_brand_badge' => 'BUKSU Sports Cloud',
+            'login_brand_heading' => 'Welcome to the BUKSU intramurals platform',
+            'login_brand_description' => 'Coordinate leagues, schedules, and score updates from one tenant workspace.',
+            'login_brand_feature_1' => 'One workspace for all sports units',
+            'login_brand_feature_2' => 'Live fixtures and official results',
+            'login_brand_feature_3' => 'Operational analytics for admins',
+        ])
+        ->assertRedirect(route('tenant.settings.edit'));
+
+    $savedSettings = TenantSetting::query()->firstWhere('tenant_id', $tenant->id);
+
+    expect($savedSettings)->not()->toBeNull();
+    expect((string) $savedSettings?->login_brand_badge)->toBe('BUKSU Sports Cloud');
+    expect((string) $savedSettings?->login_brand_heading)->toBe('Welcome to the BUKSU intramurals platform');
+    expect((string) $savedSettings?->login_brand_feature_3)->toBe('Operational analytics for admins');
+    expect((string) $savedSettings?->branding_logo_path)->not()->toBe('');
+
+    Storage::disk('public')->assertExists((string) $savedSettings?->branding_logo_path);
+
+    $this->post(route('tenant.logout'));
+
+    $this->get(route('tenant.login'))
+        ->assertOk()
+        ->assertSee('BUKSU Sports Cloud')
+        ->assertSee('Welcome to the BUKSU intramurals platform')
+        ->assertSee('One workspace for all sports units')
+        ->assertSee('Operational analytics for admins');
+});
+
+test('tenant branding logo is used in tenant sidebar shell', function () {
+    $tenant = initializeTenantSettingsContext();
+
+    TenantSetting::query()->create([
+        'tenant_id' => $tenant->id,
+        'brand_primary_color' => '#06b6d4',
+        'brand_secondary_color' => '#6366f1',
+        'theme_preference' => 'system',
+        'use_custom_theme' => true,
+        'branding_logo_path' => 'tenants/tenant-settings-test/branding/logo-mark.png',
+    ]);
+
+    $user = User::query()->create([
+        'name' => 'Sidebar Branding Admin',
+        'email' => 'tenant-sidebar-branding-admin@example.test',
+        'role' => 'university_admin',
+        'password' => 'password',
+        'email_verified_at' => now(),
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('tenant.settings.edit'))
+        ->assertOk()
+        ->assertSee('tenants/tenant-settings-test/branding/logo-mark.png');
+});
+
+test('non admin tenant roles cannot update branding fields', function () {
+    initializeTenantSettingsContext();
+
+    $user = User::query()->create([
+        'name' => 'Coach Branding Guard',
+        'email' => 'tenant-branding-guard@example.test',
+        'role' => 'team_coach',
+        'password' => 'password',
+        'email_verified_at' => now(),
+    ]);
+
+    $this->actingAs($user)
+        ->patch(route('tenant.settings.update'), [
+            'brand_primary_color' => '#22c55e',
+            'brand_secondary_color' => '#0ea5e9',
+            'theme_preference' => 'dark',
+            'use_custom_theme' => true,
+            'login_brand_heading' => 'Coach should not set this',
+        ])
+        ->assertSessionHasErrors('login_brand_heading');
 });
 
 test('tenant can update profile details', function () {

@@ -4,6 +4,7 @@ use App\Http\Middleware\EnsureTenantSubscriptionIsActive;
 use App\Models\BracketMatch;
 use App\Models\Game;
 use App\Models\GameResultAudit;
+use App\Models\Plan;
 use App\Models\Sport;
 use App\Models\Subscription;
 use App\Models\Team;
@@ -14,12 +15,49 @@ use Illuminate\Support\Facades\Schema;
 use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
 use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
 
+function ensurePlanFeatureFlags(): void
+{
+    Plan::query()->updateOrCreate([
+        'code' => 'basic',
+    ], [
+        'name' => 'Basic',
+        'monthly_price' => 19,
+        'yearly_price' => 190,
+        'yearly_discount_percent' => 16.67,
+        'is_active' => true,
+        'sort_order' => 10,
+        'feature_flags' => [
+            'analytics' => false,
+            'bracket' => false,
+            'exports' => false,
+        ],
+    ]);
+
+    Plan::query()->updateOrCreate([
+        'code' => 'pro',
+    ], [
+        'name' => 'Pro',
+        'monthly_price' => 49,
+        'yearly_price' => 490,
+        'yearly_discount_percent' => 16.67,
+        'is_active' => true,
+        'sort_order' => 20,
+        'feature_flags' => [
+            'analytics' => true,
+            'bracket' => true,
+            'exports' => true,
+        ],
+    ]);
+}
+
 beforeEach(function () {
     $this->withoutMiddleware([
         InitializeTenancyByDomain::class,
         PreventAccessFromCentralDomains::class,
         EnsureTenantSubscriptionIsActive::class,
     ]);
+
+    ensurePlanFeatureFlags();
 });
 
 afterEach(function () {
@@ -27,7 +65,7 @@ afterEach(function () {
         tenancy()->end();
     }
 
-    foreach (['pro-tenant', 'basic-tenant', 'basic-upgrade-prompt', 'basic-nav-pro-links', 'pro-from-subscription', 'pro-exports', 'pro-student'] as $tenantId) {
+    foreach (['pro-tenant', 'basic-tenant', 'basic-upgrade-prompt', 'basic-nav-pro-links', 'pro-from-subscription', 'pro-exports', 'pro-student', 'pro-no-exports'] as $tenantId) {
         $databasePath = database_path((string) config('tenancy.database.prefix', 'tenant_').$tenantId.(string) config('tenancy.database.suffix', ''));
 
         if (is_file($databasePath)) {
@@ -201,7 +239,7 @@ test('basic plan tenant can open pro teaser pages with lock overlay', function (
 
 test('basic plan keeps write pro actions gated by middleware', function () {
     $user = User::factory()->create([
-        'role' => 'sports_facilitator',
+        'role' => 'university_admin',
     ]);
 
     $tenant = University::withoutEvents(fn () => University::query()->create([
@@ -302,7 +340,7 @@ test('pro navigation visibility uses effective current plan from subscription', 
 
 test('pro exports endpoints are available for pro tenant', function () {
     $user = User::factory()->create([
-        'role' => 'sports_facilitator',
+        'role' => 'university_admin',
     ]);
 
     $tenant = University::withoutEvents(fn () => University::query()->create([
@@ -375,6 +413,43 @@ test('pro exports endpoints are available for pro tenant', function () {
     $auditsPdf->assertOk();
 });
 
+test('export endpoints are blocked when exports feature flag is disabled', function () {
+    $user = User::factory()->create([
+        'role' => 'university_admin',
+    ]);
+
+    Plan::query()->updateOrCreate([
+        'code' => 'pro-no-exports',
+    ], [
+        'name' => 'Pro No Exports',
+        'monthly_price' => 49,
+        'yearly_price' => 490,
+        'yearly_discount_percent' => 16.67,
+        'is_active' => true,
+        'sort_order' => 30,
+        'feature_flags' => [
+            'analytics' => true,
+            'bracket' => true,
+            'exports' => false,
+        ],
+    ]);
+
+    $tenant = University::withoutEvents(fn () => University::query()->create([
+        'id' => 'pro-no-exports',
+        'name' => 'Pro No Exports University',
+        'plan' => 'pro-no-exports',
+        'status' => 'active',
+        'expires_at' => now()->addDays(15),
+    ]));
+
+    initializeTenantWithSchema($tenant);
+
+    $response = $this->actingAs($user)->get(route('tenant.pro.exports.standings.csv'));
+
+    $response->assertRedirect(route('tenant.dashboard'));
+    $response->assertSessionHas('upgrade_notice');
+});
+
 test('student player cannot access pro feature routes even on pro plan', function () {
     $user = User::factory()->create([
         'role' => 'student_player',
@@ -397,7 +472,7 @@ test('student player cannot access pro feature routes even on pro plan', functio
 
 test('pro tenant can persist bracket and advance winner to next round', function () {
     $user = User::factory()->create([
-        'role' => 'sports_facilitator',
+        'role' => 'university_admin',
     ]);
 
     $tenant = University::withoutEvents(fn () => University::query()->create([

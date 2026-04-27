@@ -17,7 +17,7 @@ test('active tenant can continue request flow', function () {
     $request = Request::create('/dashboard', 'GET');
     $request->attributes->set('tenant', $tenant);
 
-    $response = (new EnsureTenantSubscriptionIsActive())->handle(
+    $response = (new EnsureTenantSubscriptionIsActive)->handle(
         $request,
         fn () => response('ok', 200)
     );
@@ -38,7 +38,7 @@ test('suspended tenant is locked', function () {
     $request->attributes->set('tenant', $tenant);
 
     try {
-        (new EnsureTenantSubscriptionIsActive())->handle(
+        (new EnsureTenantSubscriptionIsActive)->handle(
             $request,
             fn () => response('ok', 200)
         );
@@ -62,7 +62,7 @@ test('expired tenant is locked', function () {
     $request->attributes->set('tenant', $tenant);
 
     try {
-        (new EnsureTenantSubscriptionIsActive())->handle(
+        (new EnsureTenantSubscriptionIsActive)->handle(
             $request,
             fn () => response('ok', 200)
         );

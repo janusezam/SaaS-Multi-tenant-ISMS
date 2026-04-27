@@ -49,12 +49,14 @@ class SendSubscriptionReminders extends Command
             if ($daysUntilExpiry <= 14 && $daysUntilExpiry > 3) {
                 $key = sprintf('%s:expiring_14_days:%s', $university->id, $expiresAt->toDateString());
                 $sent += $notificationService->send($university, 'expiring_14_days', [], $key) ? 1 : 0;
+
                 continue;
             }
 
             if ($daysUntilExpiry <= 3 && $daysUntilExpiry > 0) {
                 $key = sprintf('%s:expiring_3_days:%s', $university->id, $expiresAt->toDateString());
                 $sent += $notificationService->send($university, 'expiring_3_days', [], $key) ? 1 : 0;
+
                 continue;
             }
 

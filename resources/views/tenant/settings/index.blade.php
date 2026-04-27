@@ -2,6 +2,7 @@
     @php
         $permissionMatrix = app(\App\Support\TenantPermissionMatrix::class);
         $settingsUser = Auth::user();
+        $isUniversityAdmin = $settingsUser?->hasTenantRole('university_admin') === true;
         $canManageCustomization = $permissionMatrix->allows($settingsUser, 'common.settings.customization.manage');
         $canViewPrivacy = $permissionMatrix->allows($settingsUser, 'common.settings.privacy.view');
         $canManageSupport = $permissionMatrix->allows($settingsUser, 'common.settings.support.manage');
@@ -55,65 +56,177 @@
 
         @if ($canManageCustomization)
             <section x-show="tab === 'customization'" x-cloak class="isms-surface rounded-2xl p-6">
-            <h3 class="text-lg font-semibold text-slate-100">Theme and Brand Colors</h3>
-            <p class="mt-1 text-sm text-slate-300">Control your tenant visual identity with primary and secondary colors plus default theme mode.</p>
+                <div class="rounded-2xl border border-white/10 bg-slate-950/40 p-5">
+                    <h3 class="text-lg font-semibold text-slate-100">Theme and Brand Colors</h3>
+                    <p class="mt-1 text-sm text-slate-300">Control your tenant visual identity with primary and secondary colors plus default theme mode.</p>
 
-            <form method="POST" action="{{ route('tenant.settings.update') }}" class="mt-6 grid gap-5 lg:grid-cols-3">
-                @csrf
-                @method('PATCH')
+                    <form method="POST" action="{{ route('tenant.settings.update') }}" class="mt-6 grid gap-5 lg:grid-cols-3">
+                        @csrf
+                        @method('PATCH')
+                        <input type="hidden" name="settings_section" value="theme_brand">
 
-                <div class="lg:col-span-3">
-                    <label class="flex items-start gap-3 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-200">
-                        <input type="hidden" name="use_custom_theme" value="0">
-                        <input type="checkbox" name="use_custom_theme" value="1" class="mt-1 h-4 w-4 rounded border-white/20 bg-transparent text-cyan-500 focus:ring-cyan-400" @checked((bool) old('use_custom_theme', $customization['use_custom_theme']))>
-                        <span>
-                            <span class="font-semibold text-slate-100">Apply Custom Theme</span>
-                            <span class="mt-1 block text-xs text-slate-300">When off, your tenant stays on the default ISMS light/dark colors (your chosen colors are saved but not applied). When on, the whole tenant UI uses the saved brand palette (backgrounds, cards, sidebar/header accents).</span>
-                        </span>
-                    </label>
-                    @error('use_custom_theme')
-                        <p class="mt-1 text-xs text-rose-300">{{ $message }}</p>
-                    @enderror
+                        <div class="lg:col-span-3">
+                            <label class="flex items-start gap-3 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-200">
+                                <input type="hidden" name="use_custom_theme" value="0">
+                                <input type="checkbox" name="use_custom_theme" value="1" class="mt-1 h-4 w-4 rounded border-white/20 bg-transparent text-cyan-500 focus:ring-cyan-400" @checked((bool) old('use_custom_theme', $customization['use_custom_theme']))>
+                                <span>
+                                    <span class="font-semibold text-slate-100">Apply Custom Theme</span>
+                                    <span class="mt-1 block text-xs text-slate-300">When off, your tenant stays on the default ISMS light/dark colors (your chosen colors are saved but not applied). When on, the whole tenant UI uses the saved brand palette (backgrounds, cards, sidebar/header accents).</span>
+                                </span>
+                            </label>
+                            @error('use_custom_theme')
+                                <p class="mt-1 text-xs text-rose-300">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div>
+                            <label for="brand_primary_color" class="text-sm font-medium text-slate-200">Primary Color</label>
+                            <div class="mt-2 flex items-center gap-3">
+                                <input id="brand_primary_color" type="color" value="{{ old('brand_primary_color', $customization['brand_primary_color']) }}" oninput="this.nextElementSibling.value=this.value" class="h-10 w-14 rounded border border-white/20 bg-transparent p-1">
+                                <input type="text" name="brand_primary_color" value="{{ old('brand_primary_color', $customization['brand_primary_color']) }}" class="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-slate-100" placeholder="#06b6d4">
+                            </div>
+                            @error('brand_primary_color')
+                                <p class="mt-1 text-xs text-rose-300">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div>
+                            <label for="brand_secondary_color" class="text-sm font-medium text-slate-200">Secondary Color</label>
+                            <div class="mt-2 flex items-center gap-3">
+                                <input id="brand_secondary_color" type="color" value="{{ old('brand_secondary_color', $customization['brand_secondary_color']) }}" oninput="this.nextElementSibling.value=this.value" class="h-10 w-14 rounded border border-white/20 bg-transparent p-1">
+                                <input type="text" name="brand_secondary_color" value="{{ old('brand_secondary_color', $customization['brand_secondary_color']) }}" class="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-slate-100" placeholder="#6366f1">
+                            </div>
+                            @error('brand_secondary_color')
+                                <p class="mt-1 text-xs text-rose-300">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div>
+                            <label for="theme_preference" class="text-sm font-medium text-slate-200">Default Theme Mode</label>
+                            <select id="theme_preference" name="theme_preference" class="mt-2 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 dark:border-white/10 dark:bg-white/5 dark:text-slate-100">
+                                <option value="system" @selected(old('theme_preference', $customization['theme_preference']) === 'system')>System</option>
+                                <option value="light" @selected(old('theme_preference', $customization['theme_preference']) === 'light')>Light</option>
+                                <option value="dark" @selected(old('theme_preference', $customization['theme_preference']) === 'dark')>Dark</option>
+                            </select>
+                            @error('theme_preference')
+                                <p class="mt-1 text-xs text-rose-300">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div class="lg:col-span-3 flex justify-end">
+                            <button type="submit" class="rounded-lg border border-cyan-300/30 bg-cyan-500/20 px-4 py-2 text-sm font-semibold text-cyan-100 hover:bg-cyan-500/30">Save Theme Settings</button>
+                        </div>
+                    </form>
                 </div>
 
-                <div>
-                    <label for="brand_primary_color" class="text-sm font-medium text-slate-200">Primary Color</label>
-                    <div class="mt-2 flex items-center gap-3">
-                        <input id="brand_primary_color" type="color" value="{{ old('brand_primary_color', $customization['brand_primary_color']) }}" oninput="this.nextElementSibling.value=this.value" class="h-10 w-14 rounded border border-white/20 bg-transparent p-1">
-                        <input type="text" name="brand_primary_color" value="{{ old('brand_primary_color', $customization['brand_primary_color']) }}" class="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-slate-100" placeholder="#06b6d4">
+                @if ($isUniversityAdmin)
+                    @php
+                        $logoPath = (string) ($customization['branding_logo_path'] ?? '');
+                        $logoPreviewUrl = null;
+
+                        if ($logoPath !== '') {
+                            if (str_starts_with($logoPath, 'http://') || str_starts_with($logoPath, 'https://')) {
+                                $logoPreviewUrl = $logoPath;
+                            } else {
+                                $normalizedPath = ltrim(str_replace('\\', '/', $logoPath), '/');
+                                $normalizedPath = preg_replace('#^(public/)+#', '', $normalizedPath) ?? $normalizedPath;
+                                $normalizedPath = preg_replace('#^(storage/)+#', '', $normalizedPath) ?? $normalizedPath;
+                                $logoPreviewUrl = tenant_asset($normalizedPath);
+                            }
+                        }
+                    @endphp
+
+                    <div class="mt-6 rounded-2xl border border-white/10 bg-slate-950/40 p-5">
+                        <h4 class="text-base font-semibold text-slate-100">Branding</h4>
+                        <p class="mt-1 text-sm text-slate-300">Customize logo and login messaging shown on your tenant login page and tenant sidebar.</p>
+
+                        <form method="POST" action="{{ route('tenant.settings.update') }}" enctype="multipart/form-data" class="mt-6 grid gap-5 lg:grid-cols-3">
+                            @csrf
+                            @method('PATCH')
+                            <input type="hidden" name="settings_section" value="branding">
+                            <input type="hidden" name="brand_primary_color" value="{{ $customization['brand_primary_color'] }}">
+                            <input type="hidden" name="brand_secondary_color" value="{{ $customization['brand_secondary_color'] }}">
+                            <input type="hidden" name="theme_preference" value="{{ $customization['theme_preference'] }}">
+
+                            <div class="lg:col-span-3">
+                                <label for="branding_logo" class="text-sm font-medium text-slate-200">Tenant Branding Logo</label>
+                                <input id="branding_logo" name="branding_logo" type="file" accept="image/*" class="mt-2 w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-slate-100 file:mr-3 file:rounded-md file:border-0 file:bg-cyan-500/20 file:px-3 file:py-1.5 file:text-cyan-100">
+
+                                @if ($logoPreviewUrl !== null)
+                                    <div class="mt-3 flex items-center gap-3 rounded-xl border border-white/10 bg-slate-950/40 p-3">
+                                        <img src="{{ $logoPreviewUrl }}" alt="Tenant branding logo" class="h-12 w-auto">
+                                        <label class="inline-flex items-center gap-2 text-xs text-slate-300">
+                                            <input type="hidden" name="remove_branding_logo" value="0">
+                                            <input type="checkbox" name="remove_branding_logo" value="1" class="h-4 w-4 rounded border-white/20 bg-transparent text-cyan-500 focus:ring-cyan-400" @checked((bool) old('remove_branding_logo', false))>
+                                            Remove current branding logo
+                                        </label>
+                                    </div>
+                                @else
+                                    <input type="hidden" name="remove_branding_logo" value="0">
+                                @endif
+
+                                @error('branding_logo')
+                                    <p class="mt-1 text-xs text-rose-300">{{ $message }}</p>
+                                @enderror
+                                @error('remove_branding_logo')
+                                    <p class="mt-1 text-xs text-rose-300">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <div>
+                                <label for="login_brand_badge" class="text-sm font-medium text-slate-200">Badge Text</label>
+                                <input id="login_brand_badge" name="login_brand_badge" type="text" value="{{ old('login_brand_badge', $customization['login_brand_badge']) }}" class="mt-2 w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-slate-100" placeholder="Your School Operations Hub">
+                                @error('login_brand_badge')
+                                    <p class="mt-1 text-xs text-rose-300">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <div class="lg:col-span-2">
+                                <label for="login_brand_heading" class="text-sm font-medium text-slate-200">Heading</label>
+                                <input id="login_brand_heading" name="login_brand_heading" type="text" value="{{ old('login_brand_heading', $customization['login_brand_heading']) }}" class="mt-2 w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-slate-100" placeholder="Sign in to your intramurals workspace">
+                                @error('login_brand_heading')
+                                    <p class="mt-1 text-xs text-rose-300">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <div class="lg:col-span-3">
+                                <label for="login_brand_description" class="text-sm font-medium text-slate-200">Description</label>
+                                <textarea id="login_brand_description" name="login_brand_description" rows="3" class="mt-2 w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-slate-100" placeholder="Describe your tenant workspace.">{{ old('login_brand_description', $customization['login_brand_description']) }}</textarea>
+                                @error('login_brand_description')
+                                    <p class="mt-1 text-xs text-rose-300">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <div>
+                                <label for="login_brand_feature_1" class="text-sm font-medium text-slate-200">Feature Bullet 1</label>
+                                <input id="login_brand_feature_1" name="login_brand_feature_1" type="text" value="{{ old('login_brand_feature_1', $customization['login_brand_feature_1']) }}" class="mt-2 w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-slate-100" placeholder="Role-based access for admins, facilitators, and staff">
+                                @error('login_brand_feature_1')
+                                    <p class="mt-1 text-xs text-rose-300">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <div>
+                                <label for="login_brand_feature_2" class="text-sm font-medium text-slate-200">Feature Bullet 2</label>
+                                <input id="login_brand_feature_2" name="login_brand_feature_2" type="text" value="{{ old('login_brand_feature_2', $customization['login_brand_feature_2']) }}" class="mt-2 w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-slate-100" placeholder="Real-time scheduling and score tracking">
+                                @error('login_brand_feature_2')
+                                    <p class="mt-1 text-xs text-rose-300">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <div>
+                                <label for="login_brand_feature_3" class="text-sm font-medium text-slate-200">Feature Bullet 3</label>
+                                <input id="login_brand_feature_3" name="login_brand_feature_3" type="text" value="{{ old('login_brand_feature_3', $customization['login_brand_feature_3']) }}" class="mt-2 w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-slate-100" placeholder="Plan-gated analytics, brackets, and exports">
+                                @error('login_brand_feature_3')
+                                    <p class="mt-1 text-xs text-rose-300">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <div class="lg:col-span-3 flex justify-end">
+                                <button type="submit" class="rounded-lg border border-cyan-300/30 bg-cyan-500/20 px-4 py-2 text-sm font-semibold text-cyan-100 hover:bg-cyan-500/30">Save Branding Settings</button>
+                            </div>
+                        </form>
                     </div>
-                    @error('brand_primary_color')
-                        <p class="mt-1 text-xs text-rose-300">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                <div>
-                    <label for="brand_secondary_color" class="text-sm font-medium text-slate-200">Secondary Color</label>
-                    <div class="mt-2 flex items-center gap-3">
-                        <input id="brand_secondary_color" type="color" value="{{ old('brand_secondary_color', $customization['brand_secondary_color']) }}" oninput="this.nextElementSibling.value=this.value" class="h-10 w-14 rounded border border-white/20 bg-transparent p-1">
-                        <input type="text" name="brand_secondary_color" value="{{ old('brand_secondary_color', $customization['brand_secondary_color']) }}" class="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-slate-100" placeholder="#6366f1">
-                    </div>
-                    @error('brand_secondary_color')
-                        <p class="mt-1 text-xs text-rose-300">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                <div>
-                    <label for="theme_preference" class="text-sm font-medium text-slate-200">Default Theme Mode</label>
-                    <select id="theme_preference" name="theme_preference" class="mt-2 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 dark:border-white/10 dark:bg-white/5 dark:text-slate-100">
-                        <option value="system" @selected(old('theme_preference', $customization['theme_preference']) === 'system')>System</option>
-                        <option value="light" @selected(old('theme_preference', $customization['theme_preference']) === 'light')>Light</option>
-                        <option value="dark" @selected(old('theme_preference', $customization['theme_preference']) === 'dark')>Dark</option>
-                    </select>
-                    @error('theme_preference')
-                        <p class="mt-1 text-xs text-rose-300">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                <div class="lg:col-span-3 flex justify-end">
-                    <button type="submit" class="rounded-lg border border-cyan-300/30 bg-cyan-500/20 px-4 py-2 text-sm font-semibold text-cyan-100 hover:bg-cyan-500/30">Save Settings</button>
-                </div>
-            </form>
+                @endif
             </section>
         @endif
 

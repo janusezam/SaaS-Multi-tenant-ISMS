@@ -60,11 +60,17 @@
             $tenantSecondaryOn = '#f8fafc';
             $tenantPrimaryShadow = 'rgba(6, 182, 212, 0.26)';
             $tenantSecondaryShadow = 'rgba(99, 102, 241, 0.26)';
+            $tenantFaviconUrl = asset('images/isms-logo.png');
 
             if (tenant() !== null) {
                 $tenantSettings = \App\Models\TenantSetting::query()->firstWhere('tenant_id', tenant('id'));
                 $tenantThemePreference = (string) ($tenantSettings?->theme_preference ?? 'system');
                 $tenantUseCustomTheme = (bool) ($tenantSettings?->use_custom_theme ?? false);
+                $resolvedTenantLogoUrl = $mediaUrl((string) ($tenantSettings?->branding_logo_path ?? ''));
+
+                if ($resolvedTenantLogoUrl !== null) {
+                    $tenantFaviconUrl = $resolvedTenantLogoUrl;
+                }
 
                 if ($tenantUseCustomTheme) {
                     $tenantPrimaryColor = preg_match('/^#[0-9A-Fa-f]{6}$/', (string) ($tenantSettings?->brand_primary_color ?? '')) === 1
@@ -91,7 +97,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        <link rel="icon" type="image/png" href="{{ asset('images/isms-logo.png') }}">
+        <link rel="icon" type="image/png" href="{{ $tenantFaviconUrl }}">
 
         <title>{{ tenant() !== null ? config('app.name', 'ISMS').' Tenant' : (request()->routeIs('central.*') ? config('app.name', 'ISMS').' Central' : config('app.name', 'ISMS')) }}</title>
 

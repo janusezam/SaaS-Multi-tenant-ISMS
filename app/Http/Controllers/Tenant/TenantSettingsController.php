@@ -13,6 +13,7 @@ use App\Services\GitHubLatestReleaseService;
 use App\Services\SelfUpdateService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
 class TenantSettingsController extends Controller
@@ -54,6 +55,13 @@ class TenantSettingsController extends Controller
                 'brand_secondary_color' => (string) ($setting?->brand_secondary_color ?? '#6366f1'),
                 'theme_preference' => (string) ($setting?->theme_preference ?? 'system'),
                 'use_custom_theme' => (bool) ($setting?->use_custom_theme ?? false),
+                'branding_logo_path' => $setting?->branding_logo_path,
+                'login_brand_badge' => (string) ($setting?->login_brand_badge ?? 'Your School Operations Hub'),
+                'login_brand_heading' => (string) ($setting?->login_brand_heading ?? 'Sign in to your intramurals workspace'),
+                'login_brand_description' => (string) ($setting?->login_brand_description ?? 'Access events, teams, fixtures, game results, and standings in one SaaS platform built for university sports programs.'),
+                'login_brand_feature_1' => (string) ($setting?->login_brand_feature_1 ?? 'Role-based access for admins, facilitators, and staff'),
+                'login_brand_feature_2' => (string) ($setting?->login_brand_feature_2 ?? 'Real-time scheduling and score tracking'),
+                'login_brand_feature_3' => (string) ($setting?->login_brand_feature_3 ?? 'Plan-gated analytics, brackets, and exports'),
             ],
             'privacyNotice' => $privacyNotice,
             'privacyNoticeSummary' => (string) ($privacyNotice['summary'] ?? ''),
@@ -115,19 +123,71 @@ class TenantSettingsController extends Controller
     public function update(UpdateTenantSettingsRequest $request): RedirectResponse
     {
         $validated = $request->validated();
+        $tenantId = (string) tenant('id');
+        $setting = TenantSetting::query()->firstWhere('tenant_id', $tenantId);
+        $isUniversityAdmin = $request->user()?->hasTenantRole('university_admin') === true;
+        $settingsSection = (string) ($validated['settings_section'] ?? 'all');
+        $updatingTheme = in_array($settingsSection, ['theme_brand', 'all'], true);
+        $updatingBranding = in_array($settingsSection, ['branding', 'all'], true);
+
+        $attributes = [];
+
+        if ($updatingTheme) {
+            $attributes['brand_primary_color'] = $validated['brand_primary_color'];
+            $attributes['brand_secondary_color'] = $validated['brand_secondary_color'];
+            $attributes['theme_preference'] = $validated['theme_preference'];
+            $attributes['use_custom_theme'] = (bool) ($validated['use_custom_theme'] ?? false);
+        }
+
+        if ($updatingBranding && $isUniversityAdmin) {
+            $attributes['login_brand_badge'] = $this->nullableTrim($validated['login_brand_badge'] ?? null);
+            $attributes['login_brand_heading'] = $this->nullableTrim($validated['login_brand_heading'] ?? null);
+            $attributes['login_brand_description'] = $this->nullableTrim($validated['login_brand_description'] ?? null);
+            $attributes['login_brand_feature_1'] = $this->nullableTrim($validated['login_brand_feature_1'] ?? null);
+            $attributes['login_brand_feature_2'] = $this->nullableTrim($validated['login_brand_feature_2'] ?? null);
+            $attributes['login_brand_feature_3'] = $this->nullableTrim($validated['login_brand_feature_3'] ?? null);
+
+            if (($validated['remove_branding_logo'] ?? false) && $setting?->branding_logo_path !== null) {
+                Storage::disk('public')->delete((string) $setting->branding_logo_path);
+                $attributes['branding_logo_path'] = null;
+            }
+
+            if ($request->hasFile('branding_logo')) {
+                if ($setting?->branding_logo_path !== null) {
+                    Storage::disk('public')->delete((string) $setting->branding_logo_path);
+                }
+
+                $attributes['branding_logo_path'] = $request->file('branding_logo')->store(
+                    'tenants/'.$tenantId.'/branding',
+                    'public'
+                );
+            }
+        }
+
+        if ($attributes === []) {
+            return redirect()
+                ->route('tenant.settings.edit')
+                ->with('status', 'No settings changes submitted.');
+        }
 
         TenantSetting::query()->updateOrCreate([
-            'tenant_id' => (string) tenant('id'),
-        ], [
-            'brand_primary_color' => $validated['brand_primary_color'],
-            'brand_secondary_color' => $validated['brand_secondary_color'],
-            'theme_preference' => $validated['theme_preference'],
-            'use_custom_theme' => (bool) ($validated['use_custom_theme'] ?? false),
-        ]);
+            'tenant_id' => $tenantId,
+        ], $attributes);
 
         return redirect()
             ->route('tenant.settings.edit')
             ->with('status', 'Tenant settings updated successfully.');
+    }
+
+    private function nullableTrim(mixed $value): ?string
+    {
+        if (! is_string($value)) {
+            return null;
+        }
+
+        $normalized = trim($value);
+
+        return $normalized === '' ? null : $normalized;
     }
 
     public function storeSupport(StoreTenantSupportTicketRequest $request): RedirectResponse

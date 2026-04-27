@@ -4,6 +4,7 @@ namespace App\Http\Requests\Central;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Validator;
 
 class StoreSystemUpdateRequest extends FormRequest
 {
@@ -30,5 +31,24 @@ class StoreSystemUpdateRequest extends FormRequest
             'is_published' => ['nullable', 'boolean'],
             'published_at' => ['nullable', 'date'],
         ];
+    }
+
+    public function withValidator(Validator $validator): void
+    {
+        $validator->after(function (Validator $validator): void {
+            $source = (string) $this->input('source', 'manual');
+
+            if ($source !== 'github') {
+                return;
+            }
+
+            if ((string) config('services.github.owner') === '' || (string) config('services.github.repo') === '') {
+                $validator->errors()->add('source', 'GitHub repo is not configured. Set GITHUB_OWNER and GITHUB_REPO.');
+            }
+
+            if ((string) config('services.github.token') === '') {
+                $validator->errors()->add('source', 'GitHub token is not configured. Set GITHUB_TOKEN.');
+            }
+        });
     }
 }

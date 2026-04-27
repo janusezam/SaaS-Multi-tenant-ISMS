@@ -33,6 +33,7 @@ class StorePlanRequest extends FormRequest
             'feature_flags' => [
                 'analytics' => filter_var($featureFlags['analytics'] ?? false, FILTER_VALIDATE_BOOLEAN),
                 'bracket' => filter_var($featureFlags['bracket'] ?? false, FILTER_VALIDATE_BOOLEAN),
+                'exports' => filter_var($featureFlags['exports'] ?? false, FILTER_VALIDATE_BOOLEAN),
             ],
         ]);
     }
@@ -59,6 +60,7 @@ class StorePlanRequest extends FormRequest
             'feature_flags' => ['nullable', 'array'],
             'feature_flags.analytics' => ['nullable', 'boolean'],
             'feature_flags.bracket' => ['nullable', 'boolean'],
+            'feature_flags.exports' => ['nullable', 'boolean'],
             'is_active' => ['required', 'boolean'],
             'is_featured' => ['required', 'boolean'],
             'sort_order' => ['nullable', 'integer', 'min:1', 'max:9999'],

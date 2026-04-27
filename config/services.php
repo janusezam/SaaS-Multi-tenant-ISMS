@@ -50,4 +50,12 @@ return [
         'redirect' => env('GOOGLE_REDIRECT_URI'),
     ],
 
+    'github' => [
+        'owner' => env('GITHUB_OWNER', 'janusezam'),
+        'repo' => env('GITHUB_REPO', 'SaaS-Multi-tenant-ISMS'),
+        'token' => env('GITHUB_TOKEN'),
+        'default_branch' => env('GITHUB_DEFAULT_BRANCH', 'main'),
+        'api_version' => env('GITHUB_API_VERSION', '2022-11-28'),
+    ],
+
 ];
