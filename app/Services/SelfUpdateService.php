@@ -52,14 +52,20 @@ class SelfUpdateService
     {
         Cache::store('central')->put('self_update.in_progress', true, now()->addHours(2));
 
-        $process = new Process([
-            PHP_BINARY,
-            base_path('artisan'),
-            'app:self-update',
-        ], base_path());
+        $artisan = base_path('artisan');
+        $php = PHP_BINARY;
+        $base = base_path();
 
-        $process->disableOutput();
-        $process->setTimeout(null);
-        $process->start();
+        if (PHP_OS_FAMILY === 'Windows') {
+            // On Windows, use 'start /B' to fully detach from the Apache process
+            // so the update survives after the HTTP request ends.
+            $cmd = "start /B \"\" \"{$php}\" \"{$artisan}\" app:self-update";
+            pclose(popen($cmd, 'r'));
+        } else {
+            $process = new Process([$php, $artisan, 'app:self-update'], $base);
+            $process->disableOutput();
+            $process->setTimeout(null);
+            $process->start();
+        }
     }
 }
