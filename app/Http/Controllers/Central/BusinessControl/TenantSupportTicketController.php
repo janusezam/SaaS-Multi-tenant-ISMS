@@ -10,6 +10,7 @@ use App\Models\TenantSupportTicket;
 use App\Services\GitHubLatestReleaseService;
 use App\Services\GitHubReleasePublisher;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\View\View;
 
 class TenantSupportTicketController extends Controller
@@ -101,6 +102,9 @@ class TenantSupportTicketController extends Controller
             ],
             'created_by_super_admin_id' => auth('super_admin')->id(),
         ]);
+
+        // Bust the global cache so all tenants immediately see the new release
+        Cache::store('central')->forget('github.latest_release');
 
         return redirect()
             ->route('central.business-control.support-updates.index')
