@@ -16,6 +16,10 @@ class TenantSupportTicketController extends Controller
 {
     public function index(): View
     {
+        $latestRelease = app(GitHubLatestReleaseService::class)->latest();
+        $latestTag = (string) ($latestRelease['tag'] ?? '');
+        $suggestedUpdateVersion = app(GitHubReleasePublisher::class)->suggestNextTag($latestTag !== '' ? $latestTag : null);
+
         return view('central.business-control.support-updates.index', [
             'openTickets' => TenantSupportTicket::query()
                 ->whereIn('status', ['open', 'in_progress'])
@@ -32,6 +36,7 @@ class TenantSupportTicketController extends Controller
                 ->latest('id')
                 ->limit(30)
                 ->get(),
+            'suggestedUpdateVersion' => $suggestedUpdateVersion,
         ]);
     }
 
