@@ -30,9 +30,9 @@ test('team coach can access coach pages and not facilitator audits page', functi
     $dashboardResponse = $this->actingAs($user)->get(route('tenant.dashboard'));
     $dashboardResponse->assertOk();
     $dashboardResponse->assertSeeText("View your team's schedule, standing, and recent performance at a glance.", false);
-    $dashboardResponse->assertSee('Overview');
-    $dashboardResponse->assertSee('Upcoming');
-    $dashboardResponse->assertSee('Results');
+    $dashboardResponse->assertSee('Upcoming Matches');
+    $dashboardResponse->assertSee('My Team Next Matches');
+    $dashboardResponse->assertSee('Recent Results (Read-Only)');
 
     $coachSchedulesResponse = $this->actingAs($user)->get(route('tenant.coach.schedules'));
     $coachSchedulesResponse->assertOk();
@@ -58,9 +58,9 @@ test('student player can access my schedule and not coach pages', function () {
     $dashboardResponse = $this->actingAs($user)->get(route('tenant.dashboard'));
     $dashboardResponse->assertOk();
     $dashboardResponse->assertSee('View your upcoming games, latest team results, and current standing.');
-    $dashboardResponse->assertSee('Overview');
-    $dashboardResponse->assertSee('Schedule');
-    $dashboardResponse->assertSee('Results');
+    $dashboardResponse->assertSee('Next Match Date');
+    $dashboardResponse->assertSee('My Upcoming Schedule');
+    $dashboardResponse->assertSee('Recent Team Results');
 
     $scheduleResponse = $this->actingAs($user)->get(route('tenant.player.my-schedule'));
     $scheduleResponse->assertOk();

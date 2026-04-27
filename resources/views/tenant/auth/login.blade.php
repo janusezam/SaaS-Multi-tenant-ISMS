@@ -2,6 +2,41 @@
     $recaptchaEnabled = filled(config('services.recaptcha.site_key'));
     $recaptchaVersion = (string) config('services.recaptcha.version', 'v3');
     $googleAuthEnabled = (bool) config('services.google.enabled', false);
+    $tenantSetting = tenant() !== null
+        ? \App\Models\TenantSetting::query()->firstWhere('tenant_id', (string) tenant('id'))
+        : null;
+
+    $brandBadge = trim((string) ($tenantSetting?->login_brand_badge ?? ''));
+    $brandHeading = trim((string) ($tenantSetting?->login_brand_heading ?? ''));
+    $brandDescription = trim((string) ($tenantSetting?->login_brand_description ?? ''));
+    $brandFeature1 = trim((string) ($tenantSetting?->login_brand_feature_1 ?? ''));
+    $brandFeature2 = trim((string) ($tenantSetting?->login_brand_feature_2 ?? ''));
+    $brandFeature3 = trim((string) ($tenantSetting?->login_brand_feature_3 ?? ''));
+
+    $loginBranding = [
+        'badge' => $brandBadge !== '' ? $brandBadge : 'Your School Operations Hub',
+        'heading' => $brandHeading !== '' ? $brandHeading : 'Sign in to your intramurals workspace',
+        'description' => $brandDescription !== '' ? $brandDescription : 'Access events, teams, fixtures, game results, and standings in one SaaS platform built for university sports programs.',
+        'features' => [
+            $brandFeature1 !== '' ? $brandFeature1 : 'Role-based access for admins, facilitators, and staff',
+            $brandFeature2 !== '' ? $brandFeature2 : 'Real-time scheduling and score tracking',
+            $brandFeature3 !== '' ? $brandFeature3 : 'Plan-gated analytics, brackets, and exports',
+        ],
+    ];
+
+    $loginLogoUrl = asset('images/isms-logo.png');
+    $logoPath = trim((string) ($tenantSetting?->branding_logo_path ?? ''));
+
+    if ($logoPath !== '') {
+        if (str_starts_with($logoPath, 'http://') || str_starts_with($logoPath, 'https://')) {
+            $loginLogoUrl = $logoPath;
+        } else {
+            $normalizedPath = ltrim(str_replace('\\', '/', $logoPath), '/');
+            $normalizedPath = preg_replace('#^(public/)+#', '', $normalizedPath) ?? $normalizedPath;
+            $normalizedPath = preg_replace('#^(storage/)+#', '', $normalizedPath) ?? $normalizedPath;
+            $loginLogoUrl = tenant_asset($normalizedPath);
+        }
+    }
 @endphp
 
 <!DOCTYPE html>
@@ -10,7 +45,7 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
-        <link rel="icon" type="image/png" href="{{ asset('images/isms-logo.png') }}">
+        <link rel="icon" type="image/png" href="{{ $loginLogoUrl }}">
         <title>Tenant Login | ISMS</title>
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
@@ -19,20 +54,20 @@
             <div class="mx-auto grid w-full max-w-6xl gap-6 lg:grid-cols-2">
                 <section class="rounded-3xl border border-emerald-300/20 bg-slate-950/60 p-6 shadow-2xl shadow-emerald-950/30 backdrop-blur sm:p-8">
                     <a href="{{ route('public.landing') }}" class="inline-flex items-center gap-3 text-emerald-100">
-                        <img src="{{ asset('images/isms-logo.png') }}" alt="ISMS logo" class="h-16 w-auto">
+                        <img src="{{ $loginLogoUrl }}" alt="ISMS logo" class="h-16 w-auto">
                         <span class="text-xs uppercase tracking-[0.24em]">Tenant Workspace</span>
                     </a>
 
                     <div class="mt-8 space-y-4">
-                        <p class="inline-flex rounded-full border border-emerald-300/30 bg-emerald-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-emerald-100">Your School Operations Hub</p>
-                        <h1 class="text-3xl font-bold leading-tight text-white sm:text-4xl">Sign in to your intramurals workspace</h1>
-                        <p class="max-w-lg text-sm leading-7 text-slate-300">Access events, teams, fixtures, game results, and standings in one SaaS platform built for university sports programs.</p>
+                        <p class="inline-flex rounded-full border border-emerald-300/30 bg-emerald-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-emerald-100">{{ $loginBranding['badge'] }}</p>
+                        <h1 class="text-3xl font-bold leading-tight text-white sm:text-4xl">{{ $loginBranding['heading'] }}</h1>
+                        <p class="max-w-lg text-sm leading-7 text-slate-300">{{ $loginBranding['description'] }}</p>
                     </div>
 
                     <ul class="mt-8 space-y-3 text-sm text-slate-200">
-                        <li class="rounded-xl border border-white/10 bg-white/5 px-4 py-3">Role-based access for admins, facilitators, and staff</li>
-                        <li class="rounded-xl border border-white/10 bg-white/5 px-4 py-3">Real-time scheduling and score tracking</li>
-                        <li class="rounded-xl border border-white/10 bg-white/5 px-4 py-3">Plan-gated analytics, brackets, and exports</li>
+                        @foreach ($loginBranding['features'] as $feature)
+                            <li class="rounded-xl border border-white/10 bg-white/5 px-4 py-3">{{ $feature }}</li>
+                        @endforeach
                     </ul>
                 </section>
 

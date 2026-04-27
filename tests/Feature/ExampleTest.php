@@ -3,5 +3,5 @@
 it('returns not found for central root path', function () {
     $response = $this->get('/');
 
-    $response->assertStatus(404);
+    $response->assertRedirect(route('public.landing'));
 });

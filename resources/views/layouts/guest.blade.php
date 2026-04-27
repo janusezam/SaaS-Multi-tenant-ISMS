@@ -1,11 +1,31 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
     <head>
+        @php
+            $tenantFaviconUrl = asset('images/isms-logo.png');
+
+            if (tenant() !== null) {
+                $tenantSettings = \App\Models\TenantSetting::query()->firstWhere('tenant_id', (string) tenant('id'));
+                $logoPath = trim((string) ($tenantSettings?->branding_logo_path ?? ''));
+
+                if ($logoPath !== '') {
+                    if (str_starts_with($logoPath, 'http://') || str_starts_with($logoPath, 'https://')) {
+                        $tenantFaviconUrl = $logoPath;
+                    } else {
+                        $normalizedPath = ltrim(str_replace('\\', '/', $logoPath), '/');
+                        $normalizedPath = preg_replace('#^(public/)+#', '', $normalizedPath) ?? $normalizedPath;
+                        $normalizedPath = preg_replace('#^(storage/)+#', '', $normalizedPath) ?? $normalizedPath;
+                        $tenantFaviconUrl = tenant_asset($normalizedPath);
+                    }
+                }
+            }
+        @endphp
+
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        <link rel="icon" type="image/png" href="{{ asset('images/isms-logo.png') }}">
+        <link rel="icon" type="image/png" href="{{ $tenantFaviconUrl }}">
 
         <title>{{ config('app.name', 'ISMS') }}</title>
 

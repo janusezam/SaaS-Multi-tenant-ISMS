@@ -5,7 +5,7 @@ use App\Models\User;
 test('login screen can be rendered', function () {
     $response = $this->get('/login');
 
-    $response->assertStatus(200);
+    $response->assertRedirect(route('central.login'));
 });
 
 test('users can authenticate using the login screen', function () {

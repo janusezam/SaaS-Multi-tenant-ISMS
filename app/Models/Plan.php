@@ -78,6 +78,12 @@ class Plan extends Model
             return false;
         }
 
+        if ($featureKey === 'exports' && ! array_key_exists('exports', $flags)) {
+            // Backward compatibility: plans created before the exports flag existed
+            // inherit exports access from bracket.
+            return (bool) ($flags['bracket'] ?? false);
+        }
+
         return (bool) ($flags[$featureKey] ?? false);
     }
 

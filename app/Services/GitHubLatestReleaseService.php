@@ -15,13 +15,23 @@ class GitHubLatestReleaseService
     public function latest(): ?array
     {
         return Cache::remember('github.latest_release', now()->addMinutes(10), function (): ?array {
-            $response = Http::timeout(8)
+            $owner = (string) config('services.github.owner');
+            $repo = (string) config('services.github.repo');
+            $token = (string) config('services.github.token');
+            $apiVersion = (string) config('services.github.api_version', '2022-11-28');
+
+            $request = Http::timeout(8)
                 ->acceptJson()
                 ->withHeaders([
                     'User-Agent' => (string) config('app.name', 'Laravel'),
-                    'X-GitHub-Api-Version' => '2022-11-28',
-                ])
-                ->get('https://api.github.com/repos/janusezam/SaaS-Multi-tenant-ISMS/releases/latest');
+                    'X-GitHub-Api-Version' => $apiVersion,
+                ]);
+
+            if ($token !== '') {
+                $request = $request->withToken($token);
+            }
+
+            $response = $request->get("https://api.github.com/repos/{$owner}/{$repo}/releases/latest");
 
             if (! $response->successful()) {
                 return null;

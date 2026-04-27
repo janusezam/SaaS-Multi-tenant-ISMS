@@ -35,6 +35,7 @@ class PlanController extends Controller
         $payload['feature_flags'] = $payload['feature_flags'] ?? [
             'analytics' => false,
             'bracket' => false,
+            'exports' => false,
         ];
         $payload['yearly_discount_percent'] = $this->computeYearlyDiscountPercent(
             (float) $payload['monthly_price'],
@@ -62,6 +63,7 @@ class PlanController extends Controller
         $payload['feature_flags'] = $payload['feature_flags'] ?? [
             'analytics' => false,
             'bracket' => false,
+            'exports' => false,
         ];
         $payload['yearly_discount_percent'] = $this->computeYearlyDiscountPercent(
             (float) $payload['monthly_price'],

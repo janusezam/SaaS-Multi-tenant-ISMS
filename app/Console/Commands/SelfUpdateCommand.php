@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
+use App\Support\EnvFile;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Cache;
 use Symfony\Component\Process\Process;
@@ -40,6 +41,7 @@ class SelfUpdateCommand extends Command
             Cache::put('self_update.in_progress', true, now()->addHours(2));
 
             $this->runStep(['git', 'fetch', 'origin', 'main'], 'Fetching origin/main...');
+            $this->runStep(['git', 'fetch', '--prune', '--tags', 'origin'], 'Fetching origin tags...');
             $this->runStep(['git', 'checkout', 'main'], 'Checking out main...');
             $this->runStep(['git', 'pull', '--ff-only', 'origin', 'main'], 'Pulling latest main...');
 
@@ -67,6 +69,8 @@ class SelfUpdateCommand extends Command
                 base_path('artisan'),
                 'optimize:clear',
             ], 'Clearing caches...');
+
+            $this->tryUpdateLocalAppVersion();
 
             $this->info('Self-update completed successfully.');
 
@@ -105,5 +109,39 @@ class SelfUpdateCommand extends Command
                 ? trim($process->getErrorOutput())
                 : 'Command failed: '.implode(' ', $command));
         }
+    }
+
+    private function tryUpdateLocalAppVersion(): void
+    {
+        $tag = $this->latestGitTag();
+
+        if ($tag === null) {
+            return;
+        }
+
+        try {
+            app(EnvFile::class)->setKey(app()->environmentFilePath(), 'APP_VERSION', $tag);
+            $this->info("Updated APP_VERSION to {$tag}.");
+        } catch (\Throwable $exception) {
+            $this->warn('Unable to update APP_VERSION automatically: '.$exception->getMessage());
+        }
+    }
+
+    private function latestGitTag(): ?string
+    {
+        $process = new Process(['git', 'describe', '--tags', '--abbrev=0'], base_path());
+        $process->run();
+
+        if (! $process->isSuccessful()) {
+            return null;
+        }
+
+        $tag = trim($process->getOutput());
+
+        if ($tag === '') {
+            return null;
+        }
+
+        return str_starts_with($tag, 'v') ? $tag : 'v'.$tag;
     }
 }

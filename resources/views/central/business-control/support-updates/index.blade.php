@@ -14,6 +14,17 @@
             </div>
         @endif
 
+        @if ($errors->any())
+            <div class="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:border-rose-300/30 dark:bg-rose-500/10 dark:text-rose-100">
+                <p class="font-semibold">Please fix the errors below:</p>
+                <ul class="mt-2 list-disc space-y-1 pl-5">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
         <div class="grid gap-6 xl:grid-cols-3">
             <section class="isms-surface rounded-2xl p-6 xl:col-span-2">
                 <h3 class="text-lg font-semibold text-slate-900 dark:text-slate-100">Open Tenant Reports</h3>
