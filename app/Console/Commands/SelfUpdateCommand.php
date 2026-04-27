@@ -64,7 +64,6 @@ class SelfUpdateCommand extends Command
                 '--no-interaction',
             ], 'Running migrations...');
 
-
             $this->tryUpdateLocalAppVersion();
 
             $this->runStep([
@@ -72,7 +71,6 @@ class SelfUpdateCommand extends Command
                 base_path('artisan'),
                 'optimize:clear',
             ], 'Clearing caches (final)...');
-
 
             $this->info('Self-update completed successfully.');
 

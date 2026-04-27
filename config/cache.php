@@ -48,8 +48,8 @@ return [
         ],
 
         'central' => [
-            'driver' => 'database',
-            'connection' => 'mysql', // Explicitly use central connection
+            'driver' => env('CENTRAL_CACHE_DRIVER', 'database'),
+            'connection' => env('CENTRAL_CACHE_CONNECTION', 'mysql'),
             'table' => 'cache',
         ],
 
