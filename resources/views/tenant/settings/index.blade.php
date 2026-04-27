@@ -384,7 +384,7 @@
                                 <p class="text-xs text-slate-400">{{ $update->published_at?->format('M d, Y h:i A') ?? $update->created_at?->format('M d, Y h:i A') }}</p>
                             </div>
                         </div>
-                        <p class="mt-1 text-xs text-cyan-200">Version: {{ $update->version ?? 'N/A' }} · Source: {{ strtoupper($update->source) }}</p>
+                        <p class="mt-1 text-xs text-cyan-200">Version: {{ $update->version ?? 'N/A' }}</p>
                         @if (!empty($update->summary))
                             <p class="mt-2 text-sm text-slate-300">{{ $update->summary }}</p>
                         @endif

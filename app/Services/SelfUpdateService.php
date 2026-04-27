@@ -11,7 +11,7 @@ class SelfUpdateService
 {
     public function isUpdateInProgress(): bool
     {
-        return Cache::has('self_update.in_progress');
+        return Cache::store('central')->has('self_update.in_progress');
     }
 
     /**
@@ -50,7 +50,7 @@ class SelfUpdateService
 
     public function start(): void
     {
-        Cache::put('self_update.in_progress', true, now()->addHours(2));
+        Cache::store('central')->put('self_update.in_progress', true, now()->addHours(2));
 
         $process = new Process([
             PHP_BINARY,

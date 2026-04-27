@@ -26,6 +26,7 @@ class TenantSettingsController extends Controller
         $tenantUserId = auth()->id();
         $systemUpdates = SystemUpdate::query()
             ->published()
+            ->where('source', 'github')
             ->latest('published_at')
             ->latest('id')
             ->limit(10)

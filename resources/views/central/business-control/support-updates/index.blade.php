@@ -105,7 +105,7 @@
                         @forelse ($updates as $update)
                             <div class="rounded-xl border border-slate-200 bg-white/60 p-4 dark:border-white/10 dark:bg-slate-950/40">
                                 <p class="text-sm font-semibold text-slate-900 dark:text-slate-100">{{ $update->title }}</p>
-                                <p class="mt-1 text-xs text-cyan-200">{{ $update->version ?? 'N/A' }} · {{ strtoupper($update->source) }}</p>
+                                <p class="mt-1 text-xs text-cyan-200">{{ $update->version ?? 'N/A' }}</p>
                                 @if (!empty($update->summary))
                                     <p class="mt-2 text-sm text-slate-700 dark:text-slate-300">{{ $update->summary }}</p>
                                 @endif

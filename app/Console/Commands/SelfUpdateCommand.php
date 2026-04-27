@@ -38,7 +38,7 @@ class SelfUpdateCommand extends Command
         }
 
         try {
-            Cache::put('self_update.in_progress', true, now()->addHours(2));
+            Cache::store('central')->put('self_update.in_progress', true, now()->addHours(2));
 
             $this->runStep(['git', 'fetch', 'origin', 'main'], 'Fetching origin/main...');
             $this->runStep(['git', 'fetch', '--prune', '--tags', 'origin'], 'Fetching origin tags...');
@@ -64,13 +64,15 @@ class SelfUpdateCommand extends Command
                 '--no-interaction',
             ], 'Running migrations...');
 
+
+            $this->tryUpdateLocalAppVersion();
+
             $this->runStep([
                 PHP_BINARY,
                 base_path('artisan'),
                 'optimize:clear',
-            ], 'Clearing caches...');
+            ], 'Clearing caches (final)...');
 
-            $this->tryUpdateLocalAppVersion();
 
             $this->info('Self-update completed successfully.');
 
@@ -80,7 +82,7 @@ class SelfUpdateCommand extends Command
 
             return self::FAILURE;
         } finally {
-            Cache::forget('self_update.in_progress');
+            Cache::store('central')->forget('self_update.in_progress');
             optional($lock)->release();
         }
     }
