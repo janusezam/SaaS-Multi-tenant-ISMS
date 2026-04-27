@@ -459,7 +459,8 @@ test('tenant admin can start a self update', function () {
 
     $this->mock(SelfUpdateService::class, function ($mock): void {
         $mock->shouldReceive('preflightError')->once()->andReturnNull();
-        $mock->shouldReceive('start')->once();
+        $mock->shouldReceive('markInProgress')->once();
+        $mock->shouldReceive('runDetached')->once();
         $mock->shouldReceive('isUpdateInProgress')->andReturnFalse();
     });
 
