@@ -62,10 +62,15 @@ class SelfUpdateService
         $php = PHP_BINARY;
         $artisan = base_path('artisan');
         $base = base_path();
-        $logFile = storage_path('logs/self-update.log');
+        $logFile = base_path('storage/logs/self-update.log');
 
         if (PHP_OS_FAMILY === 'Windows') {
-            $batchFile = storage_path('app/self-update.bat');
+            $batchFile = base_path('storage/app/self-update.bat');
+            $storageDir = dirname($batchFile);
+
+            if (! is_dir($storageDir)) {
+                mkdir($storageDir, 0755, true);
+            }
 
             // Write a batch file that runs the update, logs output, then deletes itself
             file_put_contents($batchFile, implode("\r\n", [
