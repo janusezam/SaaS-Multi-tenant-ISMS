@@ -72,6 +72,8 @@ class SelfUpdateCommand extends Command
                 'optimize:clear',
             ], 'Clearing caches (final)...');
 
+            $this->runStep(['git', 'reset', '--hard'], 'Cleaning up working tree...');
+
             $this->info('Self-update completed successfully.');
 
             return self::SUCCESS;
