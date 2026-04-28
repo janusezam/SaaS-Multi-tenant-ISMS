@@ -30,7 +30,7 @@
                 <h3 class="text-lg font-semibold text-slate-900 dark:text-slate-100">Open Tenant Reports</h3>
                 <p class="mt-1 text-sm text-slate-600 dark:text-slate-300">Issues submitted from tenant settings modules.</p>
 
-                <div class="mt-5 space-y-4">
+                <div class="mt-5 space-y-4 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
                     @forelse ($openTickets as $ticket)
                         <article class="rounded-xl border border-slate-200 bg-white/60 p-4 dark:border-white/10 dark:bg-slate-950/50">
                             <div class="flex flex-wrap items-start justify-between gap-3">
@@ -101,7 +101,7 @@
 
                 <div class="isms-surface rounded-2xl p-6">
                     <h3 class="text-lg font-semibold text-slate-900 dark:text-slate-100">Published Updates</h3>
-                    <div class="mt-4 space-y-3">
+                    <div class="mt-4 space-y-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
                         @forelse ($updates as $update)
                             <div class="rounded-xl border border-slate-200 bg-white/60 p-4 dark:border-white/10 dark:bg-slate-950/40">
                                 <p class="text-sm font-semibold text-slate-900 dark:text-slate-100">{{ $update->title }}</p>

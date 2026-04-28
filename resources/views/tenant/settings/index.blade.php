@@ -369,7 +369,7 @@
                 @endif
             </div>
 
-            <div class="mt-5 space-y-3">
+            <div class="mt-5 space-y-3 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
                 @forelse ($systemUpdates as $update)
                     @php
                         $isRead = in_array($update->id, $readUpdateIds ?? [], true);
