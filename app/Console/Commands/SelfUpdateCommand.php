@@ -41,7 +41,7 @@ class SelfUpdateCommand extends Command
             Cache::store('central')->put('self_update.in_progress', true, now()->addHours(2));
 
             $this->runStep(['git', 'fetch', 'origin', 'main'], 'Fetching origin/main...');
-            $this->runStep(['git', 'fetch', '--prune', '--tags', 'origin'], 'Fetching origin tags...');
+            $this->runStep(['git', 'fetch', '--prune', '--tags', '--force', 'origin'], 'Fetching origin tags...');
             $this->runStep(['git', 'checkout', 'main'], 'Checking out main...');
             $this->runStep(['git', 'pull', '--ff-only', 'origin', 'main'], 'Pulling latest main...');
 
