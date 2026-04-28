@@ -14,7 +14,7 @@ class GitHubLatestReleaseService
      */
     public function latest(): ?array
     {
-        return Cache::store('central')->remember('github.latest_release', now()->addMinutes(10), function (): ?array {
+        return Cache::store('central')->remember('github.latest_release', now()->addSeconds(30), function (): ?array {
             $owner = (string) config('services.github.owner');
             $repo = (string) config('services.github.repo');
             $token = (string) config('services.github.token');
