@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use Illuminate\Support\Facades\Cache;
+use Symfony\Component\Process\PhpExecutableFinder;
 use Symfony\Component\Process\Process;
 
 class SelfUpdateService
@@ -59,7 +60,7 @@ class SelfUpdateService
      */
     public function runDetached(): void
     {
-        $php = PHP_BINARY;
+        $php = (new PhpExecutableFinder())->find() ?: PHP_BINARY;
         $artisan = base_path('artisan');
         $base = base_path();
         $logFile = base_path('storage/logs/self-update.log');
