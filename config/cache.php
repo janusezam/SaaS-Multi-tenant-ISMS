@@ -49,7 +49,7 @@ return [
 
         'central' => [
             'driver' => env('CENTRAL_CACHE_DRIVER', 'database'),
-            'connection' => env('CENTRAL_CACHE_CONNECTION', 'mysql'),
+            'connection' => env('CENTRAL_CACHE_CONNECTION', 'central'),
             'table' => 'cache',
         ],
 
