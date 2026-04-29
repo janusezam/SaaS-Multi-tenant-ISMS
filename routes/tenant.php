@@ -118,13 +118,13 @@ Route::middleware([
             Route::put('rbac', [TenantRbacController::class, 'update'])->name('rbac.update');
         });
 
-        Route::middleware('check.role:university_admin,sports_facilitator')->prefix('/app')->name('tenant.')->group(function () {
+        Route::middleware('check.role:university_admin')->prefix('/app')->name('tenant.')->group(function () {
             Route::resource('sports', SportController::class)->except(['show']);
             Route::resource('teams', TeamController::class)->except(['show']);
             Route::resource('players', PlayerController::class)->except(['show']);
         });
 
-        Route::middleware('check.role:university_admin,sports_facilitator')->prefix('/app')->name('tenant.')->group(function () {
+        Route::middleware('check.role:university_admin')->prefix('/app')->name('tenant.')->group(function () {
             Route::prefix('pro')->name('pro.')->group(function () {
                 Route::get('analytics', [ProFeatureController::class, 'analytics'])->name('analytics');
                 Route::get('bracket', [ProFeatureController::class, 'bracket'])->name('bracket');
@@ -157,10 +157,15 @@ Route::middleware([
             Route::view('schedules', 'tenant.coach.schedules')
                 ->middleware('check.permission:coach.schedules.view')
                 ->name('schedules');
+
             Route::redirect('my-teams', '/app/coach/my-team');
             Route::view('my-team', 'tenant.coach.my-team')
                 ->middleware('check.permission:coach.team.view')
                 ->name('my-team');
+
+            Route::post('announcements', [CoachTeamController::class, 'storeAnnouncement'])
+                ->middleware('check.permission:coach.announcements.manage')
+                ->name('announcements.store');
 
             Route::post('games/{game}/lineup', [CoachTeamController::class, 'updateLineup'])
                 ->middleware('check.permission:coach.lineup.manage')

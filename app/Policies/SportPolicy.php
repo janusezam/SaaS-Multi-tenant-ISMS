@@ -9,7 +9,7 @@ class SportPolicy
 {
     public function viewAny(User $user): bool
     {
-        return in_array($user->role, ['university_admin', 'sports_facilitator'], true);
+        return $user->role === 'university_admin';
     }
 
     public function view(User $user, Sport $sport): bool

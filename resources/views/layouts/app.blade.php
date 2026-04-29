@@ -245,6 +245,22 @@
                             </header>
                         @endisset
 
+                        @if (session('error'))
+                            <div class="max-w-7xl mx-auto px-4 pt-4 sm:px-6 lg:px-8">
+                                <div class="rounded-xl border border-rose-300/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-100">
+                                    {{ session('error') }}
+                                </div>
+                            </div>
+                        @endif
+
+                        @if (session('status'))
+                            <div class="max-w-7xl mx-auto px-4 pt-4 sm:px-6 lg:px-8">
+                                <div class="rounded-xl border border-emerald-300/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-100">
+                                    {{ session('status') }}
+                                </div>
+                            </div>
+                        @endif
+
                         @if (session('upgrade_notice'))
                             <div class="max-w-7xl mx-auto px-4 pt-4 sm:px-6 lg:px-8">
                                 <div class="rounded-xl border border-amber-300/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">

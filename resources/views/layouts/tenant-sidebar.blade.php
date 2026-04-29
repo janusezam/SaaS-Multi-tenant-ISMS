@@ -29,7 +29,7 @@
             <a href="{{ route('tenant.users.index') }}" class="block rounded-lg px-3 py-2 {{ request()->routeIs('tenant.users.*') ? 'bg-cyan-500/20 text-cyan-100 border border-cyan-300/30' : 'isms-sidebar-link hover:bg-white/5 border border-transparent' }}">Users</a>
         @endif
 
-        @if ($isUniversityAdmin || $isFacilitator)
+        @if ($isUniversityAdmin)
             <a href="{{ route('tenant.sports.index') }}" class="block rounded-lg px-3 py-2 {{ request()->routeIs('tenant.sports.*') ? 'bg-cyan-500/20 text-cyan-100 border border-cyan-300/30' : 'isms-sidebar-link hover:bg-white/5 border border-transparent' }}">Sports</a>
 
             <a href="{{ route('tenant.teams.index') }}" class="block rounded-lg px-3 py-2 {{ request()->routeIs('tenant.teams.*') ? 'bg-cyan-500/20 text-cyan-100 border border-cyan-300/30' : 'isms-sidebar-link hover:bg-white/5 border border-transparent' }}">Teams</a>

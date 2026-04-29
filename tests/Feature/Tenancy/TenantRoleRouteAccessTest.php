@@ -22,6 +22,12 @@ test('sports facilitator can open dashboard but cannot access admin only modules
 
     $adminOnlyResponse = $this->actingAs($user)->get(route('tenant.users.index'));
     $adminOnlyResponse->assertForbidden();
+
+    $this->actingAs($user)->get(route('tenant.sports.index'))->assertForbidden();
+    $this->actingAs($user)->get(route('tenant.teams.index'))->assertForbidden();
+    $this->actingAs($user)->get(route('tenant.players.index'))->assertForbidden();
+    $this->actingAs($user)->get(route('tenant.pro.analytics'))->assertForbidden();
+    $this->actingAs($user)->get(route('tenant.pro.bracket'))->assertForbidden();
 });
 
 test('team coach can access coach pages and not facilitator audits page', function () {
@@ -80,12 +86,12 @@ test('student player can access my schedule and not coach pages', function () {
 
 });
 
-test('university admin cannot access coach and player scoped routes', function () {
+test('university admin can access coach and player scoped routes due to global admin bypass', function () {
     $user = User::factory()->create(['role' => 'university_admin']);
 
     $coachRouteResponse = $this->actingAs($user)->get(route('tenant.coach.schedules'));
-    $coachRouteResponse->assertForbidden();
+    $coachRouteResponse->assertOk();
 
     $playerRouteResponse = $this->actingAs($user)->get(route('tenant.player.my-schedule'));
-    $playerRouteResponse->assertForbidden();
+    $playerRouteResponse->assertOk();
 });
