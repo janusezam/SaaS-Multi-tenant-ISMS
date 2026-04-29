@@ -502,7 +502,7 @@ class ProFeatureController extends Controller
             $home = $match->home_team_id;
             $away = $match->away_team_id;
 
-            if (($home !== null && $away === null) || ($home === null && $away !== null)) {
+            if (($home !== null && $away === null && $match->away_slot_label === 'BYE') || ($home === null && $away !== null && $match->home_slot_label === 'BYE')) {
                 $winner = $home ?? $away;
 
                 if ($winner !== null) {
@@ -548,7 +548,7 @@ class ProFeatureController extends Controller
         $home = $nextMatch->home_team_id;
         $away = $nextMatch->away_team_id;
 
-        if (($home !== null && $away === null) || ($home === null && $away !== null)) {
+        if (($home !== null && $away === null && $nextMatch->away_slot_label === 'BYE') || ($home === null && $away !== null && $nextMatch->home_slot_label === 'BYE')) {
             $nextMatch->update([
                 'winner_team_id' => $home ?? $away,
             ]);
