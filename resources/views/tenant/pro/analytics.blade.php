@@ -120,48 +120,150 @@
 
     <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div class="relative overflow-hidden rounded-2xl space-y-4">
-            <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-7 {{ $isLocked ? 'pointer-events-none select-none blur-[1px]' : '' }}">
-                <div class="rounded-2xl border border-white/10 bg-slate-900/85 p-5">
-                    <p class="text-xs uppercase tracking-[0.2em] text-slate-400">Sports</p>
-                    <p class="mt-2 text-3xl font-semibold text-cyan-200">{{ $totalSports }}</p>
-                </div>
-                <div class="rounded-2xl border border-white/10 bg-slate-900/85 p-5">
-                    <p class="text-xs uppercase tracking-[0.2em] text-slate-400">Teams</p>
-                    <p class="mt-2 text-3xl font-semibold text-cyan-200">{{ $totalTeams }}</p>
-                </div>
-                <div class="rounded-2xl border border-white/10 bg-slate-900/85 p-5">
-                    <p class="text-xs uppercase tracking-[0.2em] text-slate-400">Games</p>
-                    <p class="mt-2 text-3xl font-semibold text-cyan-200">{{ $totalGames }}</p>
-                </div>
-                <div class="rounded-2xl border border-white/10 bg-slate-900/85 p-5">
-                    <p class="text-xs uppercase tracking-[0.2em] text-slate-400">Completed</p>
-                    <p class="mt-2 text-3xl font-semibold text-cyan-200">{{ $completedGames }}</p>
-                </div>
-
-                <div class="rounded-2xl border border-white/10 bg-slate-900/85 p-5">
-                    <p class="text-xs uppercase tracking-[0.2em] text-slate-400">Win Rate</p>
-                    <p class="mt-2 text-3xl font-semibold text-cyan-200">{{ number_format($winRate, 1) }}%</p>
-                </div>
-
-                <div class="rounded-2xl border border-white/10 bg-slate-900/85 p-5">
-                    <p class="text-xs uppercase tracking-[0.2em] text-slate-400">Most Active Sport</p>
-                    <p class="mt-2 text-lg font-semibold text-cyan-200">{{ $mostActiveSport }}</p>
-                    <p class="mt-1 text-xs text-slate-400">{{ $mostActiveSportCount }} games</p>
-                </div>
-
-                <div class="rounded-2xl border border-white/10 bg-slate-900/85 p-5">
-                    <p class="text-xs uppercase tracking-[0.2em] text-slate-400">Top Scoring Team</p>
-                    <p class="mt-2 text-lg font-semibold text-cyan-200">{{ $topScoringTeam?->name ?? 'N/A' }}</p>
-                    <p class="mt-1 text-xs text-slate-400">{{ $topScoringPoints }} total points</p>
-                </div>
-
-                <div class="rounded-2xl border border-white/10 bg-slate-900/85 p-5 md:col-span-2 xl:col-span-7">
-                    <div class="flex items-center justify-between gap-3">
-                        <p class="text-xs uppercase tracking-[0.2em] text-slate-400">Match Completion Rate</p>
-                        <p class="text-sm font-semibold text-emerald-200">{{ number_format($completionRate, 1) }}%</p>
+            <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 {{ $isLocked ? 'pointer-events-none select-none blur-[1px]' : '' }}">
+                {{-- Sports Card --}}
+                <div class="group relative overflow-hidden rounded-2xl border border-white/10 bg-slate-900/85 p-5 transition-all hover:scale-[1.02] hover:border-cyan-500/30 hover:shadow-lg hover:shadow-cyan-900/10">
+                    <div class="absolute -right-2 -top-2 opacity-5 transition-transform group-hover:scale-110">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-20 w-20 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
                     </div>
-                    <div class="mt-3 h-3 overflow-hidden rounded-full bg-slate-950/70">
-                        <div class="h-full rounded-full bg-emerald-500/70" style="width: {{ number_format($completionRate, 2, '.', '') }}%"></div>
+                    <div class="flex items-center justify-between">
+                        <p class="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">Sports</p>
+                        <div class="rounded-lg bg-cyan-500/10 p-1.5 text-cyan-400">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                            </svg>
+                        </div>
+                    </div>
+                    <p class="mt-3 text-3xl font-bold text-slate-100">{{ $totalSports }}</p>
+                </div>
+
+                {{-- Teams Card --}}
+                <div class="group relative overflow-hidden rounded-2xl border border-white/10 bg-slate-900/85 p-5 transition-all hover:scale-[1.02] hover:border-cyan-500/30 hover:shadow-lg hover:shadow-cyan-900/10">
+                    <div class="absolute -right-2 -top-2 opacity-5 transition-transform group-hover:scale-110">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-20 w-20 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <p class="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">Teams</p>
+                        <div class="rounded-lg bg-cyan-500/10 p-1.5 text-cyan-400">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                            </svg>
+                        </div>
+                    </div>
+                    <p class="mt-3 text-3xl font-bold text-slate-100">{{ $totalTeams }}</p>
+                </div>
+
+                {{-- Games Card --}}
+                <div class="group relative overflow-hidden rounded-2xl border border-white/10 bg-slate-900/85 p-5 transition-all hover:scale-[1.02] hover:border-cyan-500/30 hover:shadow-lg hover:shadow-cyan-900/10">
+                    <div class="absolute -right-2 -top-2 opacity-5 transition-transform group-hover:scale-110">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-20 w-20 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <p class="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">Games</p>
+                        <div class="rounded-lg bg-cyan-500/10 p-1.5 text-cyan-400">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                        </div>
+                    </div>
+                    <p class="mt-3 text-3xl font-bold text-slate-100">{{ $totalGames }}</p>
+                </div>
+
+                {{-- Completed Card --}}
+                <div class="group relative overflow-hidden rounded-2xl border border-white/10 bg-slate-900/85 p-5 transition-all hover:scale-[1.02] hover:border-emerald-500/30 hover:shadow-lg hover:shadow-emerald-900/10">
+                    <div class="absolute -right-2 -top-2 opacity-5 transition-transform group-hover:scale-110">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-20 w-20 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <p class="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">Completed</p>
+                        <div class="rounded-lg bg-emerald-500/10 p-1.5 text-emerald-400">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                        </div>
+                    </div>
+                    <p class="mt-3 text-3xl font-bold text-slate-100">{{ $completedGames }}</p>
+                </div>
+
+                {{-- Win Rate Card --}}
+                <div class="group relative overflow-hidden rounded-2xl border border-white/10 bg-slate-900/85 p-5 transition-all hover:scale-[1.02] hover:border-amber-500/30 hover:shadow-lg hover:shadow-amber-900/10">
+                    <div class="absolute -right-2 -top-2 opacity-5 transition-transform group-hover:scale-110">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-20 w-20 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                        </svg>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <p class="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">Win Rate</p>
+                        <div class="rounded-lg bg-amber-500/10 p-1.5 text-amber-400">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                            </svg>
+                        </div>
+                    </div>
+                    <p class="mt-3 text-3xl font-bold text-slate-100">{{ number_format($winRate, 1) }}%</p>
+                </div>
+
+                {{-- Most Active Sport Card --}}
+                <div class="group relative overflow-hidden rounded-2xl border border-white/10 bg-slate-900/85 p-5 transition-all hover:scale-[1.02] hover:border-indigo-500/30 hover:shadow-lg hover:shadow-indigo-900/10">
+                    <div class="absolute -right-2 -top-2 opacity-5 transition-transform group-hover:scale-110">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-20 w-20 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.99 7.99 0 0120 13a7.989 7.989 0 01-2.343 5.657z" />
+                        </svg>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <p class="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">Most Active Sport</p>
+                        <div class="rounded-lg bg-indigo-500/10 p-1.5 text-indigo-400">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.99 7.99 0 0120 13a7.989 7.989 0 01-2.343 5.657z" />
+                            </svg>
+                        </div>
+                    </div>
+                    <p class="mt-3 text-lg font-bold text-slate-100 truncate">{{ $mostActiveSport }}</p>
+                    <p class="mt-1 text-[10px] font-medium text-slate-400 uppercase tracking-widest">{{ $mostActiveSportCount }} games</p>
+                </div>
+
+                {{-- Top Scoring Team Card --}}
+                <div class="group relative overflow-hidden rounded-2xl border border-white/10 bg-slate-900/85 p-5 transition-all hover:scale-[1.02] hover:border-violet-500/30 hover:shadow-lg hover:shadow-violet-900/10">
+                    <div class="absolute -right-2 -top-2 opacity-5 transition-transform group-hover:scale-110">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-20 w-20 text-violet-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.921-.755 1.688-1.54 1.118l-3.976-2.888a1 1 0 00-1.175 0l-3.976 2.888c-.784.57-1.838-.197-1.539-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                        </svg>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <p class="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">Top Scoring Team</p>
+                        <div class="rounded-lg bg-violet-500/10 p-1.5 text-violet-400">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                            </svg>
+                        </div>
+                    </div>
+                    <p class="mt-3 text-lg font-bold text-slate-100 truncate">{{ $topScoringTeam?->name ?? 'N/A' }}</p>
+                    <p class="mt-1 text-[10px] font-medium text-slate-400 uppercase tracking-widest">{{ $topScoringPoints }} pts total</p>
+                </div>
+
+                {{-- Match Completion Rate Card --}}
+                <div class="group relative overflow-hidden rounded-2xl border border-white/10 bg-slate-900/85 p-6 md:col-span-2 xl:col-span-7 transition-all hover:border-emerald-500/20">
+                    <div class="flex items-center justify-between gap-3">
+                        <div class="flex items-center gap-3">
+                            <div class="rounded-lg bg-emerald-500/10 p-1.5 text-emerald-400">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                                </svg>
+                            </div>
+                            <p class="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">Match Completion Rate</p>
+                        </div>
+                        <p class="text-sm font-black text-emerald-400">{{ number_format($completionRate, 1) }}%</p>
+                    </div>
+                    <div class="mt-4 h-2.5 overflow-hidden rounded-full bg-slate-950/70 shadow-inner">
+                        <div class="h-full rounded-full bg-gradient-to-r from-emerald-600 to-emerald-400 transition-all duration-1000 ease-out shadow-[0_0_12px_rgba(16,185,129,0.4)]" style="width: {{ number_format($completionRate, 2, '.', '') }}%"></div>
                     </div>
                 </div>
 

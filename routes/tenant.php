@@ -153,13 +153,13 @@ Route::middleware([
         });
 
         Route::middleware('check.role:team_coach')->prefix('/app/coach')->name('tenant.coach.')->group(function () {
-            Route::redirect('shedules', '/app/coach/schedules');
-            Route::view('schedules', 'tenant.coach.schedules')
+            Route::redirect('schedules', '/app/coach/schedules');
+            Route::get('schedules', [\App\Http\Controllers\Tenant\CoachModuleController::class, 'schedules'])
                 ->middleware('check.permission:coach.schedules.view')
                 ->name('schedules');
 
             Route::redirect('my-teams', '/app/coach/my-team');
-            Route::view('my-team', 'tenant.coach.my-team')
+            Route::get('my-team', [\App\Http\Controllers\Tenant\CoachModuleController::class, 'myTeam'])
                 ->middleware('check.permission:coach.team.view')
                 ->name('my-team');
 
@@ -174,8 +174,7 @@ Route::middleware([
 
         Route::middleware('check.role:student_player')->prefix('/app/player')->name('tenant.player.')->group(function () {
             Route::redirect('my-schedules', '/app/player/my-schedule');
-            Route::redirect('my-shedule', '/app/player/my-schedule');
-            Route::view('my-schedule', 'tenant.player.my-schedule')
+            Route::get('my-schedule', [\App\Http\Controllers\Tenant\PlayerModuleController::class, 'mySchedule'])
                 ->middleware('check.permission:player.schedule.view')
                 ->name('my-schedule');
 
