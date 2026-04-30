@@ -7,6 +7,7 @@ use App\Http\Controllers\Tenant\CoachTeamController;
 use App\Http\Controllers\Tenant\DashboardController;
 use App\Http\Controllers\Tenant\ForcePasswordController;
 use App\Http\Controllers\Tenant\GameController;
+use App\Http\Controllers\Tenant\ModuleController;
 use App\Http\Controllers\Tenant\PlayerController;
 use App\Http\Controllers\Tenant\PlayerEngagementController;
 use App\Http\Controllers\Tenant\ProFeatureController;
@@ -122,6 +123,7 @@ Route::middleware([
             Route::resource('sports', SportController::class);
             Route::resource('teams', TeamController::class);
             Route::resource('players', PlayerController::class)->except(['show']);
+            Route::resource('modules', ModuleController::class);
         });
 
         Route::middleware('check.role:university_admin,sports_facilitator')->prefix('/app')->name('tenant.')->group(function () {
