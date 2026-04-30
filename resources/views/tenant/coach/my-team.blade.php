@@ -68,62 +68,74 @@
             </div>
         @endif
 
-        <div class="rounded-2xl border border-cyan-300/25 bg-slate-900/85 p-6 text-slate-200 shadow-xl backdrop-blur-md relative overflow-hidden">
-            <div class="absolute top-0 right-0 p-6 opacity-[0.03]">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-32 w-32" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                </svg>
-            </div>
+        @if ($myTeam)
+            <div class="rounded-2xl border border-cyan-300/25 bg-slate-900/85 p-6 text-slate-200 shadow-xl backdrop-blur-md relative overflow-hidden">
+                <div class="absolute top-0 right-0 p-6 opacity-[0.03]">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-32 w-32" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                </div>
 
-            <div class="flex flex-wrap items-center justify-between gap-6">
-                <div class="flex items-center gap-5">
-                    <div class="h-20 w-20 rounded-2xl border-2 border-cyan-500/30 bg-slate-800 overflow-hidden shadow-lg p-1">
-                        <div class="h-full w-full rounded-xl overflow-hidden bg-slate-900">
-                            @php $tLogo = $teamLogoUrl($myTeam->logo_path); @endphp
-                            @if ($tLogo)
-                                <img src="{{ $tLogo }}" alt="{{ $myTeam->name }}" class="h-full w-full object-cover" />
+                <div class="flex flex-wrap items-center justify-between gap-6">
+                    <div class="flex items-center gap-5">
+                        <div class="h-20 w-20 rounded-2xl border-2 border-cyan-500/30 bg-slate-800 overflow-hidden shadow-lg p-1">
+                            <div class="h-full w-full rounded-xl overflow-hidden bg-slate-900">
+                                @php $tLogo = $teamLogoUrl($myTeam->logo_path); @endphp
+                                @if ($tLogo)
+                                    <img src="{{ $tLogo }}" alt="{{ $myTeam->name }}" class="h-full w-full object-cover" />
+                                @else
+                                    <div class="flex h-full w-full items-center justify-center text-2xl font-black text-slate-700">
+                                        {{ strtoupper(substr($myTeam->name, 0, 1)) }}
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                        <div>
+                            <h2 class="text-2xl font-black text-slate-100 tracking-tight">{{ $myTeam->name }}</h2>
+                            <div class="mt-1 flex items-center gap-3">
+                                <span class="inline-flex items-center gap-1.5 text-xs font-bold text-cyan-400 uppercase tracking-widest">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                    </svg>
+                                    {{ $myTeam->sport?->name ?? 'General Sport' }}
+                                </span>
+                                <span class="h-1 w-1 rounded-full bg-slate-700"></span>
+                                <span class="inline-flex items-center gap-1.5 text-xs font-bold text-slate-400 uppercase tracking-widest">
+                                    {{ $myTeam->division ?? 'No Division' }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-3">
+                        <div class="text-right hidden sm:block">
+                            <p class="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">Team Coach</p>
+                            <p class="text-sm font-bold text-slate-200">{{ auth()->user()->name }}</p>
+                        </div>
+                        <div class="h-10 w-10 rounded-full border border-white/10 bg-slate-800 overflow-hidden">
+                            @php $pPhoto = $profilePhotoUrl(auth()->user()->profile_photo_path); @endphp
+                            @if ($pPhoto)
+                                <img src="{{ $pPhoto }}" class="h-full w-full object-cover" />
                             @else
-                                <div class="flex h-full w-full items-center justify-center text-2xl font-black text-slate-700">
-                                    {{ strtoupper(substr($myTeam->name, 0, 1)) }}
+                                <div class="flex h-full w-full items-center justify-center bg-cyan-500/20 text-xs font-bold text-cyan-400">
+                                    {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
                                 </div>
                             @endif
                         </div>
                     </div>
-                    <div>
-                        <h2 class="text-2xl font-black text-slate-100 tracking-tight">{{ $myTeam->name }}</h2>
-                        <div class="mt-1 flex items-center gap-3">
-                            <span class="inline-flex items-center gap-1.5 text-xs font-bold text-cyan-400 uppercase tracking-widest">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                                </svg>
-                                {{ $myTeam->sport?->name ?? 'General Sport' }}
-                            </span>
-                            <span class="h-1 w-1 rounded-full bg-slate-700"></span>
-                            <span class="inline-flex items-center gap-1.5 text-xs font-bold text-slate-400 uppercase tracking-widest">
-                                {{ $myTeam->division ?? 'No Division' }}
-                            </span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="flex items-center gap-3">
-                    <div class="text-right hidden sm:block">
-                        <p class="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">Team Coach</p>
-                        <p class="text-sm font-bold text-slate-200">{{ auth()->user()->name }}</p>
-                    </div>
-                    <div class="h-10 w-10 rounded-full border border-white/10 bg-slate-800 overflow-hidden">
-                        @php $pPhoto = $profilePhotoUrl(auth()->user()->profile_photo_path); @endphp
-                        @if ($pPhoto)
-                            <img src="{{ $pPhoto }}" class="h-full w-full object-cover" />
-                        @else
-                            <div class="flex h-full w-full items-center justify-center bg-cyan-500/20 text-xs font-bold text-cyan-400">
-                                {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
-                            </div>
-                        @endif
-                    </div>
                 </div>
             </div>
-        </div>
+        @else
+            <div class="rounded-2xl border border-amber-300/25 bg-slate-900/85 p-12 text-center shadow-xl backdrop-blur-md">
+                <div class="mx-auto w-16 h-16 rounded-2xl bg-amber-500/10 flex items-center justify-center text-amber-400 mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                </div>
+                <h3 class="text-xl font-bold text-slate-100">No Team Assigned</h3>
+                <p class="text-slate-400 mt-2 max-w-md mx-auto">You have not been linked to a specific team roster yet. Please contact your administrator to be assigned to a team.</p>
+            </div>
+        @endif
 
         <div class="rounded-2xl border border-white/10 bg-slate-900/85 p-2 shadow-lg">
             <nav class="flex flex-wrap gap-2" role="tablist" aria-label="My team sections">
