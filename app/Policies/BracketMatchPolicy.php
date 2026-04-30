@@ -9,7 +9,7 @@ class BracketMatchPolicy
 {
     public function viewAny(User $user): bool
     {
-        return $user->role === 'university_admin';
+        return in_array($user->role, ['university_admin', 'sports_facilitator'], true);
     }
 
     public function view(User $user, BracketMatch $bracketMatch): bool

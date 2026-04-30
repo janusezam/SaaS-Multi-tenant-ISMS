@@ -43,7 +43,9 @@
             <a href="{{ route('tenant.teams.index') }}" class="block rounded-lg px-3 py-2 {{ request()->routeIs('tenant.teams.*') ? 'bg-cyan-500/20 text-cyan-100 border border-cyan-300/30' : 'isms-sidebar-link hover:bg-white/5 border border-transparent' }}">Teams</a>
 
             <a href="{{ route('tenant.players.index') }}" class="block rounded-lg px-3 py-2 {{ request()->routeIs('tenant.players.*') ? 'bg-cyan-500/20 text-cyan-100 border border-cyan-300/30' : 'isms-sidebar-link hover:bg-white/5 border border-transparent' }}">Players</a>
+        @endif
 
+        @if ($isUniversityAdmin || $isFacilitator)
             @if (! $tenantHasAnalytics)
                 <div class="flex items-center justify-between rounded-lg border border-transparent px-3 py-2 isms-sidebar-link hover:bg-white/5">
                     <a href="{{ route('tenant.pro.analytics') }}" class="flex-1">Analytics</a>

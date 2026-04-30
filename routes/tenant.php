@@ -124,7 +124,7 @@ Route::middleware([
             Route::resource('players', PlayerController::class)->except(['show']);
         });
 
-        Route::middleware('check.role:university_admin')->prefix('/app')->name('tenant.')->group(function () {
+        Route::middleware('check.role:university_admin,sports_facilitator')->prefix('/app')->name('tenant.')->group(function () {
             Route::prefix('pro')->name('pro.')->group(function () {
                 Route::get('analytics', [ProFeatureController::class, 'analytics'])->name('analytics');
                 Route::get('bracket', [ProFeatureController::class, 'bracket'])->name('bracket');
