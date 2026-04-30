@@ -66,6 +66,17 @@ class SportController extends Controller
     /**
      * Display the specified resource.
      */
+    public function show(Sport $sport): View
+    {
+        return view('tenant.sports.show', [
+            'sport' => $sport,
+            'teams' => $sport->teams()->latest()->get(),
+        ]);
+    }
+
+    /**
+     * Display the specified resource.
+     */
     public function edit(Sport $sport): View
     {
         return view('tenant.sports.edit', [

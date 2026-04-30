@@ -88,6 +88,17 @@ class TeamController extends Controller
     /**
      * Display the specified resource.
      */
+    public function show(Team $team): View
+    {
+        return view('tenant.teams.show', [
+            'team' => $team,
+            'players' => $team->players()->orderBy('last_name')->orderBy('first_name')->get(),
+        ]);
+    }
+
+    /**
+     * Display the specified resource.
+     */
     public function edit(Team $team): View
     {
         $selectedCoachUserId = User::query()

@@ -119,8 +119,8 @@ Route::middleware([
         });
 
         Route::middleware('check.role:university_admin')->prefix('/app')->name('tenant.')->group(function () {
-            Route::resource('sports', SportController::class)->except(['show']);
-            Route::resource('teams', TeamController::class)->except(['show']);
+            Route::resource('sports', SportController::class);
+            Route::resource('teams', TeamController::class);
             Route::resource('players', PlayerController::class)->except(['show']);
         });
 

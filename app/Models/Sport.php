@@ -20,4 +20,8 @@ class Sport extends Model
             'is_active' => 'boolean',
         ];
     }
+    public function teams(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Team::class);
+    }
 }

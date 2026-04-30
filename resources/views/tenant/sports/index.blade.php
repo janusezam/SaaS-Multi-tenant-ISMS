@@ -44,6 +44,7 @@
                     <div class="space-y-4 p-4">
                         <p class="line-clamp-2 text-sm text-slate-300">{{ $sport->description ?: 'No description yet for this sport.' }}</p>
                         <div class="flex gap-2">
+                            <a href="{{ route('tenant.sports.show', $sport) }}" class="rounded-md border border-cyan-300/40 bg-cyan-500/20 px-3 py-1.5 text-xs text-cyan-100 hover:bg-cyan-500/30">View</a>
                             <a href="{{ route('tenant.sports.edit', $sport) }}" class="rounded-md border border-slate-300/40 bg-slate-500/20 px-3 py-1.5 text-xs text-slate-100 hover:bg-slate-500/30">Edit</a>
                             <form method="POST" action="{{ route('tenant.sports.destroy', $sport) }}" onsubmit="return confirm('Delete this sport?');">
                                 @csrf

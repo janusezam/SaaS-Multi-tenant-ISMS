@@ -96,6 +96,7 @@
                             </td>
                             <td class="px-4 py-3">
                                 <div class="flex gap-2">
+                                    <a href="{{ route('tenant.teams.show', $team) }}" class="rounded-md border border-cyan-300/40 bg-cyan-500/20 px-3 py-1 text-xs text-cyan-100 hover:bg-cyan-500/30">View</a>
                                     <a href="{{ route('tenant.teams.edit', $team) }}" class="rounded-md border border-slate-300/40 bg-slate-500/20 px-3 py-1 text-xs text-slate-100 hover:bg-slate-500/30">Edit</a>
                                     <form method="POST" action="{{ route('tenant.teams.destroy', $team) }}" onsubmit="return confirm('Delete this team?');">
                                         @csrf
